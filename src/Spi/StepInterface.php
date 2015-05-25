@@ -3,7 +3,7 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Spi\WorkflowContextInterface;
+namespace OldTown\Workflow\Spi;
 
 use DateTime;
 

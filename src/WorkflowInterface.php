@@ -11,7 +11,7 @@ use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\InvalidRoleException;
 use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
-use OldTown\Workflow\Spi\WorkflowContextInterface\StepInterface;
+use OldTown\Workflow\Spi\StepInterface;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 

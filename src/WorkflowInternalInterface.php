@@ -15,7 +15,7 @@ use OldTown\Workflow\Loader\WorkflowDescriptor;
  *
  * @package OldTown\Workflow
  */
-interface WorkflowInternalInterface
+interface WorkflowInternalInterface extends WorkflowInterface
 {
     /**
      * Get the available actions for the specified workflow instance.
