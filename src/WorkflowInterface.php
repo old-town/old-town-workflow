@@ -1,0 +1,207 @@
+<?php
+/**
+ * @link https://github.com/old-town/old-town-workflow
+ * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
+ */
+namespace OldTown\Workflow;
+
+use OldTown\Workflow\Exception\InvalidActionException;
+use OldTown\Workflow\Exception\InvalidEntryStateException;
+use OldTown\Workflow\Exception\InvalidInputException;
+use OldTown\Workflow\Exception\InvalidRoleException;
+use OldTown\Workflow\Exception\WorkflowException;
+use OldTown\Workflow\Query\WorkflowExpressionQuery;
+use OldTown\Workflow\Spi\WorkflowContextInterface\StepInterface;
+use OldTown\PropertySet\PropertySetInterface;
+use OldTown\Workflow\Loader\WorkflowDescriptor;
+
+/**
+ * Interface WorkflowInterface
+ *
+ * @package OldTown\Workflow
+ */
+interface WorkflowInterface
+{
+    /**
+     *
+     * @var string
+     */
+    const BSF_COL = 'col';
+
+    /**
+     *
+     * @var string
+     */
+    const BSF_LANGUAGE = 'language';
+
+    /**
+     *
+     * @var string
+     */
+    const BSF_ROW = 'row';
+
+    /**
+     *
+     * @var string
+     */
+    const BSF_SCRIPT = 'script';
+
+    /**
+     *
+     * @var string
+     */
+    const BSF_SOURCE = 'source';
+
+    /**
+     *
+     * @var string
+     */
+    const BSH_SCRIPT = 'script';
+
+
+    /**
+     *
+     * @var string
+     */
+    const CLASS_NAME = 'class.name';
+
+    /**
+     *
+     * @var string
+     */
+    const EJB_LOCATION = 'ejb.location';
+
+    /**
+     *
+     * @var string
+     */
+    const JNDI_LOCATION = 'jndi.location';
+
+    /**
+     * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
+     *
+     * @param integer $id id экземпляра workflow
+     * @return []
+     */
+    public function getCurrentSteps($id);
+
+    /**
+     * Возвращает состояние для текущего экземпляра workflow
+     *
+     * @param integer $id id экземпляра workflow
+     * @return integer id текущего состояния
+     */
+    public function getEntryState($id);
+
+    /**
+     * Returns a list of all steps that are completed for the given workflow instance id.
+     *
+     * @param integer $id The workflow instance id.
+     * @return StepInterface[] a List of Steps
+     */
+    public function getHistorySteps($id);
+
+    /**
+     * Get the PropertySet for the specified workflow instance id.
+     * @param integer $id The workflow instance id.
+     * @return PropertySetInterface
+     */
+    public function getPropertySet($id);
+
+    /**
+     * Get a collection (Strings) of currently defined permissions for the specified workflow instance.
+     * @param integer $id id the workflow instance id.
+     * @param array $inputs inputs The inputs to the workflow instance.
+     * @return [] A List of permissions specified currently (a permission is a string name).
+     */
+    public function getSecurityPermissions($id, array $inputs = []);
+
+    /**
+     * Get the workflow descriptor for the specified workflow name.
+     *
+     * @param string $workflowName The workflow name.
+     * @return WorkflowDescriptor
+     */
+    public function getWorkflowDescriptor($workflowName);
+
+    /**
+     * Get the name of the specified workflow instance.
+     *
+     * @param integer $id the workflow instance id.
+     * @return string
+     */
+    public function getWorkflowName($id);
+
+    /**
+     * Check if the calling user has enough permissions to initialise the specified workflow.
+     * @param string $workflowName The name of the workflow to check.
+     * @param integer $initialStep The id of the initial state to check.
+     * @return Boolean true if the user can successfully call initialize, false otherwise.
+     */
+    public function canInitialize($workflowName, $initialStep);
+
+    /**
+     * Check if the state of the specified workflow instance can be changed to the new specified one.
+     * @param integer $id The workflow instance id.
+     * @param integer $newState The new state id.
+     * @return boolean true if the state of the workflow can be modified, false otherwise.
+     */
+    public function canModifyEntryState($id, $newState);
+
+    /**
+     * Modify the state of the specified workflow instance.
+     * @param integer $id The workflow instance id.
+     * @param integer $newState the new state to change the workflow instance to.
+     * @throws WorkflowException
+     * If the new state is {@link com.opensymphony.workflow.spi.WorkflowEntry.KILLED}
+     * or {@link com.opensymphony.workflow.spi.WorkflowEntry.COMPLETED}
+     * then all current steps are moved to history steps. If the new state is
+     */
+    public function changeEntryState($id, $newState);
+
+    /**
+     * Perform an action on the specified workflow instance.
+     * @param integer $id The workflow instance id.
+     * @param integer $actionId The action id to perform (action id's are listed in the workflow descriptor).
+     * @param array $inputs The inputs to the workflow instance.
+     * @throws InvalidInputException if a validator is specified and an input is invalid.
+     * @throws WorkflowException if the action is invalid for the specified workflow
+     * instance's current state.
+     */
+    public function doAction($id, $actionId, array $inputs = []);
+
+    /**
+     * Executes a special trigger-function using the context of the given workflow instance id.
+     * Note that this method is exposed for Quartz trigger jobs, user code should never call it.
+     * @param integer $id The workflow instance id
+     * @param integer $triggerId The id of the speciail trigger-function
+     * @thrown WorkflowException
+     */
+    public function executeTriggerFunction($id, $triggerId);
+
+    /**
+     * Initializes a workflow so that it can begin processing. A workflow must be initialized before it can
+     * begin any sort of activity. It can only be initialized once.
+     *
+     * @param string $workflowName The workflow name to create and initialize an instance for
+     * @param integer $initialAction The initial step to start the workflow
+     * @param array $inputs The inputs entered by the end-user
+     * @return integer
+     * @throws InvalidRoleException if the user can't start this function
+     * @throws InvalidInputException if a validator is specified and an input is invalid.
+     * @throws WorkflowException
+     * @throws InvalidEntryStateException
+     * @throws InvalidActionException if the specified initial action is invalid for the specified workflow.
+     */
+    public function initialize($workflowName, $initialAction, array $inputs = []);
+
+
+    /**
+     * Query the workflow store for matching instances
+     *
+     * @param WorkflowExpressionQuery $query
+     * @throws WorkflowException
+     * @return array
+     */
+    public function query(WorkflowExpressionQuery $query);
+}

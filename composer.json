@@ -1,0 +1,29 @@
+{
+  "name": "old-town/workflow",
+  "description": "Workflow Module",
+  "type": "library",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "workflow",
+    "library"
+  ],
+  "homepage": "https://github.com/old-town/old-town-workflow",
+  "support": {
+    "email": "and-rey2@yandex.ru"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@github.com:old-town/old-town-propertyset.git"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.23",
+    "old-town/propertyset": "dev-dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "OldTown\\Workflow\\": "src/"
+    }
+  }
+}
