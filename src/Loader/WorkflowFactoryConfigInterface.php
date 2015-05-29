@@ -6,11 +6,11 @@
 namespace OldTown\Workflow\Loader;
 
 /**
- * Interface WorkflowDescriptor
+ * Interface WorkflowFactoryConfigInterface
  *
  * @package OldTown\Workflow\Loader
  */
-class WorkflowDescriptor
+interface  WorkflowFactoryConfigInterface
 {
-
+    const CACHE = 'cache';
 }

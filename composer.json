@@ -18,8 +18,10 @@
     }
   ],
   "require": {
-    "php": ">=5.3.23",
-    "old-town/propertyset": "dev-dev"
+    "php": ">=5.5",
+    "old-town/propertyset": "dev-dev",
+    "zendframework/zend-diactoros": "1.0.1",
+    "psr/http-message": "~1.0"
   },
   "autoload": {
     "psr-4": {
