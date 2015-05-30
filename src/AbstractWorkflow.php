@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow;
+
 use OldTown\Log\LogFactory;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Config\ConfigurationInterface;
@@ -94,7 +95,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     {
         $config = null !== $this->configuration ? $this->configuration : DefaultConfiguration::getInstance();
 
-        if ($config->isInitialized()) {
+        if (!$config->isInitialized()) {
             try {
                 $config->load(null);
             } catch (FactoryException $e) {

@@ -4,15 +4,14 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Util;
-
 use OldTown\PropertySet\PropertySetInterface;
 
 /**
- * Interface VariableResolverInterface
+ * Class DefaultVariableResolver
  *
  * @package OldTown\Workflow\Util
  */
-interface  VariableResolverInterface
+class  DefaultVariableResolver implements VariableResolverInterface
 {
     /**
      *
@@ -22,5 +21,8 @@ interface  VariableResolverInterface
      *
      * @return object
      */
-    public function translateVariables($s, array $transientVars = [], PropertySetInterface $ps);
+    public function translateVariables($s, array $transientVars = [], PropertySetInterface $ps)
+    {
+
+    }
 }

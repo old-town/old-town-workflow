@@ -20,6 +20,7 @@ class  BasicWorkflow extends AbstractWorkflow
     public function __construct($caller)
     {
         $this->context = new BasicWorkflowContext($caller);
+        parent::__construct();
     }
 
 }
