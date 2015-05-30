@@ -21,6 +21,7 @@
   "require": {
     "php": ">=5.3",
     "old-town/propertyset": "dev-dev",
+    "old-town/log": "dev-dev",
     "zendframework/zend-diactoros": "1.0.1",
     "psr/http-message": "1.0",
     "psr/log": "1.0.0"
