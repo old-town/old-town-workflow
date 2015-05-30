@@ -16,6 +16,10 @@
     {
       "type": "vcs",
       "url": "git@github.com:old-town/old-town-propertyset.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@github.com:old-town/old-town-log.git"
     }
   ],
   "require": {
