@@ -180,20 +180,20 @@ interface WorkflowInterface
     public function executeTriggerFunction($id, $triggerId);
 
     /**
-     * Initializes a workflow so that it can begin processing. A workflow must be initialized before it can
-     * begin any sort of activity. It can only be initialized once.
+     * Инициализация workflow. Workflow нужно иницаилизровать прежде, чем выполнять какие либо действия.
+     * Workflow может быть инициализированно только один раз
      *
-     * @param string $workflowName The workflow name to create and initialize an instance for
-     * @param integer $initialAction The initial step to start the workflow
-     * @param array $inputs The inputs entered by the end-user
+     * @param string $workflowName Имя workflow
+     * @param integer $initialAction Имя первого шага, с которого начинается workflow
+     * @param array $inputs Данные введеные пользователем
      * @return integer
-     * @throws InvalidRoleException if the user can't start this function
-     * @throws InvalidInputException if a validator is specified and an input is invalid.
+     * @throws InvalidRoleException
+     * @throws InvalidInputException
      * @throws WorkflowException
      * @throws InvalidEntryStateException
-     * @throws InvalidActionException if the specified initial action is invalid for the specified workflow.
+     * @throws InvalidActionException
      */
-    public function initialize($workflowName, $initialAction, array $inputs = []);
+    public function initialize($workflowName, $initialAction, array $inputs = null);
 
 
     /**
