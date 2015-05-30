@@ -9,6 +9,7 @@ use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Util\VariableResolverInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use OldTown\Workflow\Exception\StoreException;
+use Psr\Http\Message\UriInterface;
 
 
 /**
@@ -101,11 +102,20 @@ class  DefaultConfiguration implements ConfigurationInterface
     /**
      * Загружает указанный файл конфигурации
      *
-     * @param string $url
+     * @param UriInterface|null $url
      * @return void
      * @throws FactoryException
      */
-    public function load($url)
+    public function load(UriInterface $url = null)
+    {
+        $is = $this->getInputStream($url);
+    }
+
+
+    /**
+     * @param UriInterface $url
+     */
+    protected function getInputStream(UriInterface $url)
     {
 
     }

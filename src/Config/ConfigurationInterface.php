@@ -10,6 +10,7 @@ use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use OldTown\Workflow\Util\VariableResolverInterface;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Interface ConfigurationInterface
@@ -81,11 +82,11 @@ interface ConfigurationInterface
     /**
      * Загружает указанный файл конфигурации
      *
-     * @param string $url
+     * @param UriInterface|null $url
      * @return void
      * @throws FactoryException
      */
-    public function load($url);
+    public function load(UriInterface $url = null);
 
     /**
      * Удаляет workflow

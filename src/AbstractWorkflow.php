@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow;
+use OldTown\Log\LogFactory;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Config\ConfigurationInterface;
 use OldTown\Workflow\Config\DefaultConfiguration;
@@ -16,6 +17,7 @@ use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class AbstractWorkflow
@@ -45,6 +47,20 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     private $typeResolver;
 
+    /**
+     * Логер
+     *
+     * @var LoggerInterface
+     */
+    protected $log;
+
+    /**
+     *
+     */
+    public function __construct()
+    {
+        $this->log = LogFactory::getLog();
+    }
 
 
     /**
@@ -82,7 +98,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             try {
                 $config->load(null);
             } catch (FactoryException $e) {
-
+                $this->getLog()->critical('Ошибка при иницилазации конфигурации workflow', ['exception' => $e]);
                 return null;
             }
         }
@@ -90,7 +106,27 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         return $config;
     }
 
+    /**
+     * @return LoggerInterface
+     */
+    public function getLog()
+    {
+        return $this->log;
+    }
 
+    /**
+     * @param LoggerInterface $log
+     *
+     * @return $this
+     */
+    public function setLog($log)
+    {
+        LogFactory::validLogger($log);
+
+        $this->log = $log;
+
+        return $this;
+    }
 
 ########################################################################################################################
 #Методы заглушки, при портирование заменять на реализацию ##############################################################
