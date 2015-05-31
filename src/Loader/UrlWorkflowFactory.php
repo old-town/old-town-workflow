@@ -138,7 +138,7 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function getWorkflowNames()
     {
-
+        throw new FactoryException('URLWorkflowFactory не содержит имена workflow');
     }
 
 
@@ -162,7 +162,7 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function removeWorkflow($name)
     {
-
+        throw new FactoryException('Удаление workflow не поддерживается');
     }
 
     /**
@@ -195,11 +195,11 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace)
     {
-
+        //@fixme Организовать созранение workflow в UrlWorkflowFactory
     }
 
     /**
-     *
+     * @param $uri
      * @return UriInterface
      */
     protected function uriFactory($uri)

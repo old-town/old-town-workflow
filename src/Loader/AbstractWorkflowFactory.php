@@ -21,11 +21,14 @@ abstract class AbstractWorkflowFactory implements WorkflowFactoryInterface, Work
     protected $properties;
 
     /**
-     *
+     * @param Properties $p
      */
-    public function __construct()
+    public function __construct(Properties $p = null)
     {
-        $this->properties = new Properties();
+        if (null === $p) {
+            $p = new Properties();
+        }
+        $this->properties = $p;
     }
 
     /**

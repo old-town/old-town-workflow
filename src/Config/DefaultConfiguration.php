@@ -6,7 +6,10 @@
 namespace OldTown\Workflow\Config;
 
 use OldTown\Workflow\Exception\FactoryException;
+use OldTown\Workflow\Loader\UrlWorkflowFactory;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
+use OldTown\Workflow\Loader\WorkflowFactoryInterface;
+use OldTown\Workflow\Util\Properties\Properties;
 use OldTown\Workflow\Util\VariableResolverInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use OldTown\Workflow\Exception\StoreException;
@@ -41,11 +44,6 @@ class  DefaultConfiguration implements ConfigurationInterface
     protected static $configFileName = 'osworkflow.xml';
 
     /**
-     * @var array
-     */
-    private $cache = [];
-
-    /**
      * Флаг определяющий было ли иницилизированно workflow
      *
      * @var bool
@@ -72,11 +70,24 @@ class  DefaultConfiguration implements ConfigurationInterface
     private $persistenceArgs = [];
 
     /**
+     * @var WorkflowFactoryInterface
+     */
+    private $factory;
+
+    /**
+     * Хранилище состояния workflow
+     *
+     * @var WorkflowStoreInterface
+     */
+    private $store;
+
+    /**
      *
      */
     public function __construct()
     {
         $this->variableResolver = new DefaultVariableResolver();
+        $this->factory = new UrlWorkflowFactory();
         $this->initDefaultPathsToConfig();
     }
 
@@ -231,10 +242,31 @@ class  DefaultConfiguration implements ConfigurationInterface
                         throw new FactoryException($errMsg);
                     }
 
-                    $factoryClassName = $factoryElementAttributes['class'];
+                    $factoryClassName = (string)$factoryElementAttributes['class'];
+
+                    /** @var WorkflowFactoryInterface $factory */
                     $factory = new $factoryClassName();
 
+                    if (!$factory instanceof WorkflowFactoryInterface) {
+                        $errMsg = 'Фабрика должна реализовывать интерфейся WorkflowFactoryInterface';
+                        throw new FactoryException($errMsg);
+                    }
 
+                    $properties = new Properties();
+                    $props = $factoryElement->xpath('property');
+
+                    foreach ($props as $e) {
+                        if (isset($e['key']) && $e['value']) {
+                            $key = (string)$e['key'];
+                            $value = (string)$e['value'];
+                            $properties->setProperty($key, $value);
+                        }
+                    }
+
+                    $factory->init($properties);
+                    $factory->initDone();
+
+                    $this->factory = $factory;
 
                 } catch (FactoryException $e) {
                     throw $e;
@@ -347,66 +379,6 @@ class  DefaultConfiguration implements ConfigurationInterface
         return $this->variableResolver;
     }
 
-########################################################################################################################
-#Методы заглушки, при портирование заменять на реализацию ##############################################################
-########################################################################################################################
-
-
-
-
-    /**
-     * Возвращает имя класса описвающего хранилидище, в котором сохраняется workflow
-     *
-     * @return string
-     */
-    public function getPersistence()
-    {
-
-    }
-
-    /**
-     * Получить аргументы хранилища
-     *
-     * @return array
-     */
-    public function getPersistenceArgs()
-    {
-
-    }
-
-
-    /**
-     * Возвращает имя дескриптора workflow
-     *
-     * @param string $name имя workflow
-     * @throws FactoryException
-     * @return WorkflowDescriptor
-     */
-    public function  getWorkflow($name)
-    {
-
-    }
-
-    /**
-     * Получает список имен всех доступных workflow
-     * @throws FactoryException
-     * @return String[]
-     */
-    public function  getWorkflowNames()
-    {
-
-    }
-
-    /**
-     * Получает хранилище Workflow
-     *
-     * @return WorkflowStoreInterface
-     * @throws StoreException
-     */
-    public function getWorkflowStore()
-    {
-
-    }
 
     /**
      * Удаляет workflow
@@ -417,7 +389,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      */
     public function removeWorkflow($workflow)
     {
-
+        $this->getFactory()->removeWorkflow($workflow);
     }
 
     /**
@@ -430,6 +402,91 @@ class  DefaultConfiguration implements ConfigurationInterface
      */
     public function  saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false)
     {
-
+        $this->getFactory()->saveWorkflow($name, $descriptor, $replace);
     }
+
+    /**
+     * @return WorkflowFactoryInterface
+     */
+    public function getFactory()
+    {
+        return $this->factory;
+    }
+
+    /**
+     * Возвращает имя класса описвающего хранилидище, в котором сохраняется workflow
+     *
+     * @return string
+     */
+    public function getPersistence()
+    {
+        return $this->persistenceClass;
+    }
+
+    /**
+     * Получить аргументы хранилища
+     *
+     * @return array
+     */
+    public function getPersistenceArgs()
+    {
+        return $this->persistenceArgs;
+    }
+
+
+    /**
+     * Возвращает имя дескриптора workflow
+     *
+     * @param string $name имя workflow
+     * @throws FactoryException
+     * @return WorkflowDescriptor
+     */
+    public function  getWorkflow($name)
+    {
+        $workflow = $this->getFactory()->getWorkflow($name);
+
+        if (!$workflow instanceof WorkflowDescriptor) {
+            throw new FactoryException('Unknown workflow name');
+        }
+
+        return $workflow;
+    }
+
+    /**
+     * Получает список имен всех доступных workflow
+     * @throws FactoryException
+     * @return String[]
+     */
+    public function  getWorkflowNames()
+    {
+        $names = $this->getFactory()->getWorkflowNames();
+
+        return $names;
+    }
+
+    /**
+     * Получает хранилище Workflow
+     *
+     * @return WorkflowStoreInterface
+     * @throws StoreException
+     */
+    public function getWorkflowStore()
+    {
+        if ($this->store) {
+            $class = $this->getPersistence();
+
+            $store = new $class();
+            if (!$store instanceof WorkflowStoreInterface) {
+                throw new FactoryException('Ошибка при создание хранилища');
+            }
+
+            $storeArgs = $this->getPersistenceArgs();
+            $store->init($storeArgs);
+
+            $this->store = $store;
+        }
+
+        return $this->store;
+    }
+
 }
