@@ -12,5 +12,35 @@ namespace OldTown\Workflow\Loader;
  */
 class WorkflowDescriptor
 {
+    /**
+     * Имя workflow
+     *
+     * @var string|null
+     */
+    protected $workflowName;
+
+    /**
+     * Возвращает имя workflow
+     *
+     * @return null|string
+     */
+    public function getName()
+    {
+        return $this->workflowName;
+    }
+
+    /**
+     * Устанавливает имя workflow
+     *
+     * @param string $workflowName
+     *
+     * @return $this
+     */
+    public function setName($workflowName)
+    {
+        $this->workflowName = (string)$workflowName;
+
+        return $this;
+    }
 
 }

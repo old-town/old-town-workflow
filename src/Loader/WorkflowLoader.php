@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use Psr\Http\Message\UriInterface;
 
 /**
  * Class WorkflowLoader
@@ -15,10 +14,11 @@ use Psr\Http\Message\UriInterface;
 class WorkflowLoader
 {
     /**
-     * @param UriInterface $resource
+     * @param      $resource
+     * @param bool $validate
      * @return WorkflowDescriptor
      */
-    public static function load($resource)
+    public static function load($resource, $validate = true)
     {
 
     }
