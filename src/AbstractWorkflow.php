@@ -10,6 +10,7 @@ use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Config\ConfigurationInterface;
 use OldTown\Workflow\Config\DefaultConfiguration;
 use OldTown\Workflow\Exception\FactoryException;
+use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidActionException;
 use OldTown\Workflow\Exception\InvalidEntryStateException;
 use OldTown\Workflow\Exception\InvalidInputException;
@@ -80,7 +81,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
-        $wf = $this->getConfiguration()->getWorkflow('example');
+        $wf = $this->getConfiguration()->getWorkflow($workflowName);
     }
 
     /**
@@ -99,8 +100,9 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             try {
                 $config->load(null);
             } catch (FactoryException $e) {
-                $this->getLog()->critical('Ошибка при иницилазации конфигурации workflow', ['exception' => $e]);
-                return null;
+                $errMsg = 'Ошибка при иницилазации конфигурации workflow';
+                $this->getLog()->critical($errMsg, ['exception' => $e]);
+                throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
             }
         }
 

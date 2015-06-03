@@ -160,10 +160,14 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     public function getWorkflow($name, $validate = true)
     {
         $name = (string)$name;
+        if (!array_key_exists($name, $this->workflows)) {
+            $errMsg = "Нет workflow с именем {$name}";
+            throw new FactoryException($errMsg);
+        }
         $c = $this->workflows[$name];
 
         if (!$c instanceof WorkflowConfig) {
-            $errMsg = "Нет workflow с именем {$name}";
+            $errMsg = "Некорректный конфиг workflow  с именем";
             throw new FactoryException($errMsg);
         }
 

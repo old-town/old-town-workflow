@@ -4,13 +4,16 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Loader;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+
+use DOMNode;
 
 /**
  * Interface WorkflowDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class WorkflowDescriptor
+class WorkflowDescriptor extends AbstractDescriptor
 {
     /**
      * Имя workflow
@@ -18,6 +21,14 @@ class WorkflowDescriptor
      * @var string|null
      */
     protected $workflowName;
+
+    /**
+     * @param $root
+     */
+    public function __construct(DOMNode $root)
+    {
+        $this->init($root);
+    }
 
     /**
      * Возвращает имя workflow
@@ -43,4 +54,22 @@ class WorkflowDescriptor
         return $this;
     }
 
+    /**
+     * Валидация workflow
+     *
+     * @throws InvalidWorkflowDescriptorException
+     * @return void
+     */
+    public function validate()
+    {
+
+    }
+
+    /**
+     * @param DOMNode $root
+     */
+    protected function init(DOMNode $root)
+    {
+        die(get_class($root));
+    }
 }
