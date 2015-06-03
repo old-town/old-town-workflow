@@ -5,7 +5,7 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use DOMNode;
+use DOMElement;
 
 /**
  * Class DescriptorFactory
@@ -39,15 +39,58 @@ class DescriptorFactory
     }
 
     /**
-     * @param DOMNode $root
+     * @param DOMElement $root
      *
      * @return WorkflowDescriptor
      */
-    public function createWorkflowDescriptor(DOMNode $root)
+    public function createWorkflowDescriptor(DOMElement $root)
     {
-        $workflowDescriptor = new WorkflowDescriptor($root);
+        $descriptor = new WorkflowDescriptor($root);
 
-        return $workflowDescriptor;
+        return $descriptor;
+    }
+
+
+    /**
+     * @param DOMElement $register
+     *
+     * @return RegisterDescriptor
+     */
+    public function createRegisterDescriptor(DOMElement $register = null)
+    {
+        $descriptor = new RegisterDescriptor($register);
+
+        return $descriptor;
+    }
+
+    /**
+     * @param DOMElement $element
+     *
+     * @return ConditionsDescriptor
+     */
+    public function  createConditionsDescriptor(DOMElement $element = null)
+    {
+        return new ConditionsDescriptor($element);
+    }
+
+    /**
+     * @param DOMElement $element
+     *
+     * @return ConditionsDescriptor
+     */
+    public function  createConditionDescriptor(DOMElement $element = null)
+    {
+        return new ConditionDescriptor($element);
+    }
+
+    /**
+     * @param DOMElement $element
+     *
+     * @return ConditionsDescriptor
+     */
+    public function createActionDescriptor(DOMElement $element = null)
+    {
+        return new ConditionDescriptor($element);
     }
 
 }

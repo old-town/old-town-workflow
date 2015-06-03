@@ -4,8 +4,9 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Loader;
-use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 
+use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
+use DOMElement;
 
 /**
  * Class WorkflowLoader
@@ -43,6 +44,7 @@ class WorkflowLoader
                 }
             }
 
+            /** @var DOMElement $root */
             $root = $xmlDoc->getElementsByTagName('workflow')->item(0);
 
             $descriptor = DescriptorFactory::getFactory()->createWorkflowDescriptor($root);
