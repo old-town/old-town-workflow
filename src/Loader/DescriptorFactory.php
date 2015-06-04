@@ -90,7 +90,38 @@ class DescriptorFactory
      */
     public function createActionDescriptor(DOMElement $element = null)
     {
-        return new ConditionDescriptor($element);
+        return new ActionDescriptor($element);
     }
 
+    /**
+     * @param DOMElement $element
+     *
+     * @return ValidatorDescriptor
+     */
+    public function createValidatorDescriptor(DOMElement $element = null)
+    {
+        return new ValidatorDescriptor($element);
+    }
+
+    /**
+     * @param DOMElement $element
+     *
+     * @return FunctionDescriptor
+     */
+    public function createFunctionDescriptor(DOMElement $element = null)
+    {
+        return new FunctionDescriptor($element);
+    }
+
+    //createResultDescriptor
+
+    /**
+     * @param DOMElement $element
+     *
+     * @return FunctionDescriptor
+     */
+    public function createResultDescriptor(DOMElement $element = null)
+    {
+        return new ResultDescriptor($element);
+    }
 }
