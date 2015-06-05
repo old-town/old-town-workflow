@@ -5,10 +5,13 @@
  */
 namespace OldTown\Workflow\Loader;
 
+use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 
 use DOMElement;
+use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
+use OldTown\Workflow\Loader\Traits;
 
 
 /**
@@ -24,9 +27,9 @@ class WorkflowDescriptor extends AbstractDescriptor
     protected $globalConditions;
 
     /**
-     * @var array
+     * @var ActionDescriptor[]|SplObjectStorage
      */
-    protected $globalActions = [];
+    protected $globalActions;
 
     /**
      * @var SplObjectStorage|ActionDescriptor[]
@@ -34,9 +37,9 @@ class WorkflowDescriptor extends AbstractDescriptor
     protected $initialActions;
 
     /**
-     * @var array
+     * @var JoinDescriptor[]|SplObjectStorage
      */
-    protected $joins = [];
+    protected $joins;
 
     /**
      * @var SplObjectStorage
@@ -44,19 +47,24 @@ class WorkflowDescriptor extends AbstractDescriptor
     protected $registers;
 
     /**
-     * @var array
+     * @var SplitDescriptor[]|SplObjectStorage
      */
     protected $splits = [];
 
     /**
-     * @var array
+     * @var StepDescriptor[]|SplObjectStorage
      */
-    protected $steps = [];
+    protected $steps;
 
     /**
-     * @var array
+     * @var ActionDescriptor[]
      */
     protected $commonActions = [];
+
+    /**
+     * @var ActionDescriptor[]|SplObjectStorage
+     */
+    protected $commonActionsList = [];
 
     /**
      * @var array
@@ -82,6 +90,10 @@ class WorkflowDescriptor extends AbstractDescriptor
     {
         $this->registers = new SplObjectStorage();
         $this->initialActions = new SplObjectStorage();
+        $this->globalActions = new SplObjectStorage();
+        $this->steps = new SplObjectStorage();
+        $this->joins = new SplObjectStorage();
+        $this->splits = new SplObjectStorage();
 
         if (null !== $element) {
             $this->init($element);
@@ -162,13 +174,215 @@ class WorkflowDescriptor extends AbstractDescriptor
         }
 
         // handle initial-steps - REQUIRED
-        $intialActionsElement = XMLUtil::getChildElements($root, 'initial-actions');
-        $initialActions = XMLUtil::getChildElement($intialActionsElement, 'action');
+        $initialActionsElement = XMLUtil::getChildElements($root, 'initial-actions');
+        $initialActions = XMLUtil::getChildElement($initialActionsElement, 'action');
 
         foreach ($initialActions as $initialAction) {
             $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($initialAction);
             $actionDescriptor->setParent($this);
             $this->initialActions->attach($actionDescriptor);
         }
+
+
+        // handle global-actions - OPTIONAL
+        $globalActionsElement = XMLUtil::getChildElement($root, 'global-actions');
+
+        if (null !== $globalActionsElement) {
+            $globalActions = XMLUtil::getChildElements($globalActionsElement, 'action');
+
+            foreach ($globalActions as $globalAction) {
+                $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($globalAction);
+                $actionDescriptor->setParent($this);
+                $this->globalActions->attach($actionDescriptor);
+            }
+
+        }
+
+
+        // handle common-actions - OPTIONAL
+        //   - Store actions in HashMap for now. When parsing Steps, we'll resolve
+        //      any common actions into local references.
+        $commonActionsElement = XMLUtil::getChildElement($root, 'common-actions');
+
+        if (null !== $commonActionsElement) {
+            $commonActions = XMLUtil::getChildElements($commonActionsElement, 'action');
+
+            foreach ($commonActions as $commonAction) {
+                $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($commonAction);
+                $actionDescriptor->setParent($this);
+                $this->addCommonAction($actionDescriptor);
+            }
+        }
+
+
+        // handle timer-functions - OPTIONAL
+        $timerFunctionsElement = XMLUtil::getChildElement($root, 'trigger-functions');
+
+        if (null !== $timerFunctionsElement) {
+            $timerFunctions = XMLUtil::getChildElements($timerFunctionsElement, 'trigger-function');
+
+            foreach ($timerFunctions as $timerFunction) {
+                $function = DescriptorFactory::getFactory()->createFunctionDescriptor($timerFunction);
+                $function->setParent($this);
+                $id = $function->getId();
+                $this->timerFunctions[$id] = $function;
+            }
+        }
+
+        // handle steps - REQUIRED
+        $stepsElement = XMLUtil::getChildElement($root, 'steps');
+        $steps = XMLUtil::getChildElements($stepsElement, 'step');
+
+        foreach ($steps as $step) {
+            $stepDescriptor = DescriptorFactory::getFactory()->createStepDescriptor($step, $this);
+            $this->steps->attach($stepDescriptor);
+        }
+
+
+        // handle splits - OPTIONAL:
+        $splitsElement = XMLUtil::getChildElement($root, 'splits');
+        if (null !== $splitsElement) {
+            $split = XMLUtil::getChildElements($splitsElement, 'split');
+            foreach ($split as $s) {
+                $splitDescriptor = DescriptorFactory::getFactory()->createSplitDescriptor($s);
+                $splitDescriptor->setParent($this);
+                $this->splits->attach($splitDescriptor);
+            }
+        }
+
+
+        // handle joins - OPTIONAL:
+        $joinsElement = XMLUtil::getChildElement($root, 'joins');
+        if (null !== $joinsElement) {
+            $join = XMLUtil::getChildElements($joinsElement, 'join');
+            foreach ($join as $s) {
+                $joinDescriptor = DescriptorFactory::getFactory()->createJoinDescriptor($s);
+                $joinDescriptor->setParent($this);
+                $this->joins->attach($joinDescriptor);
+            }
+        }
+
     }
+
+    /**
+     * Добавляет новый переход между действиями
+     *
+     * @param ActionDescriptor $descriptor
+     * @return $this
+     */
+    public function addCommonAction(ActionDescriptor $descriptor)
+    {
+        $descriptor->setCommon(true);
+        $this->addAction($this->commonActions, $descriptor);
+        $this->addAction($this->commonActionsList, $descriptor);
+
+        return $this;
+    }
+
+    /**
+     * @param                  $actionsCollectionOrMap
+     * @param ActionDescriptor $descriptor
+     *
+     * @return $this
+     */
+    private function addAction($actionsCollectionOrMap, ActionDescriptor $descriptor)
+    {
+        $descriptorId = $descriptor->getId();
+        $action = $this->getAction($descriptorId);
+        if (null !== $action) {
+            $errMsg = sprintf('action with id "%s" already exists for this step.', $descriptorId);
+            throw new InvalidArgumentException($errMsg);
+        }
+
+        if ($actionsCollectionOrMap instanceof SplObjectStorage) {
+            $actionsCollectionOrMap->attach($descriptor);
+            return $this;
+        }
+
+        if (is_array($actionsCollectionOrMap)) {
+            $actionsCollectionOrMap[$descriptorId] = $descriptor;
+            return $this;
+        }
+
+        $errMsg = 'Ошибка при добавления перехода workflow';
+        throw new RuntimeException($errMsg);
+    }
+
+    /**
+     * @param integer $id
+     * @return ActionDescriptor|null
+     */
+    public function getAction($id)
+    {
+        $id = (integer)$id;
+
+        foreach ($this->getGlobalActions() as $actionDescriptor) {
+            if ($id === $actionDescriptor->getId()) {
+                return $actionDescriptor;
+            }
+        }
+
+        foreach ($this->getSteps() as $stepDescriptor) {
+            $actionDescriptor = $stepDescriptor->getAction($id);
+            if (null !== $actionDescriptor) {
+                return $actionDescriptor;
+            }
+        }
+
+        foreach ($this->getInitialActions() as $actionDescriptor) {
+            if ($id === $actionDescriptor->getId()) {
+                return $actionDescriptor;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ActionDescriptor[]|SplObjectStorage
+     */
+    public function getGlobalActions()
+    {
+        return $this->globalActions;
+    }
+
+    /**
+     * @return StepDescriptor[]|SplObjectStorage
+     */
+    public function getSteps()
+    {
+        return $this->steps;
+    }
+
+    /**
+     * @return ActionDescriptor[]|SplObjectStorage
+     */
+    public function getInitialActions()
+    {
+        return $this->initialActions;
+    }
+
+    /**
+     * @return ActionDescriptor[]
+     */
+    public function getCommonActions()
+    {
+        return $this->commonActions;
+    }
+
+    /**
+     * @param $id
+     *
+     * @return ActionDescriptor|null
+     */
+    public function getCommonAction($id)
+    {
+        $id = (integer)$id;
+        if (array_key_exists($id, $this->commonActions)) {
+            return $this->commonActions[$id];
+        }
+        return null;
+    }
+
+
 }

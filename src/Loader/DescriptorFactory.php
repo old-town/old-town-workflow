@@ -86,7 +86,7 @@ class DescriptorFactory
     /**
      * @param DOMElement $element
      *
-     * @return ConditionsDescriptor
+     * @return ActionDescriptor
      */
     public function createActionDescriptor(DOMElement $element = null)
     {
@@ -123,5 +123,47 @@ class DescriptorFactory
     public function createResultDescriptor(DOMElement $element = null)
     {
         return new ResultDescriptor($element);
+    }
+
+    /**
+     * @param DOMElement $element
+     *
+     * @return PermissionDescriptor
+     */
+    public function createPermissionDescriptor(DOMElement $element = null)
+    {
+        return new PermissionDescriptor($element);
+    }
+
+    /**
+     * @param DOMElement         $step
+     * @param AbstractDescriptor $parent
+     *
+     * @return StepDescriptor
+     */
+    public function createStepDescriptor(DOMElement $step = null, AbstractDescriptor $parent = null)
+    {
+        return new StepDescriptor($step, $parent);
+    }
+
+
+    /**
+     * @param DOMElement $join
+     *
+     * @return JoinDescriptor
+     */
+    public function createJoinDescriptor(DOMElement $join = null)
+    {
+        return new JoinDescriptor($join);
+    }
+
+    /**
+     * @param DOMElement $split
+     *
+     * @return SplitDescriptor
+     */
+    public function createSplitDescriptor(DOMElement $split = null)
+    {
+        return new SplitDescriptor($split);
     }
 }

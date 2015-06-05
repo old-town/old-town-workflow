@@ -32,6 +32,7 @@ trait IdTrait
     {
         if ($flagRequired || (!$flagRequired && $element->hasAttribute('id'))) {
             $id = XmlUtil::getRequiredAttributeValue($element, 'id');
+
             $this->setId($id);
         }
     }

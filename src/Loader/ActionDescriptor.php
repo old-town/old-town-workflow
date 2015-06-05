@@ -74,11 +74,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
     protected $finish = false;
 
     /**
-     * @var string
-     */
-    protected $name;
-
-    /**
      * @param $element
      */
     public function __construct(DOMElement $element = null)
@@ -319,26 +314,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
     public function getPreFunctions()
     {
         return $this->preFunctions;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return $this
-     */
-    public function setName($name)
-    {
-        $this->name = (string)$name;
-
-        return $this;
     }
 
     /**
