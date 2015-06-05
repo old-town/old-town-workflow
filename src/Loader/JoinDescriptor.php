@@ -35,11 +35,15 @@ class JoinDescriptor extends AbstractDescriptor
     public function __construct(DOMElement $element = null)
     {
         $this->conditions = new SplObjectStorage();
+
+        parent::__construct($element);
+
+
         if (null !== $element) {
             $this->init($element);
         }
 
-        parent::__construct($element);
+
     }
 
     /**

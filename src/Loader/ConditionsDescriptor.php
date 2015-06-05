@@ -36,11 +36,13 @@ class ConditionsDescriptor extends AbstractDescriptor
     {
         $this->conditions = new SplObjectStorage();
 
+        parent::__construct($element);
+
         if (null !== $element) {
             $this->init($element);
         }
 
-        parent::__construct($element);
+
     }
 
     /**

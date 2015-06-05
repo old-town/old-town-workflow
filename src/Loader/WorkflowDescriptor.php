@@ -95,11 +95,13 @@ class WorkflowDescriptor extends AbstractDescriptor
         $this->joins = new SplObjectStorage();
         $this->splits = new SplObjectStorage();
 
+        parent::__construct($element);
+
         if (null !== $element) {
             $this->init($element);
         }
 
-        parent::__construct($element);
+
     }
 
     /**
@@ -174,7 +176,7 @@ class WorkflowDescriptor extends AbstractDescriptor
         }
 
         // handle initial-steps - REQUIRED
-        $initialActionsElement = XMLUtil::getChildElements($root, 'initial-actions');
+        $initialActionsElement = XMLUtil::getChildElement($root, 'initial-actions');
         $initialActions = XMLUtil::getChildElement($initialActionsElement, 'action');
 
         foreach ($initialActions as $initialAction) {

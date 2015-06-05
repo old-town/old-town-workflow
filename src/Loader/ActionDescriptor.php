@@ -82,11 +82,14 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
         $this->preFunctions = new SplObjectStorage();
         $this->conditionalResults = new SplObjectStorage();
         $this->postFunctions = new SplObjectStorage();
+
+        parent::__construct($element);
+
         if (null !== $element) {
             $this->init($element);
         }
 
-        parent::__construct($element);
+
     }
 
     /**

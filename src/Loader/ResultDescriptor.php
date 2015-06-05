@@ -94,11 +94,13 @@ class ResultDescriptor extends AbstractDescriptor
         $this->preFunctions = new SplObjectStorage();
         $this->postFunctions = new SplObjectStorage();
 
+        parent::__construct($element);
+
         if (null !== $element) {
             $this->init($element);
         }
 
-        parent::__construct($element);
+
     }
 
     /**

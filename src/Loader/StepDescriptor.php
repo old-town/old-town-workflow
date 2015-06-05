@@ -62,6 +62,8 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
         $this->postFunctions = new SplObjectStorage();
         $this->actions  = new SplObjectStorage();
 
+        parent::__construct($element);
+
         if (null !== $parent) {
             $this->setParent($parent);
         }
@@ -70,7 +72,7 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
         }
 
 
-        parent::__construct($element);
+
     }
 
     /**

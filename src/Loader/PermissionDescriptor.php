@@ -28,12 +28,13 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
      */
     public function __construct(DOMElement $element = null)
     {
+        parent::__construct($element);
 
         if (null !== $element) {
             $this->init($element);
         }
 
-        parent::__construct($element);
+
     }
 
     /**
