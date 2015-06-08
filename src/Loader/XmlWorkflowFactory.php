@@ -7,11 +7,13 @@ namespace OldTown\Workflow\Loader;
 
 
 use OldTown\Workflow\Exception\FactoryException;
+use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use OldTown\Workflow\Util\Properties\Properties;
 use Serializable;
-use SimpleXMLElement;
 use OldTown\Workflow\Loader\XMLWorkflowFactory\WorkflowConfig;
+use DOMElement;
+use DOMDocument;
 
 /**
  * Class UrlWorkflowFactory
@@ -101,52 +103,50 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
 
         $contentWorkflowFile = $this->getContentWorkflowFile($name);
 
-
         try {
 
-            $xml = new SimpleXMLElement($contentWorkflowFile);
+            libxml_use_internal_errors(true);
 
-            $rootElements = $xml->xpath('/workflows');
+            $xmlDoc = new DOMDocument();
+            $resultLoadXml = $xmlDoc->loadXML($contentWorkflowFile);
 
-            if (1 !== count($rootElements)) {
-                $errMsg = "Нет корректного элемента workflows в файле {$name}";
-                throw new FactoryException($errMsg);
+            if (!$resultLoadXml) {
+                $error = libxml_get_last_error();
+                if ($error instanceof \LibXMLError) {
+                    $errMsg = "Error in workflow xml.\n";
+                    $errMsg .= "Message: {$error->message}.\n";
+                    $errMsg .= "File: {$error->file}.\n";
+                    $errMsg .= "Line: {$error->line}.\n";
+                    $errMsg .= "Column: {$error->column}.";
+
+                    throw new InvalidParsingWorkflowException($errMsg);
+                }
             }
-            $root = $rootElements[0];
+
+            /** @var DOMElement $root */
+            $root = $xmlDoc->getElementsByTagName('workflows')->item(0);
+
             $this->workflows = [];
 
             $basedir = $this->getBaseDir($root);
 
-            $list = $root->xpath('workflow');
+            $list = XmlUtil::getChildElements($root, 'workflow');
+
 
             foreach ($list as $e) {
-                $eAttribute = $e->attributes();
-                if (!isset($eAttribute['type'])) {
-                    $errMsg = 'У workflow отсутствует атрибут type';
-                    throw new FactoryException($errMsg);
-                }
-                $type = (string)$eAttribute['type'];
-
-                if (!isset($eAttribute['location'])) {
-                    $errMsg = 'У workflow отсутствует атрибут location';
-                    throw new FactoryException($errMsg);
-                }
-                $location = (string)$eAttribute['location'];
-
+                $type = XmlUtil::getRequiredAttributeValue($e, 'type');
+                $location = XmlUtil::getRequiredAttributeValue($e, 'location');
                 $config = new WorkflowConfig($basedir, $type, $location);
-
-                if (!isset($eAttribute['name'])) {
-                    $errMsg = 'У workflow отсутствует атрибут name';
-                    throw new FactoryException($errMsg);
-                }
-                $name = (string)$eAttribute['name'];
-
+                $name = XmlUtil::getRequiredAttributeValue($e, 'name');
                 $this->workflows[$name] = $config;
 
             }
-        } catch (\Exception $e) {
-            throw new InvalidWorkflowDescriptorException('Ошибка в конфигурации workflow', $e->getCode(), $e);
+
+        } catch (\Exception $e ) {
+            $errMsg = 'Ошибка в конфигурации workflow';
+            throw new InvalidParsingWorkflowException($errMsg, $e->getCode(), $e);
         }
+
     }
 
 
@@ -167,7 +167,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         $c = $this->workflows[$name];
 
         if (!$c instanceof WorkflowConfig) {
-            $errMsg = "Некорректный конфиг workflow  с именем";
+            $errMsg = 'Некорректный конфиг workflow  с именем';
             throw new FactoryException($errMsg);
         }
 
@@ -205,18 +205,16 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     /**
      * Возвращает абсолютный путь до директории где находится workflow xml файл
      *
-     * @param SimpleXMLElement $root
+     * @param DOMElement $root
      *
      * @return string
      */
-    protected function getBaseDir(SimpleXMLElement $root)
+    protected function getBaseDir(DOMElement $root)
     {
-        $rootAttributes = $root->attributes();
-
-        if (!isset($rootAttributes['basedir'])) {
+        if (!$root->hasAttribute('basedir')) {
             return null;
         }
-        $basedir = $rootAttributes['basedir'];
+        $basedir = XmlUtil::getRequiredAttributeValue($root, 'basedir');
 
         if (file_exists($basedir)) {
             $absolutePath = realpath($basedir);

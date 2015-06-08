@@ -82,6 +82,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
+
+
     }
 
     /**

@@ -6,16 +6,19 @@
 namespace OldTown\Workflow\Config;
 
 use OldTown\Workflow\Exception\FactoryException;
+use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 use OldTown\Workflow\Loader\UrlWorkflowFactory;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Loader\WorkflowFactoryInterface;
+use OldTown\Workflow\Loader\XmlUtil;
 use OldTown\Workflow\Util\Properties\Properties;
 use OldTown\Workflow\Util\VariableResolverInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use OldTown\Workflow\Exception\StoreException;
 use Psr\Http\Message\UriInterface;
-use SimpleXMLElement;
 use OldTown\Workflow\Util\DefaultVariableResolver;
+use DOMDocument;
+use DOMElement;
 
 /**
  * Interface ConfigurationInterface
@@ -177,73 +180,68 @@ class  DefaultConfiguration implements ConfigurationInterface
 
             $content = $this->getContentConfigFile($url);
 
-            $xml = new SimpleXMLElement($content);
-
-            $rootElements = $xml->xpath('//osworkflow');
-            if (1 !== count($rootElements)) {
-                $errMsg = 'В конфиге не найден элемент osworkflow';
-                throw new FactoryException($errMsg);
-            }
-            $root = (array)$rootElements[0];
-            /** @var SimpleXMLElement $p */
-            $p = array_key_exists('persistence', $root) ? $root['persistence'] : null;
-            /** @var SimpleXMLElement $resolver */
-            $resolver = array_key_exists('resolver', $root) ? $root['resolver'] : null;
-            /** @var SimpleXMLElement $factoryElement */
-            $factoryElement = array_key_exists('factory', $root) ? $root['factory'] : null;
+            libxml_use_internal_errors(true);
 
 
-            if (null !== $resolver) {
-                $resolverElementAttributes = is_object($resolver) ? $resolver->attributes() : [];
-                if (isset($resolverElementAttributes['class'])) {
-                    /** @var SimpleXMLElement $resolverElementAttribute */
-                    $resolverElementAttribute = $resolverElementAttributes['class'];
-                    $variableResolverClassName = (string)$resolverElementAttribute;
+            $xmlDoc = new DOMDocument();
+            $resultLoadXml = $xmlDoc->loadXML($content);
 
-                    $variableResolver = new $variableResolverClassName();
-                    if (!$variableResolver instanceof VariableResolverInterface) {
-                        $errMsg = 'variableResolver должен реализовывать интерфейс VariableResolverInterface';
-                        throw new FactoryException($errMsg);
-                    }
-                    $this->variableResolver = $variableResolver;
+            if (!$resultLoadXml) {
+                $error = libxml_get_last_error();
+                if ($error instanceof \LibXMLError) {
+                    $errMsg = "Error in workflow xml.\n";
+                    $errMsg .= "Message: {$error->message}.\n";
+                    $errMsg .= "File: {$error->file}.\n";
+                    $errMsg .= "Line: {$error->line}.\n";
+                    $errMsg .= "Column: {$error->column}.";
+
+                    throw new InvalidParsingWorkflowException($errMsg);
                 }
             }
+            /** @var DOMElement $root */
+            $root = $xmlDoc->getElementsByTagName('osworkflow')->item(0);
 
-            if (!is_object($p)) {
-                $errMsg = 'В конфигурационном файле остутствует корректный блок persistence';
-                throw new FactoryException($errMsg);
+
+            $p = XmlUtil::getChildElement($root, 'persistence');
+            $resolver = XmlUtil::getChildElement($root, 'resolver');
+            $factoryElement =  XmlUtil::getChildElement($root, 'factory');
+
+
+            if (null !== $resolver && $resolver->hasAttribute('class')) {
+                $resolverClass = XmlUtil::getRequiredAttributeValue($resolver, 'class');
+
+                if (!class_exists($resolverClass)) {
+                    $errMsg = "Для variableResolver указан не существующий класс {$resolverClass}";
+                    throw new FactoryException($errMsg);
+                }
+
+                $variableResolver = new $resolverClass();
+                if (!$variableResolver instanceof VariableResolverInterface) {
+                    $errMsg = 'variableResolver должен реализовывать интерфейс VariableResolverInterface';
+                    throw new FactoryException($errMsg);
+                }
+                $this->variableResolver = $variableResolver;
             }
-            $persistenceElementAttributes = $p->attributes();
 
-            if (!isset($persistenceElementAttributes['class'])) {
-                $errMsg = 'У тега persistence отсутствует атрибут class';
-                throw new FactoryException($errMsg);
-            }
-            $this->persistenceClass = (string)$persistenceElementAttributes['class'];
+            $this->persistenceClass = XmlUtil::getRequiredAttributeValue($p, 'class');
 
-            $args = $p->xpath('property');
+            $args = XmlUtil::getChildElements($p, 'property');
 
             foreach ($args as $arg) {
-                $argAttribute = $arg->attributes();
-
-                if (isset($argAttribute['key']) && $argAttribute['value']) {
-                    $key = (string)$argAttribute['key'];
-                    $value = (string)$argAttribute['value'];
-                    $this->persistenceArgs[$key] = $value;
-                }
+                $key = XmlUtil::getRequiredAttributeValue($arg, 'key');
+                $value = XmlUtil::getRequiredAttributeValue($arg, 'value');
+                $this->persistenceArgs[$key] = $value;
             }
 
             if (null !== $factoryElement) {
                 $class = null;
                 try {
-                    $factoryElementAttributes = $factoryElement->attributes();
-                    if (!isset($factoryElementAttributes['class'])) {
-                        $errMsg = 'Не указан класс фабрики';
+                    $factoryClassName = XmlUtil::getRequiredAttributeValue($factoryElement, 'class');
+
+                    if (!class_exists($factoryClassName)) {
+                        $errMsg = "Для фабрики workflow указан несуществующий класс {$factoryClassName}";
                         throw new FactoryException($errMsg);
                     }
-
-                    $factoryClassName = (string)$factoryElementAttributes['class'];
-
                     /** @var WorkflowFactoryInterface $factory */
                     $factory = new $factoryClassName();
 
@@ -253,14 +251,13 @@ class  DefaultConfiguration implements ConfigurationInterface
                     }
 
                     $properties = new Properties();
-                    $props = $factoryElement->xpath('property');
+                    $props = XmlUtil::getChildElements($factoryElement, 'property');
 
                     foreach ($props as $e) {
-                        if (isset($e['key']) && $e['value']) {
-                            $key = (string)$e['key'];
-                            $value = (string)$e['value'];
-                            $properties->setProperty($key, $value);
-                        }
+                        $key = XmlUtil::getRequiredAttributeValue($e, 'key');
+                        $value = XmlUtil::getRequiredAttributeValue($e, 'value');
+                        $properties->setProperty($key, $value);
+
                     }
 
                     $factory->init($properties);
