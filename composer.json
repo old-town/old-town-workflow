@@ -30,6 +30,9 @@
     "psr/http-message": "1.0",
     "psr/log": "1.0.0"
   },
+  "require-dev": {
+    "phpunit/phpunit": "5.0.x-dev"
+  },
   "autoload": {
     "psr-4": {
       "OldTown\\Workflow\\": "src/"
