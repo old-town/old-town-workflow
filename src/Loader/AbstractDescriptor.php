@@ -38,7 +38,7 @@ abstract class AbstractDescriptor
     /**
      * @param DOMElement $element
      */
-    public function __construct(DOMElement $element)
+    public function __construct(DOMElement $element = null)
     {
 
     }

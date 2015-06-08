@@ -6,6 +6,7 @@
 namespace OldTown\Workflow\Test\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
+use OldTown\Workflow\Loader\FunctionDescriptor;
 
 /**
  * Class FunctionDescriptorTest
@@ -14,10 +15,18 @@ use PHPUnit_Framework_TestCase as TestCase;
  */
 class FunctionDescriptorTest extends TestCase
 {
+    use ProviderXmlDataTrait;
 
-    public function testInit()
+    /**
+     * Создание дескриптора функции без Dom элемента
+     *
+     * @return void
+     */
+    public function testCreateFunctionDescriptorWithoutElement()
     {
+        $descriptor = new FunctionDescriptor();
 
+        static::assertInstanceOf('\OldTown\Workflow\Loader\FunctionDescriptor', $descriptor);
     }
 
 }
