@@ -1,12 +1,11 @@
 <?php
 /**
- * @license   http://opensource.org/licenses/BSD-3-Clause BSD-3-Clause
- * @copyright Copyright (c) 2014 Zend Technologies USA Inc. (http://www.zend.com)
+ * @link https://github.com/old-town/old-town-workflow
+ * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
+namespace OldTown\Workflow\Test;
 
-namespace ZFTest\Rest;
 
-use Zend\Loader\AutoloaderFactory;
 use RuntimeException;
 
 error_reporting(E_ALL | E_STRICT);
@@ -19,44 +18,37 @@ chdir(__DIR__);
  */
 class Bootstrap
 {
-    protected static $serviceManager;
-
+    /**
+     * Настройка тестов
+     */
     public static function init()
     {
         static::initAutoloader();
     }
 
+
+    /**
+     * Инициализация автозагрузчика
+     *
+     * @return void
+     */
     protected static function initAutoloader()
     {
         $vendorPath = static::findParentPath('vendor');
 
         if (is_readable($vendorPath . '/autoload.php')) {
-            $loader = include $vendorPath . '/autoload.php';
+            include $vendorPath . '/autoload.php';
             return;
         }
 
-        $zf2Path = getenv('ZF2_PATH') ?: (defined('ZF2_PATH') ? ZF2_PATH : (is_dir($vendorPath . '/ZF2/library') ? $vendorPath . '/ZF2/library' : false));
-
-        if (!$zf2Path) {
-            throw new RuntimeException('Unable to load ZF2. Run `php composer.phar install` or define a ZF2_PATH environment variable.');
-        }
-
-        if (isset($loader)) {
-            $loader->add('Zend', $zf2Path . '/Zend');
-        } else {
-            include $zf2Path . '/Zend/Loader/AutoloaderFactory.php';
-            AutoloaderFactory::factory(array(
-                'Zend\Loader\StandardAutoloader' => array(
-                    'autoregister_zf' => true,
-                    'namespaces' => array(
-                        'ZF\Rest' => __DIR__ . '/../src/',
-                        __NAMESPACE__ => __DIR__,
-                    ),
-                ),
-            ));
-        }
+        throw new RuntimeException('Unable to load composer autoloader');
     }
 
+    /**
+     * @param $path
+     *
+     * @return bool|string
+     */
     protected static function findParentPath($path)
     {
         $dir = __DIR__;
