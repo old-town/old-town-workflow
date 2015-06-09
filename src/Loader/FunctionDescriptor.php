@@ -6,7 +6,9 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Loader\Traits;
+use DOMDocument;
 
 /**
  * Class ConditionDescriptor
@@ -21,7 +23,7 @@ class FunctionDescriptor extends AbstractDescriptor
     use Traits\ArgsTrait, Traits\TypeTrait, Traits\IdTrait, Traits\NameTrait;
 
     /**
-     * @param $element
+     * @param DOMElement $element
      */
     public function __construct(DOMElement $element = null)
     {
@@ -48,4 +50,34 @@ class FunctionDescriptor extends AbstractDescriptor
         $this->parseArgs($element);
     }
 
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     * @return DOMElement
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('function');
+        $type = $this->getType();
+        if (null === $type) {
+            $errMsg = 'Некорректное значение для атрибута type';
+            throw new InvalidDescriptorException($errMsg);
+        }
+
+        $descriptor->setAttribute('type', $type);
+
+        $id = $this->getId();
+        if (null !== $id) {
+            $descriptor->setAttribute('id', $id);
+        }
+        $name = $this->getName();
+        if (null !== $id) {
+            $descriptor->setAttribute('name', $name);
+        }
+
+
+        return $descriptor;
+    }
 }

@@ -6,7 +6,7 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
-use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
+use OldTown\Workflow\Exception\NotExistsRequiredAttributeException;
 
 /**
  * Interface WorkflowDescriptor
@@ -112,7 +112,10 @@ abstract class XmlUtil
         $attribute = $node->attributes->getNamedItem($attributeName);
         if (!$attribute) {
             $errMsg = "Отсутствует атрибут {$attributeName} у тега {$node->nodeName}";
-            throw new InvalidParsingWorkflowException($errMsg);
+            $exception =  new NotExistsRequiredAttributeException($errMsg);
+            $exception->setRequiredAttributeName($attributeName);
+
+            throw $exception;
         }
 
         $value = $attribute->nodeValue;
