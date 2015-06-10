@@ -1,0 +1,11 @@
+language: php
+
+php:
+  - 5.6
+
+before_script:
+  -composer install
+
+notifications:
+  email:
+  -and-rey2@yandex.ru
