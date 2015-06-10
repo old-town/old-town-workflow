@@ -10,8 +10,6 @@ use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use DOMElement;
 use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
-use OldTown\Workflow\Loader\Traits;
-
 /**
  * Interface WorkflowDescriptor
  *

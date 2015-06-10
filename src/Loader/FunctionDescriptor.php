@@ -7,7 +7,6 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
-use OldTown\Workflow\Loader\Traits;
 use DOMDocument;
 
 /**

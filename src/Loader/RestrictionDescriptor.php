@@ -5,9 +5,7 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use DOMElement;
-use OldTown\Workflow\Loader\Traits;
-use SplObjectStorage;
+use DOMElement; use SplObjectStorage;
 
 /**
  * Class ConditionDescriptor

@@ -7,7 +7,6 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
-use OldTown\Workflow\Loader\Traits;
 use SplObjectStorage;
 
 /**

@@ -6,7 +6,6 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
-use OldTown\Workflow\Loader\Traits;
 use SplObjectStorage;
 
 /**

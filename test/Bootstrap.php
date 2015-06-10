@@ -55,24 +55,24 @@ class Bootstrap
                 include $zf2Path . '/Zend/Loader/AutoloaderFactory.php';
             }
         }
-        AutoloaderFactory::factory(array(
-            StandardAutoloader::class => array(
+        AutoloaderFactory::factory([
+            StandardAutoloader::class => [
                 'autoregister_zf' => true,
-                'namespaces' => array(
+                'namespaces' => [
                     'OldTown\Workflow' => __DIR__ . '/../src/',
                     __NAMESPACE__ => __DIR__
-                )
-            )
-        ));
-        AutoloaderFactory::factory(array(
-            StandardAutoloader::class => array(
+                ]
+            ]
+        ]);
+        AutoloaderFactory::factory([
+            StandardAutoloader::class => [
                 'autoregister_zf' => true,
-                'namespaces' => array(
+                'namespaces' => [
                     'OldTown\Workflow\Test' => __DIR__ . '/../test/',
                     __NAMESPACE__ => __DIR__
-                )
-            )
-        ));
+                ]
+            ]
+        ]);
     }
 
     /**
