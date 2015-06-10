@@ -82,8 +82,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
-
-
     }
 
     /**
@@ -146,7 +144,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getCurrentSteps($id)
     {
-
     }
 
     /**
@@ -157,7 +154,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getEntryState($id)
     {
-
     }
 
     /**
@@ -168,7 +164,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getHistorySteps($id)
     {
-
     }
 
     /**
@@ -178,7 +173,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getPropertySet($id)
     {
-
     }
 
     /**
@@ -189,7 +183,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getSecurityPermissions($id, array $inputs = [])
     {
-
     }
 
     /**
@@ -200,7 +193,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getWorkflowDescriptor($workflowName)
     {
-
     }
 
     /**
@@ -211,7 +203,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getWorkflowName($id)
     {
-
     }
 
     /**
@@ -222,7 +213,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function canInitialize($workflowName, $initialStep)
     {
-
     }
 
     /**
@@ -233,7 +223,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function canModifyEntryState($id, $newState)
     {
-
     }
 
     /**
@@ -247,7 +236,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function changeEntryState($id, $newState)
     {
-
     }
 
     /**
@@ -261,7 +249,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function doAction($id, $actionId, array $inputs = [])
     {
-
     }
 
     /**
@@ -273,7 +260,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function executeTriggerFunction($id, $triggerId)
     {
-
     }
 
     /**
@@ -285,6 +271,5 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function query(WorkflowExpressionQuery $query)
     {
-
     }
 }
