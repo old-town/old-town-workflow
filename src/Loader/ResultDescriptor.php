@@ -9,7 +9,6 @@ use DOMElement;
 use OldTown\Workflow\Loader\Traits;
 use SplObjectStorage;
 
-
 /**
  * Class ConditionDescriptor
  *
@@ -99,8 +98,6 @@ class ResultDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -155,7 +152,6 @@ class ResultDescriptor extends AbstractDescriptor
                 $validatorDescriptor = DescriptorFactory::getFactory()->createValidatorDescriptor($validator);
                 $validatorDescriptor->setParent($this);
                 $this->validators->attach($validatorDescriptor);
-
             }
         }
 
@@ -167,7 +163,6 @@ class ResultDescriptor extends AbstractDescriptor
                 $functionDescriptor = DescriptorFactory::getFactory()->createFunctionDescriptor($preFunction);
                 $functionDescriptor->setParent($this);
                 $this->preFunctions->attach($functionDescriptor);
-
             }
         }
 
@@ -179,7 +174,6 @@ class ResultDescriptor extends AbstractDescriptor
                 $functionDescriptor = DescriptorFactory::getFactory()->createFunctionDescriptor($postFunction);
                 $functionDescriptor->setParent($this);
                 $this->postFunctions->attach($functionDescriptor);
-
             }
         }
     }
@@ -386,5 +380,4 @@ class ResultDescriptor extends AbstractDescriptor
     {
         return $this->postFunctions;
     }
-
 }

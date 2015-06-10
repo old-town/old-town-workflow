@@ -7,7 +7,6 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 
-
 /**
  * Interface WorkflowDescriptor
  *
@@ -15,7 +14,6 @@ use DOMElement;
  */
 class RegisterDescriptor extends AbstractDescriptor
 {
-
     /**
      * Аргументы
      *
@@ -42,13 +40,11 @@ class RegisterDescriptor extends AbstractDescriptor
      */
     public function __construct(DOMElement $element = null)
     {
-
         parent::__construct($element);
 
         if (null !== $element) {
             $this->init($element);
         }
-
     }
 
     /**
@@ -61,7 +57,7 @@ class RegisterDescriptor extends AbstractDescriptor
         $this->type = XmlUtil::getRequiredAttributeValue($register, 'type');
         $this->variableName = XmlUtil::getRequiredAttributeValue($register, 'variable-name');
 
-        if ( $register->hasAttribute('id')) {
+        if ($register->hasAttribute('id')) {
             $id = XmlUtil::getRequiredAttributeValue($register, 'id');
             $this->setId($id);
         }
@@ -72,7 +68,6 @@ class RegisterDescriptor extends AbstractDescriptor
             $name = XmlUtil::getRequiredAttributeValue($arg, 'name');
             $this->args[$name] = $arg->nodeValue;
         }
-
     }
 
     /**

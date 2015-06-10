@@ -122,5 +122,4 @@ abstract class XmlUtil
 
         return $value;
     }
-
 }

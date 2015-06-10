@@ -13,5 +13,4 @@ namespace OldTown\Workflow\Exception;
 class InvalidArgumentException extends \InvalidArgumentException implements
     ExceptionInterface
 {
-
 }

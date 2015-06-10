@@ -16,7 +16,6 @@ use SplObjectStorage;
  */
 class ConditionsDescriptor extends AbstractDescriptor
 {
-
     /**
      * @var ConditionsDescriptor[]|SplObjectStorage
      */
@@ -41,8 +40,6 @@ class ConditionsDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -115,5 +112,4 @@ class ConditionsDescriptor extends AbstractDescriptor
 
         return $this;
     }
-
 }

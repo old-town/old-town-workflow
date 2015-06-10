@@ -36,7 +36,6 @@ class SplitDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
     }
 
     /**
@@ -64,5 +63,4 @@ class SplitDescriptor extends AbstractDescriptor
     {
         return $this->results;
     }
-
 }

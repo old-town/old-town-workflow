@@ -30,8 +30,6 @@ class ValidatorDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -47,5 +45,4 @@ class ValidatorDescriptor extends AbstractDescriptor
 
         $this->parseArgs($element);
     }
-
 }

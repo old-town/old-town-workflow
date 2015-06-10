@@ -12,7 +12,6 @@ namespace OldTown\Workflow\Loader\Traits;
  */
 interface NameInterface
 {
-
     /**
      * Возвращает имя
      *
@@ -28,5 +27,4 @@ interface NameInterface
      * @return $this
      */
     public function setName($name);
-
 }

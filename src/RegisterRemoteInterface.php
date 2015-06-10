@@ -12,5 +12,4 @@ namespace OldTown\Workflow;
  */
 interface RegisterRemoteInterface extends RegisterInterface
 {
-
 }

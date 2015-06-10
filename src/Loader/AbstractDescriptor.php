@@ -40,7 +40,6 @@ abstract class AbstractDescriptor
      */
     public function __construct(DOMElement $element = null)
     {
-
     }
 
     /**
@@ -94,6 +93,4 @@ abstract class AbstractDescriptor
 
         return $this;
     }
-
-
 }

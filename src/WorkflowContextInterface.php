@@ -12,7 +12,6 @@ namespace OldTown\Workflow;
  */
 interface WorkflowContextInterface
 {
-
     /**
      * @return string
      */

@@ -32,8 +32,6 @@ class ConditionalResultDescriptor extends ResultDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -60,5 +58,4 @@ class ConditionalResultDescriptor extends ResultDescriptor
     {
         return $this->conditions;
     }
-
 }

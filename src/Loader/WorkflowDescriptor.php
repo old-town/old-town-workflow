@@ -7,12 +7,10 @@ namespace OldTown\Workflow\Loader;
 
 use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
-
 use DOMElement;
 use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
 use OldTown\Workflow\Loader\Traits;
-
 
 /**
  * Interface WorkflowDescriptor
@@ -100,8 +98,6 @@ class WorkflowDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -136,7 +132,6 @@ class WorkflowDescriptor extends AbstractDescriptor
      */
     public function validate()
     {
-
     }
 
     /**
@@ -146,7 +141,6 @@ class WorkflowDescriptor extends AbstractDescriptor
     {
         $metaElements = XmlUtil::getChildElements($root, 'meta');
         foreach ($metaElements as $meta) {
-
             $value = XmlUtil::getText($meta);
             $name = XmlUtil::getRequiredAttributeValue($meta, 'name');
 
@@ -197,7 +191,6 @@ class WorkflowDescriptor extends AbstractDescriptor
                 $actionDescriptor->setParent($this);
                 $this->globalActions->attach($actionDescriptor);
             }
-
         }
 
 
@@ -263,7 +256,6 @@ class WorkflowDescriptor extends AbstractDescriptor
                 $this->joins->attach($joinDescriptor);
             }
         }
-
     }
 
     /**
@@ -385,6 +377,4 @@ class WorkflowDescriptor extends AbstractDescriptor
         }
         return null;
     }
-
-
 }

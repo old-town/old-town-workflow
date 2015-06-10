@@ -12,5 +12,4 @@ namespace OldTown\Workflow\Exception;
  */
 class InvalidInputException extends RuntimeException
 {
-
 }

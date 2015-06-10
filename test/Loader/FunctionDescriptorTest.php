@@ -3,13 +3,10 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
-
+namespace OldTown\Workflow\test\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\FunctionDescriptor;
-
-
 
 /**
  * Class FunctionDescriptorTest
@@ -140,7 +137,6 @@ class FunctionDescriptorTest extends TestCase
     public function testAttributeFunctionDescriptor($fileName, $xpathPattern, array $attributes = [])
     {
         $this->helperTestAttributeFunctionDescriptor(FunctionDescriptor::class, $fileName, $xpathPattern, $attributes);
-
     }
 
     /**
@@ -179,5 +175,4 @@ class FunctionDescriptorTest extends TestCase
     {
         $this->saveAttributeTest($class, $setter, $getter, $xpathElement, $attributeName, $value);
     }
-
 }

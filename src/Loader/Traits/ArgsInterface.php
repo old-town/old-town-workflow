@@ -38,5 +38,4 @@ interface ArgsInterface
      * @return string
      */
     public function getArg($name, $defaultValue = null);
-
 }

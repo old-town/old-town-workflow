@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Spi;
+
 use OldTown\Workflow\Exception\StoreException;
 use OldTown\PropertySet\PropertySetInterface;
 use DateTime;
@@ -16,8 +17,7 @@ use OldTown\Workflow\Query\WorkflowExpressionQuery;
  */
 interface WorkflowStoreInterface
 {
-
-        /**
+    /**
          * Устанавливает состояние для текущего workflow
          *
          * @param integer $entryId id workflow
@@ -25,7 +25,7 @@ interface WorkflowStoreInterface
          * @return void
          * @throws StoreException
          */
-        public function  setEntryState($entryId, $state);
+        public function setEntryState($entryId, $state);
 
         /**
          * Возвращает PropertySet that связанный с данным экземпляром workflow
@@ -75,7 +75,7 @@ interface WorkflowStoreInterface
          * @throws StoreException
          * @return WorkflowEntryInterface
          */
-        public function  findEntry($entryId);
+        public function findEntry($entryId);
 
         /**
          * Получения истории шагов
@@ -105,7 +105,7 @@ interface WorkflowStoreInterface
          * @throws StoreException
          * @return StepInterface finished step
          */
-        public function  markFinished(StepInterface $step, $actionId, DateTime $finishDate, $status, $caller);
+        public function markFinished(StepInterface $step, $actionId, DateTime $finishDate, $status, $caller);
 
         /**
          * Called when a step is finished and can be moved to workflow history.

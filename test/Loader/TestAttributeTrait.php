@@ -3,7 +3,8 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
+namespace OldTown\Workflow\test\Loader;
+
 use OldTown\Workflow\Loader\WriteXmlInterface;
 use DOMDocument;
 
@@ -66,7 +67,6 @@ trait TestAttributeTrait
                 call_user_func([static::class, 'assertEquals'], $valueXmlAttribute, $valueAttributeDescriptor, $msg);
             }
         }
-
     }
 
 
@@ -133,6 +133,5 @@ trait TestAttributeTrait
         );
 
         call_user_func([static::class, 'assertEquals'], $expectedValue, $actualValue, $msg);
-
     }
 }

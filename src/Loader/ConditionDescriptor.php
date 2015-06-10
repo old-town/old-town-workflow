@@ -45,14 +45,11 @@ class ConditionDescriptor extends AbstractDescriptor
      */
     public function __construct(DOMElement $element = null)
     {
-
         parent::__construct($element);
 
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -202,5 +199,4 @@ class ConditionDescriptor extends AbstractDescriptor
 
         return $defaultValue;
     }
-
 }

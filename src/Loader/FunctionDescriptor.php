@@ -32,8 +32,6 @@ class FunctionDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**

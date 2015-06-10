@@ -52,6 +52,5 @@ abstract class AbstractWorkflowFactory implements WorkflowFactoryInterface, Work
      */
     public function initDone()
     {
-
     }
 }

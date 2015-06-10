@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow;
+
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\RemoteException;

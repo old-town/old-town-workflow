@@ -12,5 +12,4 @@ namespace OldTown\Workflow\Query;
  */
 interface WorkflowExpressionQuery
 {
-
 }

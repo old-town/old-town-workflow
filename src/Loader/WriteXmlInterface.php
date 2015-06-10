@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Loader;
 
-
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use DOMDocument;
 use DOMElement;

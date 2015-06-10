@@ -40,7 +40,7 @@ interface WorkflowInternalInterface extends WorkflowInterface
      *
      * @return String[]
      */
-    public function  getWorkflowNames();
+    public function getWorkflowNames();
 
     /**
      * Determine if a particular workflow can be initialized.

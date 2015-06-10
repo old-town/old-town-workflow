@@ -88,8 +88,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -120,7 +118,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
 
         $metaElements = XmlUtil::getChildElements($action, 'meta');
         foreach ($metaElements as $meta) {
-
             $value = XmlUtil::getText($meta);
             $name = XmlUtil::getRequiredAttributeValue($meta, 'name');
 
@@ -135,7 +132,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
                 $validatorDescriptor = DescriptorFactory::getFactory()->createValidatorDescriptor($validator);
                 $validatorDescriptor->setParent($this);
                 $this->validators->attach($validatorDescriptor);
-
             }
         }
 
@@ -147,7 +143,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
                 $functionDescriptor = DescriptorFactory::getFactory()->createFunctionDescriptor($preFunction);
                 $functionDescriptor->setParent($this);
                 $this->preFunctions->attach($functionDescriptor);
-
             }
         }
 
@@ -158,7 +153,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
             $conditionalResultDescriptor = new ConditionalResultDescriptor($result);
             $conditionalResultDescriptor->setParent($this);
             $this->conditionalResults->attach($conditionalResultDescriptor);
-
         }
 
         $unconditionalResult = XMLUtil::getChildElement($resultsElememt, 'unconditional-result');
@@ -176,7 +170,6 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
                 $functionDescriptor = DescriptorFactory::getFactory()->createFunctionDescriptor($postFunction);
                 $functionDescriptor->setParent($this);
                 $this->postFunctions->attach($functionDescriptor);
-
             }
         }
 
@@ -190,9 +183,7 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
             } else {
                 $this->restriction->setParent($this);
             }
-
         }
-
     }
 
     /**
@@ -366,6 +357,4 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
     {
         return $this->conditionalResults;
     }
-
-
 }

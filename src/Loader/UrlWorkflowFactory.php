@@ -5,12 +5,10 @@
  */
 namespace OldTown\Workflow\Loader;
 
-
 use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use Psr\Http\Message\UriInterface;
 use Serializable;
-
 
 /**
  * Class UrlWorkflowFactory
@@ -36,7 +34,6 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function setLayout($workflowName, $layout)
     {
-
     }
 
     /**
@@ -74,7 +71,6 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function serialize()
     {
-
     }
 
     /**
@@ -85,7 +81,6 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function unserialize($serialized)
     {
-
     }
 
     /**
@@ -150,7 +145,6 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function createWorkflow($name)
     {
-
     }
 
 
@@ -172,7 +166,6 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function renameWorkflow($newName, $oldName = null)
     {
-
     }
 
     /**
@@ -180,7 +173,6 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function save()
     {
-
     }
 
     /**

@@ -53,7 +53,7 @@ interface ConfigurationInterface
      *
      * @return VariableResolverInterface
      */
-    public function  getVariableResolver();
+    public function getVariableResolver();
 
     /**
      * Возвращает имя дескриптора workflow
@@ -62,14 +62,14 @@ interface ConfigurationInterface
      * @throws FactoryException
      * @return WorkflowDescriptor
      */
-    public function  getWorkflow($name);
+    public function getWorkflow($name);
 
     /**
      * Получает список имен всех доступных workflow
      * @throws FactoryException
      * @return String[]
      */
-    public function  getWorkflowNames();
+    public function getWorkflowNames();
 
     /**
      * Получает хранилище Workflow
@@ -105,5 +105,5 @@ interface ConfigurationInterface
      * @throws FactoryException
      * @return boolean
      */
-    public function  saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false);
+    public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false);
 }

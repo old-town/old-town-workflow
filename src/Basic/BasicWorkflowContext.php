@@ -39,8 +39,8 @@ class  BasicWorkflowContext implements WorkflowContextInterface
      *
      * @return void
      */
-    public function setRollbackOnly() {
+    public function setRollbackOnly()
+    {
         // does nothing, this is basic, remember!
     }
-
 }

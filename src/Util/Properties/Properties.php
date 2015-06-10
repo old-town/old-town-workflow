@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Util\Properties;
 
-
 /**
  * Interface PropertiesInterface
  *
@@ -13,7 +12,6 @@ namespace OldTown\Workflow\Util\Properties;
  */
 class  Properties implements PropertiesInterface
 {
-
     /**
      * @var array
      */

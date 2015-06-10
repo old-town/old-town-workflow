@@ -12,5 +12,4 @@ namespace OldTown\Workflow\Exception;
  */
 class InvalidParsingWorkflowException extends RuntimeException
 {
-
 }

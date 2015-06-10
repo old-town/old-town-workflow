@@ -38,6 +38,4 @@ class NotExistsRequiredAttributeException extends InvalidParsingWorkflowExceptio
 
         return $this;
     }
-
-
 }

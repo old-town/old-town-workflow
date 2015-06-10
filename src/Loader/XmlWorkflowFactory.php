@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Loader;
 
-
 use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
@@ -46,7 +45,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     {
         parent::__construct($p);
         $this->initDefaultPathsToWorkflows();
-
     }
 
     /**
@@ -68,7 +66,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function setLayout($workflowName, $layout)
     {
-
     }
 
     /**
@@ -104,7 +101,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         $contentWorkflowFile = $this->getContentWorkflowFile($name);
 
         try {
-
             libxml_use_internal_errors(true);
 
             $xmlDoc = new DOMDocument();
@@ -139,14 +135,11 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
                 $config = new WorkflowConfig($basedir, $type, $location);
                 $name = XmlUtil::getRequiredAttributeValue($e, 'name');
                 $this->workflows[$name] = $config;
-
             }
-
-        } catch (\Exception $e ) {
+        } catch (\Exception $e) {
             $errMsg = 'Ошибка в конфигурации workflow';
             throw new InvalidParsingWorkflowException($errMsg, $e->getCode(), $e);
         }
-
     }
 
 
@@ -245,7 +238,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function renameWorkflow($newName, $oldName = null)
     {
-
     }
 
     /**
@@ -253,7 +245,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function save()
     {
-
     }
 
 
@@ -264,7 +255,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     protected function getContentWorkflowFile($name)
     {
-
         $paths = static::getDefaultPathsToWorkflows();
 
         $content = null;
@@ -336,7 +326,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function serialize()
     {
-
     }
 
     /**
@@ -350,7 +339,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function unserialize($serialized)
     {
-
     }
 
 
@@ -373,7 +361,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function createWorkflow($name)
     {
-
     }
 
 
@@ -393,7 +380,4 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     {
         //@fixme Организовать созранение workflow в UrlWorkflowFactory
     }
-
-
 }
-

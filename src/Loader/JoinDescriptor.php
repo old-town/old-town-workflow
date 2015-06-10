@@ -42,8 +42,6 @@ class JoinDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -63,7 +61,7 @@ class JoinDescriptor extends AbstractDescriptor
         }
 
         $resultElement = XMLUtil::getChildElement($join, 'unconditional-result');
-        if (null !== $resultElement ) {
+        if (null !== $resultElement) {
             $this->result = new ResultDescriptor($resultElement);
             $this->result->setParent($this);
         }
@@ -96,6 +94,4 @@ class JoinDescriptor extends AbstractDescriptor
 
         return $this;
     }
-
-
 }

@@ -70,9 +70,6 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
         if (null !== $element) {
             $this->init($element);
         }
-
-
-
     }
 
     /**
@@ -88,7 +85,6 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
 
         $metaElements = XmlUtil::getChildElements($step, 'meta');
         foreach ($metaElements as $meta) {
-
             $value = XmlUtil::getText($meta);
             $name = XmlUtil::getRequiredAttributeValue($meta, 'name');
 
@@ -103,7 +99,6 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
                 $functionDescriptor = DescriptorFactory::getFactory()->createFunctionDescriptor($preFunction);
                 $functionDescriptor->setParent($this);
                 $this->preFunctions->attach($functionDescriptor);
-
             }
         }
 
@@ -115,7 +110,6 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
                 $permissionDescriptor = DescriptorFactory::getFactory()->createPermissionDescriptor($permission);
                 $permissionDescriptor->setParent($this);
                 $this->permissions->attach($permissionDescriptor);
-
             }
         }
 
@@ -158,7 +152,6 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
                 $functionDescriptor = DescriptorFactory::getFactory()->createFunctionDescriptor($postFunction);
                 $functionDescriptor->setParent($this);
                 $this->postFunctions->attach($functionDescriptor);
-
             }
         }
     }

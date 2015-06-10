@@ -101,7 +101,6 @@ class WorkflowConfig implements Serializable
      */
     public function serialize()
     {
-
     }
 
     /**
@@ -111,7 +110,6 @@ class WorkflowConfig implements Serializable
      */
     public function unserialize($serialized)
     {
-
     }
 
     /**

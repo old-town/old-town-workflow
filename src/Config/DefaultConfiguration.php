@@ -111,7 +111,6 @@ class  DefaultConfiguration implements ConfigurationInterface
      */
     public function setLayout($workflowName, $layout)
     {
-
     }
 
     /**
@@ -177,7 +176,6 @@ class  DefaultConfiguration implements ConfigurationInterface
     public function load(UriInterface $url = null)
     {
         try {
-
             $content = $this->getContentConfigFile($url);
 
             libxml_use_internal_errors(true);
@@ -257,14 +255,12 @@ class  DefaultConfiguration implements ConfigurationInterface
                         $key = XmlUtil::getRequiredAttributeValue($e, 'key');
                         $value = XmlUtil::getRequiredAttributeValue($e, 'value');
                         $properties->setProperty($key, $value);
-
                     }
 
                     $factory->init($properties);
                     $factory->initDone();
 
                     $this->factory = $factory;
-
                 } catch (FactoryException $e) {
                     throw $e;
                 } catch (\Exception $e) {
@@ -281,7 +277,6 @@ class  DefaultConfiguration implements ConfigurationInterface
             $errMsg = 'Ошибка при работе с конфигом workflow';
             throw new FactoryException($errMsg, $e->getCode(), $e);
         }
-
     }
 
 
@@ -292,7 +287,6 @@ class  DefaultConfiguration implements ConfigurationInterface
      */
     protected function getContentConfigFile(UriInterface $url = null)
     {
-
         if (null !== $url) {
             $urlStr = (string)$url;
             $content = file_get_contents($urlStr);
@@ -371,7 +365,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      *
      * @return VariableResolverInterface
      */
-    public function  getVariableResolver()
+    public function getVariableResolver()
     {
         return $this->variableResolver;
     }
@@ -397,7 +391,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      * @throws FactoryException
      * @return boolean
      */
-    public function  saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false)
+    public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false)
     {
         $this->getFactory()->saveWorkflow($name, $descriptor, $replace);
     }
@@ -438,7 +432,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      * @throws FactoryException
      * @return WorkflowDescriptor
      */
-    public function  getWorkflow($name)
+    public function getWorkflow($name)
     {
         $workflow = $this->getFactory()->getWorkflow($name);
 
@@ -454,7 +448,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      * @throws FactoryException
      * @return String[]
      */
-    public function  getWorkflowNames()
+    public function getWorkflowNames()
     {
         $names = $this->getFactory()->getWorkflowNames();
 
@@ -485,5 +479,4 @@ class  DefaultConfiguration implements ConfigurationInterface
 
         return $this->store;
     }
-
 }

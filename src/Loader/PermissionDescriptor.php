@@ -8,7 +8,6 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use OldTown\Workflow\Loader\Traits;
 
-
 /**
  * Interface WorkflowDescriptor
  *
@@ -33,8 +32,6 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -50,7 +47,6 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
 
         $restrictTo = XMLUtil::getChildElement($permission, 'restrict-to');
         $this->restriction = new RestrictionDescriptor($restrictTo);
-
     }
 
     /**
@@ -72,6 +68,4 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
 
         return $this;
     }
-
-
 }

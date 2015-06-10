@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow;
+
 use OldTown\Workflow\Exception\WorkflowException;
 
 /**
@@ -87,7 +88,6 @@ class TypeResolver
      */
     protected function init()
     {
-
     }
 
     /**
@@ -118,7 +118,6 @@ class TypeResolver
      */
     public function getValidator($type, array $args = [])
     {
-
     }
 
     /**
@@ -131,7 +130,6 @@ class TypeResolver
      */
     public function getRegister($type, array $args = [])
     {
-
     }
 
     /**
@@ -145,7 +143,6 @@ class TypeResolver
      */
     public function getFunction($type, array $args = [])
     {
-
     }
 
     /**
@@ -159,6 +156,5 @@ class TypeResolver
      */
     public function getCondition($type, array $args = [])
     {
-
     }
 }

@@ -13,5 +13,4 @@ namespace OldTown\Workflow\Exception;
 class RuntimeException extends \RuntimeException implements
     ExceptionInterface
 {
-
 }

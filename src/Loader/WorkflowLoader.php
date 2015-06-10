@@ -25,7 +25,6 @@ class WorkflowLoader
         $resource = (string)$resource;
 
         try {
-
             libxml_use_internal_errors(true);
 
             $xmlDoc = new \DOMDocument();
@@ -54,16 +53,9 @@ class WorkflowLoader
             }
 
             return $descriptor;
-        } catch (\Exception $e ) {
+        } catch (\Exception $e) {
             $errMsg = "Ошибка при загрузке workflow из файла {$resource}.";
             throw new InvalidParsingWorkflowException($errMsg, $e->getCode(), $e);
         }
-
-
-
-
-
-
-
     }
 }

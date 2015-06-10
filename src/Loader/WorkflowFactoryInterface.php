@@ -117,5 +117,4 @@ interface  WorkflowFactoryInterface
      * @return void
      */
     public function init(PropertiesInterface $p);
-
 }

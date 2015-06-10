@@ -68,7 +68,7 @@ class DescriptorFactory
      *
      * @return ConditionsDescriptor
      */
-    public function  createConditionsDescriptor(DOMElement $element = null)
+    public function createConditionsDescriptor(DOMElement $element = null)
     {
         return new ConditionsDescriptor($element);
     }
@@ -78,7 +78,7 @@ class DescriptorFactory
      *
      * @return ConditionsDescriptor
      */
-    public function  createConditionDescriptor(DOMElement $element = null)
+    public function createConditionDescriptor(DOMElement $element = null)
     {
         return new ConditionDescriptor($element);
     }

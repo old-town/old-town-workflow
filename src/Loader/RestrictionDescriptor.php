@@ -33,8 +33,6 @@ class RestrictionDescriptor extends AbstractDescriptor
         if (null !== $element) {
             $this->init($element);
         }
-
-
     }
 
     /**
@@ -80,5 +78,4 @@ class RestrictionDescriptor extends AbstractDescriptor
         }
         return $this;
     }
-
 }
