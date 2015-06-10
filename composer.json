@@ -23,7 +23,7 @@
     }
   ],
   "require": {
-    "php": ">=5.3",
+    "php": ">=5.5",
     "old-town/propertyset": "dev-dev",
     "old-town/log": "dev-dev",
     "zendframework/zend-diactoros": "1.0.1",
