@@ -41,7 +41,7 @@
       "OldTown\\Workflow\\Test": "test/"
     },
     "classmap": [
-      "Module.php"
+      "./Module.php"
     ]
   }
 }
