@@ -39,9 +39,6 @@
     "psr-4": {
       "OldTown\\Workflow\\": "src/",
       "OldTown\\Workflow\\Test": "test/"
-    },
-    "classmap": [
-      "./Module.php"
-    ]
+    }
   }
 }
