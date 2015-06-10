@@ -4,8 +4,12 @@ php:
   - 5.6
 
 before_script:
-  -composer install
+  - composer install
 
 notifications:
   email:
-  -and-rey2@yandex.ru
+  - and-rey2@yandex.ru
+
+branches:
+  only:
+    - dev
