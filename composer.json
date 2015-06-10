@@ -38,7 +38,7 @@
   "autoload": {
     "psr-4": {
       "OldTown\\Workflow\\": "src/",
-      "OldTown\\Workflow\\Test": "test/"
+      "OldTown\\Workflow\\Test\\": "test/"
     }
   }
 }
