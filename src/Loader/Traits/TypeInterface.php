@@ -13,14 +13,14 @@ namespace OldTown\Workflow\Loader\Traits;
 interface TypeInterface
 {
     /**
-     * Возвращает имя
+     * Возвращает тип
      *
      * @return string
      */
     public function getType();
 
     /**
-     * Устанавливает имя
+     * Устанавливает тип
      *
      * @param $type
      *

@@ -27,6 +27,9 @@ interface CustomArgInterface
     public function buildArgValue($key, $value, DOMElement $argElement);
 
     /**
+     * Метод возвращает true или false в зависимости от того будет ли генерироваться значение аргумента собственным
+     * обработчиком
+     *
      * @param string $key
      * @param string $value
      *
