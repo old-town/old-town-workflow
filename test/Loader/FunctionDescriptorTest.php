@@ -13,9 +13,16 @@ use OldTown\Workflow\Loader\FunctionDescriptor;
  *
  * @package OldTown\Workflow\Test\Loader
  */
-class FunctionDescriptorTest extends TestCase
+class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
 {
-    use ProviderXmlDataTrait, TestAttributeTrait;
+    use DescriptorTestTrait, ProviderXmlDataTrait, TestAttributeTrait, ArgumentsTraitTest;
+
+    /**
+     * Класс тестируемого дескриптора
+     *
+     * @var string
+     */
+    const DESCRIPTOR_CLASS_NAME = FunctionDescriptor::class;
 
     /**
      * Тестируем атрибуты
@@ -174,5 +181,17 @@ class FunctionDescriptorTest extends TestCase
     public function testWriteXml($class, $setter, $getter, $xpathElement, $attributeName, $value)
     {
         $this->saveAttributeTest($class, $setter, $getter, $xpathElement, $attributeName, $value);
+    }
+
+    /**
+     * Настройка зависимостей для тестирования атрибутов
+     *
+     * @param FunctionDescriptor $descriptor
+     *
+     * @return void
+     */
+    public function defaultDiDescriptor(FunctionDescriptor $descriptor)
+    {
+        $descriptor->setType('defaultType');
     }
 }

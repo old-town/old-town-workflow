@@ -20,7 +20,6 @@ trait ArgsTrait
      */
    protected $args = [];
 
-
     /**
      * Возвращает аргументы
      *
@@ -75,6 +74,34 @@ trait ArgsTrait
         foreach ($args as $arg) {
             $name = XmlUtil::getRequiredAttributeValue($arg, 'name');
             $this->args[$name] = XmlUtil::getText($element);
+        }
+    }
+
+    /**
+     * @param DOMElement $parent
+     *
+     * @return void
+     */
+    protected function writeArgs(DOMElement $parent)
+    {
+        $args = $this->getArgs();
+        if (0 === count($args)) {
+            return null;
+        }
+
+        $dom = $parent->ownerDocument;
+        foreach ($args as $key => $value) {
+            $arg = $dom->createElement('arg');
+            $arg->setAttribute('name', $key);
+
+            if ($this instanceof CustomArgInterface && $this->flagUseCustomArgWriter($key, $value)) {
+                $this->buildArgValue($key, $value, $arg);
+            } else {
+                $valueArgElement = $dom->createTextNode($value);
+                $arg->appendChild($valueArgElement);
+            }
+
+            $parent->appendChild($arg);
         }
     }
 }

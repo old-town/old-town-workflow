@@ -6,16 +6,19 @@
 namespace OldTown\Workflow\Test\Loader;
 
 /**
- * Interface DescriptorTestInterface
+ * Class FunctionDescriptorTest
  *
- * @package OldTown\Workflow\test\Loader
+ * @package OldTown\Workflow\Test\Loader
  */
-interface DescriptorTestInterface
+trait DescriptorTestTrait
 {
     /**
      * Возвращает класс тестируемого декскриптора
      *
      * @return string
      */
-    public function getDescriptorClassName();
+    public function getDescriptorClassName()
+    {
+        return constant('static::DESCRIPTOR_CLASS_NAME');
+    }
 }

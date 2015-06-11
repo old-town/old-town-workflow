@@ -88,7 +88,7 @@ trait TestAttributeTrait
 
         $r = new \ReflectionClass($class);
         $descriptor = $r->newInstance();
-        if ($descriptor instanceof WriteXmlInterface) {
+        if (!$descriptor instanceof WriteXmlInterface) {
             $errMsg = 'Объект должен реализовывать интерфейс WriteXmlInterface';
             throw new \RuntimeException($errMsg);
         }

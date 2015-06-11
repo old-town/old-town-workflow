@@ -1,6 +1,6 @@
 <?php
 /**
- * @link https://github.com/old-town/old-town-workflow
+ * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Loader;
@@ -9,6 +9,7 @@ use DOMElement;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use DOMDocument;
 
+
 /**
  * Class ConditionDescriptor
  *
@@ -16,8 +17,10 @@ use DOMDocument;
  */
 class FunctionDescriptor extends AbstractDescriptor
     implements Traits\ArgsInterface,
-               Traits\TypeInterface,
-               Traits\NameInterface
+    Traits\TypeInterface,
+    Traits\NameInterface,
+    Traits\CustomArgInterface,
+    WriteXmlInterface
 {
     use Traits\ArgsTrait, Traits\TypeTrait, Traits\IdTrait, Traits\NameTrait;
 
@@ -51,6 +54,7 @@ class FunctionDescriptor extends AbstractDescriptor
      * Создает DOMElement - эквивалентный состоянию дескриптора
      *
      * @param DOMDocument $dom
+     *
      * @return DOMElement
      * @throws InvalidDescriptorException
      */
@@ -75,6 +79,39 @@ class FunctionDescriptor extends AbstractDescriptor
         }
 
 
+        $this->writeArgs($descriptor);
+
         return $descriptor;
+    }
+
+
+    /**
+     * @param string $key
+     * @param string $value
+     *
+     * @return boolean
+     */
+    public function flagUseCustomArgWriter($key, $value)
+    {
+        $flag = 'php-eval' === $this->getType();
+
+        return $flag;
+    }
+
+    /**
+     * Генерирует значение аргумента
+     *
+     * @param            $key
+     * @param            $value
+     *
+     * @param DOMElement $argElement
+     *
+     * @return string
+     */
+    public function buildArgValue($key, $value, DOMElement $argElement)
+    {
+        $dom = $argElement->ownerDocument;
+        $argValueElement = $dom->createCDATASection($value);
+        $argElement->appendChild($argValueElement);
     }
 }
