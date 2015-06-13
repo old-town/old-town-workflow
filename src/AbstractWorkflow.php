@@ -15,10 +15,12 @@ use OldTown\Workflow\Exception\InvalidActionException;
 use OldTown\Workflow\Exception\InvalidEntryStateException;
 use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\InvalidRoleException;
+use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
+use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -82,6 +84,17 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
+    }
+
+    /**
+     * Возвращает хранилище состояния workflow
+     *
+     * @return WorkflowStoreInterface
+     * @throws StoreException
+     */
+    protected function getPersistence()
+    {
+        return $this->getConfiguration()->getWorkflowStore();
     }
 
     /**
