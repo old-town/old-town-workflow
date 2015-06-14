@@ -12,7 +12,7 @@ use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Spi\Memory\MemoryWorkflowStore;
 use OldTown\Workflow\Spi\SimpleWorkflowEntry;
 use DateTime;
-
+use SplObjectStorage;
 
 /**
  * Class MemoryWorkflowStoreTest
@@ -27,7 +27,9 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testCreateEntry()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
+
         $entry = $store->createEntry('test');
 
         $this->assertInstanceOf(SimpleWorkflowEntry::class, $entry);
@@ -39,6 +41,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testCreateEntryWorkflowName()
     {
+        MemoryWorkflowStore::reset();
         $expectedWorkflowName = 'test';
         $store = new MemoryWorkflowStore();
         $entry = $store->createEntry($expectedWorkflowName);
@@ -52,6 +55,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testGenerateAutoincrementEntryId()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $workflowName1 = 'test';
@@ -72,6 +76,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testStateCreatedEntry()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $workflowName = 'test';
@@ -88,6 +93,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testFindEntry()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $workflowName = 'test';
@@ -107,6 +113,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testNotFindEntry()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $workflowName = 'test';
@@ -123,6 +130,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testNotNumericEntryId()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $workflowName = 'test';
@@ -137,6 +145,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testSetEntryState()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $workflowName = 'test';
@@ -160,6 +169,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testCreateCurrentStep()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $expectedEntryId = 7;
@@ -180,6 +190,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testCorrectCreateCurrentStep()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $expectedEntryId = 7;
@@ -217,6 +228,7 @@ class MemoryWorkflowStoreTest extends TestCase
      */
     public function testGenerateAutoincrementStepId()
     {
+        MemoryWorkflowStore::reset();
         $store = new MemoryWorkflowStore();
 
         $expectedEntryId = 7;
@@ -235,5 +247,187 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $errMsg = 'Некорректная генерация уникального id шага';
         $this->assertEquals($delta, 1, $errMsg);
+    }
+
+    /**
+     * Ищет текущий набор шагов для сущности workflow c заданным id
+     *
+     */
+    public function testFindCurrentStepsAfterCreateCurrentStep()
+    {
+        MemoryWorkflowStore::reset();
+        $store = new MemoryWorkflowStore();
+
+        $expectedEntryId = 7;
+        $expectedStepId = 8;
+        $expectedOwner = 'testOwner';
+        $expectedStartDate = new DateTime();
+        $expectedDueDate = new DateTime();
+        $expectedStatus = 'testStatus';
+        $expectedPreviousIds = [5, 4, 3, 2, 1];
+
+        $expectedStep = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
+
+        $currentSteps = $store->findCurrentSteps($expectedEntryId);
+
+        $errMsg = 'Неверное состояние хранилища';
+        $this->assertEquals(1, $currentSteps->count(), $errMsg);
+
+        $errMsg = 'Неверный объект в хранилище';
+        $this->assertTrue($currentSteps->contains($expectedStep), $errMsg);
+    }
+
+
+    /**
+     * Проверка поиска текущего набора шагов для сущности, когда есть несколько шагов
+     *
+     */
+    public function testFindCurrentStepsForSeveralSteps()
+    {
+        MemoryWorkflowStore::reset();
+        $store = new MemoryWorkflowStore();
+
+        $countIteration = 10;
+        $stepStorage = [];
+
+        $expectedEntryId = 7;
+        $expectedStepId = 8;
+        $expectedOwner = 'testOwner';
+        $expectedStartDate = new DateTime();
+        $expectedDueDate = new DateTime();
+        $expectedStatus = 'testStatus';
+        $expectedPreviousIds = [5, 4, 3, 2, 1];
+
+        for ($i = 0; $i < $countIteration; $i++) {
+
+            $step = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
+
+            $stepStorage[$i] = $step;
+        }
+
+        $currentSteps = $store->findCurrentSteps($expectedEntryId);
+
+        $errMsg = 'Неверное состояние хранилища';
+        $this->assertEquals(count($stepStorage), $currentSteps->count(), $errMsg);
+
+        $errMsg = 'Отстутствует объект в хранилище';
+        foreach ($stepStorage as $expectedStep) {
+            $this->assertTrue($currentSteps->contains($expectedStep), $errMsg);
+        }
+    }
+
+
+    /**
+     * Тестирование поиска сущности по не числовому id
+     *
+     * @expectedException \OldTown\Workflow\Exception\ArgumentNotNumericException
+     */
+    public function testFindCurrentStepsForNotNumericEntryId()
+    {
+        MemoryWorkflowStore::reset();
+        $store = new MemoryWorkflowStore();
+
+        $expectedEntryId = 'notNumericId';
+        $store->findCurrentSteps($expectedEntryId);
+    }
+
+    /**
+     * Ищет текущий набор шагов для сущности workflow c несуществующим  id
+     *
+     */
+    public function testFindCurrentStepsForNotExistsEntryId()
+    {
+        MemoryWorkflowStore::reset();
+        $store = new MemoryWorkflowStore();
+
+        $expectedEntryId = -1;
+        $currentSteps = $store->findCurrentSteps($expectedEntryId);
+
+        $errMsg = 'Неверный формат хранилища';
+        $this->assertInstanceOf(SplObjectStorage::class, $currentSteps, $errMsg);
+
+        $errMsg = 'Неверное состояние хранилища';
+        $this->assertCount(0, $currentSteps, $errMsg);
+    }
+
+    /**
+     * Тест финиша шага
+     */
+    public function testMarkFinished()
+    {
+        MemoryWorkflowStore::reset();
+        $store = new MemoryWorkflowStore();
+
+        $expectedEntryId = 7;
+        $expectedStepId = 8;
+        $expectedOwner = 'testOwner';
+        $expectedStartDate = new DateTime();
+        $expectedDueDate = new DateTime();
+        $expectedStatus = 'testStatus';
+        $expectedPreviousIds = [5, 4, 3, 2, 1];
+
+        $step = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
+
+        $expectedActionId = 1;
+        $expectedFinishDate = new DateTime();
+        $expectedStatus = 'testFinishStatus';
+        $expectedCaller = 'testCaller';
+
+        $actualStep = $store->markFinished($step, $expectedActionId, $expectedFinishDate, $expectedStatus, $expectedCaller);
+
+        $errMsg = 'Несовпадающие объекты в хранилище';
+        $this->assertEquals($step, $actualStep, $errMsg);
+
+
+        $this->assertEquals($expectedEntryId, $actualStep->getEntryId(), 'Некорректное значение поля entryId');
+        $this->assertEquals($expectedStepId, $actualStep->getStepId(), 'Некорректное значение поля stepId');
+        $this->assertEquals($expectedActionId, $actualStep->getActionId(), 'Некорректное значение поля actionId');
+        $this->assertEquals($expectedOwner, $actualStep->getOwner(), 'Некорректное значение поля owner');
+        $this->assertEquals($expectedStartDate, $actualStep->getStartDate(), 'Некорректное значение поля startDate');
+        $this->assertEquals($expectedDueDate, $actualStep->getDueDate(), 'Некорректное значение поля dueDate');
+        $this->assertEquals($expectedFinishDate, $actualStep->getFinishDate(), 'Некорректное значение поля finishDat');
+        $this->assertEquals($expectedStatus, $actualStep->getStatus(), 'Некорректное значение поля status');
+        $this->assertEquals($expectedCaller, $actualStep->getCaller());
+
+
+        $actualPreviousStepIds = $actualStep->getPreviousStepIds();
+        $diff = array_diff($expectedPreviousIds, $actualPreviousStepIds);
+
+        $countDiff = count($diff);
+
+        $this->assertEquals(0, $countDiff, 'Некорректное значение поля previousStepIds');
+    }
+
+
+    /**
+     * Тест финиша шага в случае если у шага задан некорректный id
+     */
+    public function testMarkFinishedForNotExistsStepId()
+    {
+        MemoryWorkflowStore::reset();
+        $store = new MemoryWorkflowStore();
+
+        $expectedEntryId = 7;
+        $expectedStepId = 8;
+        $expectedOwner = 'testOwner';
+        $expectedStartDate = new DateTime();
+        $expectedDueDate = new DateTime();
+        $expectedStatus = 'testStatus';
+        $expectedPreviousIds = [5, 4, 3, 2, 1];
+
+        $step = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
+
+        $expectedActionId = 1;
+        $expectedFinishDate = new DateTime();
+        $expectedStatus = 'testFinishStatus';
+        $expectedCaller = 'testCaller';
+
+        $searchStep = clone $step;
+        $searchStep->setId(-1);
+        $actualStep = $store->markFinished($searchStep, $expectedActionId, $expectedFinishDate, $expectedStatus, $expectedCaller);
+
+        $errMsg = 'Некорректная логика обработки финиширования шага';
+        $this->assertNull($actualStep, $errMsg);
+
     }
 }

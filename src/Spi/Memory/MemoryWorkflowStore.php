@@ -10,6 +10,7 @@ use OldTown\Workflow\Exception\InvalidWorkflowEntryException;
 use OldTown\Workflow\Exception\NotFoundWorkflowEntryException;
 use OldTown\Workflow\Spi\SimpleStep;
 use OldTown\Workflow\Spi\SimpleWorkflowEntry;
+use OldTown\Workflow\Spi\StepInterface;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\Exception\StoreException;
 use DateTime;
@@ -32,7 +33,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
     private static $currentStepsCache = [];
 
     /**
-     * @var array
+     * @var SplObjectStorage[]|SimpleStep[]
      */
     private static $historyStepsCache = [];
 
@@ -144,31 +145,107 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 
         return $step;
     }
+
+    /**
+     * Ищет текущий набор шагов для сущности workflow c заданным id
+     *
+     * @param Integer $entryId
+     * @return SimpleStep[]|SplObjectStorage
+     */
+    public function findCurrentSteps($entryId)
+    {
+
+        if (!is_numeric($entryId)) {
+            $errMsg = sprintf('Аргумент должен быть числом. Актуальное значение %s', $entryId);
+            throw new ArgumentNotNumericException($errMsg);
+        }
+        $entryId = (integer)$entryId;
+
+        if (!array_key_exists($entryId, static::$currentStepsCache)) {
+            $currentSteps = new SplObjectStorage();
+            static::$currentStepsCache[$entryId] = $currentSteps;
+        }
+
+        return static::$currentStepsCache[$entryId];
+    }
+
+    /**
+     * Пометить текущий шаг как выполненный
+     *
+     * @param StepInterface $step
+     * @param integer $actionId
+     * @param DateTime $finishDate
+     * @param string $status
+     * @param string $caller
+     * @return null|SimpleStep
+     */
+    public function markFinished(StepInterface $step, $actionId, DateTime $finishDate, $status, $caller)
+    {
+        $entryId = $step->getEntryId();
+        $currentSteps = $this->findCurrentSteps($entryId);
+
+        foreach ($currentSteps as $theStep)
+        {
+            if ($theStep->getId() == $step->getId()) {
+                $theStep->setStatus($status);
+                $theStep->setActionId($actionId);
+                $theStep->setFinishDate($finishDate);
+                $theStep->setCaller($caller);
+
+                return $theStep;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Сбрасывает внутренние кеш хранилища.
+     */
+    public static function reset()
+    {
+        static::$entryCache = [];
+        static::$currentStepsCache = [];
+        static::$historyStepsCache = [];
+        static::$propertySetCache= [];
+    }
+
+    /**
+     * Перенос шага в историю
+     *
+     * @param StepInterface $step
+     * @return void
+     */
+    public function moveToHistory(StepInterface $step) {
+        $entryId = $step->getEntryId();
+        $currentSteps = $this->findCurrentSteps($entryId);
+
+        if (!array_key_exists($entryId, static::$historyStepsCache)) {
+            $historySteps = new SplObjectStorage();
+            static::$historyStepsCache[$entryId] = $historySteps;
+        }
+
+        foreach ($currentSteps as $currentStep) {
+            if ($step->getId() === $currentStep->getId()) {
+                $currentSteps->detach($currentStep);
+                foreach (static::$historyStepsCache[$entryId] as $historyStep) {
+                    /** @var StepInterface $historyStep */
+                    if ($historyStep->getId() === $step->getId()) {
+                        static::$historyStepsCache[$entryId]->detach($historyStep);
+                    }
+                }
+
+                static::$historyStepsCache[$entryId]->attach($currentStep);
+
+                break;
+            }
+        }
+    }
+
 //
-//    /**
-//     * Reset the MemoryWorkflowStore so it doesn't have any information.
-//     * Useful when testing and you don't want the MemoryWorkflowStore to
-//     * have old data in it.
-//     */
-//    public static void reset() {
-//entryCache.clear();
-//        currentStepsCache.clear();
-//        historyStepsCache.clear();
-//        propertySetCache.clear();
-//    }
 //
 //
-//
-//    public List findCurrentSteps(long entryId) {
-//    List currentSteps = (List) currentStepsCache.get(new Long(entryId));
-//
-//        if (currentSteps == null) {
-//            currentSteps = new ArrayList();
-//            currentStepsCache.put(new Long(entryId), currentSteps);
-//        }
-//
-//        return new ArrayList(currentSteps);
-//    }
+
 //
 //
 //
@@ -186,48 +263,9 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 //    public void init(Map props) {
 //}
 //
-//    public Step markFinished(Step step, int actionId, Date finishDate, String status, String caller) {
-//    List currentSteps = (List) currentStepsCache.get(new Long(step.getEntryId()));
+
 //
-//        for (Iterator iterator = currentSteps.iterator(); iterator.hasNext();) {
-//        SimpleStep theStep = (SimpleStep) iterator.next();
-//
-//            if (theStep.getId() == step.getId()) {
-//                theStep.setStatus(status);
-//                theStep.setActionId(actionId);
-//                theStep.setFinishDate(finishDate);
-//                theStep.setCaller(caller);
-//
-//                return theStep;
-//            }
-//        }
-//
-//        return null;
-//    }
-//
-//    public void moveToHistory(Step step) {
-//    List currentSteps = (List) currentStepsCache.get(new Long(step.getEntryId()));
-//
-//        List historySteps = (List) historyStepsCache.get(new Long(step.getEntryId()));
-//
-//        if (historySteps == null) {
-//            historySteps = new ArrayList();
-//            historyStepsCache.put(new Long(step.getEntryId()), historySteps);
-//        }
-//
-//        SimpleStep simpleStep = (SimpleStep) step;
-//
-//        for (Iterator iterator = currentSteps.iterator(); iterator.hasNext();) {
-//        Step currentStep = (Step) iterator.next();
-//
-//            if (simpleStep.getId() == currentStep.getId()) {
-//                iterator.remove();
-//                historySteps.add(0, simpleStep);
-//
-//                break;
-//            }
-//        }
-//    }
+
 //
 //    public List query(WorkflowQuery query) {
 //    ArrayList results = new ArrayList();
