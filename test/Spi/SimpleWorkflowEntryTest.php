@@ -15,7 +15,6 @@ use OldTown\Workflow\Spi\SimpleWorkflowEntry;
  */
 class SimpleWorkflowEntryTest extends TestCase
 {
-
     /**
      * @var SimpleWorkflowEntry
      */
@@ -48,14 +47,14 @@ class SimpleWorkflowEntryTest extends TestCase
         $simpleWorkflowEntry = new SimpleWorkflowEntry($expectedId, $expectedWorkflowName, $expectedState);
 
         $errMsg = sprintf('Ошибка при инициализации id');
-        $this->assertEquals($expectedId, $simpleWorkflowEntry->getId(), $errMsg);
+        static::assertEquals($expectedId, $simpleWorkflowEntry->getId(), $errMsg);
 
         $errMsg = sprintf('Ошибка при инициализации имени workflow');
-        $this->assertEquals($expectedWorkflowName, $simpleWorkflowEntry->getWorkflowName(), $errMsg);
+        static::assertEquals($expectedWorkflowName, $simpleWorkflowEntry->getWorkflowName(), $errMsg);
 
 
         $errMsg = sprintf('Ошибка при инициализации id состояния');
-        $this->assertEquals($expectedState, $simpleWorkflowEntry->getState(), $errMsg);
+        static::assertEquals($expectedState, $simpleWorkflowEntry->getState(), $errMsg);
     }
 
     /**
@@ -68,8 +67,8 @@ class SimpleWorkflowEntryTest extends TestCase
         $expectedId = 7;
         $result = $this->simpleWorkflowEntry->setId($expectedId);
 
-        $this->assertEquals($expectedId, $this->simpleWorkflowEntry->getId());
-        $this->assertInstanceOf(SimpleWorkflowEntry::class, $result);
+        static::assertEquals($expectedId, $this->simpleWorkflowEntry->getId());
+        static::assertInstanceOf(SimpleWorkflowEntry::class, $result);
     }
 
     /**
@@ -106,8 +105,8 @@ class SimpleWorkflowEntryTest extends TestCase
         $expectedWorkflowName = 7;
         $result = $this->simpleWorkflowEntry->setWorkflowName($expectedWorkflowName);
 
-        $this->assertEquals($expectedWorkflowName, $this->simpleWorkflowEntry->getWorkflowName());
-        $this->assertInstanceOf(SimpleWorkflowEntry::class, $result);
+        static::assertEquals($expectedWorkflowName, $this->simpleWorkflowEntry->getWorkflowName());
+        static::assertInstanceOf(SimpleWorkflowEntry::class, $result);
     }
 
     /**
@@ -120,8 +119,8 @@ class SimpleWorkflowEntryTest extends TestCase
         $expectedInitialized = true;
         $result = $this->simpleWorkflowEntry->setInitialized($expectedInitialized);
 
-        $this->assertEquals($expectedInitialized, $this->simpleWorkflowEntry->isInitialized());
-        $this->assertInstanceOf(SimpleWorkflowEntry::class, $result);
+        static::assertEquals($expectedInitialized, $this->simpleWorkflowEntry->isInitialized());
+        static::assertInstanceOf(SimpleWorkflowEntry::class, $result);
     }
 
     /**
@@ -134,7 +133,7 @@ class SimpleWorkflowEntryTest extends TestCase
         $expectedState = 1;
         $result = $this->simpleWorkflowEntry->setState($expectedState);
 
-        $this->assertEquals($expectedState, $this->simpleWorkflowEntry->getState());
-        $this->assertInstanceOf(SimpleWorkflowEntry::class, $result);
+        static::assertEquals($expectedState, $this->simpleWorkflowEntry->getState());
+        static::assertInstanceOf(SimpleWorkflowEntry::class, $result);
     }
 }

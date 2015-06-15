@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Query;
+
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 
@@ -40,7 +41,7 @@ class NestedExpression extends AbstractExpression
      * @param array $expressions
      * @param null $expressionOperator
      */
-    function __construct(array $expressions = null,  $expressionOperator = null)
+    public function __construct(array $expressions = null,  $expressionOperator = null)
     {
         if (null !== $this->expressions) {
             $this->setExpressions($expressions);

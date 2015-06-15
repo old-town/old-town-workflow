@@ -51,7 +51,7 @@ class WorkflowExpressionQuery
     /**
      * @param AbstractExpression $expression
      */
-    function __construct(AbstractExpression $expression = null)
+    public function __construct(AbstractExpression $expression = null)
     {
         if (null !== $expression) {
             $this->expression = $expression;
@@ -111,5 +111,4 @@ class WorkflowExpressionQuery
 
         return $this;
     }
-
 }

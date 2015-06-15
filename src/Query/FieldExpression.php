@@ -4,6 +4,7 @@
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Query;
+
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 
@@ -13,7 +14,6 @@ use OldTown\Workflow\Exception\InvalidArgumentException;
  */
 class FieldExpression extends AbstractExpression
 {
-
     /**
      * Константа для оператора сравнения
      *
@@ -164,7 +164,7 @@ class FieldExpression extends AbstractExpression
      * @param Object $value
      * @param bool $negate
      */
-    function __construct($field, $context, $operator, $value, $negate = false)
+    public function __construct($field, $context, $operator, $value, $negate = false)
     {
         $this->setValue($value);
         $this->setContext($context);

@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Test\Spi\Memory;
 
-
 use OldTown\Workflow\Spi\SimpleStep;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use PHPUnit_Framework_TestCase as TestCase;
@@ -20,7 +19,6 @@ use SplObjectStorage;
  */
 class MemoryWorkflowStoreTest extends TestCase
 {
-
     /**
      * Проверка создания сущности workflow
      *
@@ -32,7 +30,7 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $entry = $store->createEntry('test');
 
-        $this->assertInstanceOf(SimpleWorkflowEntry::class, $entry);
+        static::assertInstanceOf(SimpleWorkflowEntry::class, $entry);
     }
 
     /**
@@ -46,7 +44,7 @@ class MemoryWorkflowStoreTest extends TestCase
         $store = new MemoryWorkflowStore();
         $entry = $store->createEntry($expectedWorkflowName);
 
-        $this->assertEquals($expectedWorkflowName, $entry->getWorkflowName());
+        static::assertEquals($expectedWorkflowName, $entry->getWorkflowName());
     }
 
     /**
@@ -67,7 +65,7 @@ class MemoryWorkflowStoreTest extends TestCase
         $delta = $entry2->getId() - $entry1->getId();
 
         $errMsg = 'Некорректная генерация уникального id';
-        $this->assertEquals(1, $delta,$errMsg);
+        static::assertEquals(1, $delta, $errMsg);
     }
 
     /**
@@ -83,7 +81,7 @@ class MemoryWorkflowStoreTest extends TestCase
         $entry = $store->createEntry($workflowName);
 
         $errMsg = 'Некорректная статус при создание экземпляра workflow';
-        $this->assertEquals(WorkflowEntryInterface::CREATED, $entry->getState(), $errMsg);
+        static::assertEquals(WorkflowEntryInterface::CREATED, $entry->getState(), $errMsg);
     }
 
 
@@ -103,7 +101,7 @@ class MemoryWorkflowStoreTest extends TestCase
         $cachedEntry = $store->findEntry($entryId);
 
         $errMsg = 'Некорректный объект в кеше';
-        $this->assertTrue($entry === $cachedEntry, $errMsg);
+        static::assertTrue($entry === $cachedEntry, $errMsg);
     }
 
     /**
@@ -161,7 +159,7 @@ class MemoryWorkflowStoreTest extends TestCase
             $expectedStateId,
             $entry->getState()
         );
-        $this->assertEquals($expectedStateId, $entry->getState(), $errMsg);
+        static::assertEquals($expectedStateId, $entry->getState(), $errMsg);
     }
 
     /**
@@ -182,7 +180,7 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $step = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
 
-        $this->assertInstanceOf(SimpleStep::class, $step);
+        static::assertInstanceOf(SimpleStep::class, $step);
     }
 
     /**
@@ -203,15 +201,15 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $step = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
 
-        $this->assertEquals($expectedEntryId, $step->getEntryId(), 'Некорректное значение поля entryId');
-        $this->assertEquals($expectedStepId, $step->getStepId(), 'Некорректное значение поля stepId');
-        $this->assertEquals(0, $step->getActionId(), 'Некорректное значение поля actionId');
-        $this->assertEquals($expectedOwner, $step->getOwner(), 'Некорректное значение поля owner');
-        $this->assertEquals($expectedStartDate, $step->getStartDate(), 'Некорректное значение поля startDate');
-        $this->assertEquals($expectedDueDate, $step->getDueDate(), 'Некорректное значение поля dueDate');
-        $this->assertNull($step->getFinishDate(), 'Некорректное значение поля finishDat');
-        $this->assertEquals($expectedStatus, $step->getStatus(), 'Некорректное значение поля status');
-        $this->assertNull($step->getCaller());
+        static::assertEquals($expectedEntryId, $step->getEntryId(), 'Некорректное значение поля entryId');
+        static::assertEquals($expectedStepId, $step->getStepId(), 'Некорректное значение поля stepId');
+        static::assertEquals(0, $step->getActionId(), 'Некорректное значение поля actionId');
+        static::assertEquals($expectedOwner, $step->getOwner(), 'Некорректное значение поля owner');
+        static::assertEquals($expectedStartDate, $step->getStartDate(), 'Некорректное значение поля startDate');
+        static::assertEquals($expectedDueDate, $step->getDueDate(), 'Некорректное значение поля dueDate');
+        static::assertNull($step->getFinishDate(), 'Некорректное значение поля finishDat');
+        static::assertEquals($expectedStatus, $step->getStatus(), 'Некорректное значение поля status');
+        static::assertNull($step->getCaller());
 
 
         $actualPreviousStepIds = $step->getPreviousStepIds();
@@ -219,7 +217,7 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $countDiff = count($diff);
 
-        $this->assertEquals(0, $countDiff, 'Некорректное значение поля previousStepIds');
+        static::assertEquals(0, $countDiff, 'Некорректное значение поля previousStepIds');
     }
 
     /**
@@ -246,7 +244,7 @@ class MemoryWorkflowStoreTest extends TestCase
         $delta = $step2->getId() - $step1->getId();
 
         $errMsg = 'Некорректная генерация уникального id шага';
-        $this->assertEquals($delta, 1, $errMsg);
+        static::assertEquals($delta, 1, $errMsg);
     }
 
     /**
@@ -271,10 +269,10 @@ class MemoryWorkflowStoreTest extends TestCase
         $currentSteps = $store->findCurrentSteps($expectedEntryId);
 
         $errMsg = 'Неверное состояние хранилища';
-        $this->assertEquals(1, $currentSteps->count(), $errMsg);
+        static::assertEquals(1, $currentSteps->count(), $errMsg);
 
         $errMsg = 'Неверный объект в хранилище';
-        $this->assertTrue($currentSteps->contains($expectedStep), $errMsg);
+        static::assertTrue($currentSteps->contains($expectedStep), $errMsg);
     }
 
 
@@ -299,7 +297,6 @@ class MemoryWorkflowStoreTest extends TestCase
         $expectedPreviousIds = [5, 4, 3, 2, 1];
 
         for ($i = 0; $i < $countIteration; $i++) {
-
             $step = $store->createCurrentStep($expectedEntryId, $expectedStepId, $expectedOwner, $expectedStartDate, $expectedDueDate, $expectedStatus, $expectedPreviousIds);
 
             $stepStorage[$i] = $step;
@@ -308,11 +305,11 @@ class MemoryWorkflowStoreTest extends TestCase
         $currentSteps = $store->findCurrentSteps($expectedEntryId);
 
         $errMsg = 'Неверное состояние хранилища';
-        $this->assertEquals(count($stepStorage), $currentSteps->count(), $errMsg);
+        static::assertEquals(count($stepStorage), $currentSteps->count(), $errMsg);
 
         $errMsg = 'Отстутствует объект в хранилище';
         foreach ($stepStorage as $expectedStep) {
-            $this->assertTrue($currentSteps->contains($expectedStep), $errMsg);
+            static::assertTrue($currentSteps->contains($expectedStep), $errMsg);
         }
     }
 
@@ -344,10 +341,10 @@ class MemoryWorkflowStoreTest extends TestCase
         $currentSteps = $store->findCurrentSteps($expectedEntryId);
 
         $errMsg = 'Неверный формат хранилища';
-        $this->assertInstanceOf(SplObjectStorage::class, $currentSteps, $errMsg);
+        static::assertInstanceOf(SplObjectStorage::class, $currentSteps, $errMsg);
 
         $errMsg = 'Неверное состояние хранилища';
-        $this->assertCount(0, $currentSteps, $errMsg);
+        static::assertCount(0, $currentSteps, $errMsg);
     }
 
     /**
@@ -376,18 +373,18 @@ class MemoryWorkflowStoreTest extends TestCase
         $actualStep = $store->markFinished($step, $expectedActionId, $expectedFinishDate, $expectedStatus, $expectedCaller);
 
         $errMsg = 'Несовпадающие объекты в хранилище';
-        $this->assertEquals($step, $actualStep, $errMsg);
+        static::assertEquals($step, $actualStep, $errMsg);
 
 
-        $this->assertEquals($expectedEntryId, $actualStep->getEntryId(), 'Некорректное значение поля entryId');
-        $this->assertEquals($expectedStepId, $actualStep->getStepId(), 'Некорректное значение поля stepId');
-        $this->assertEquals($expectedActionId, $actualStep->getActionId(), 'Некорректное значение поля actionId');
-        $this->assertEquals($expectedOwner, $actualStep->getOwner(), 'Некорректное значение поля owner');
-        $this->assertEquals($expectedStartDate, $actualStep->getStartDate(), 'Некорректное значение поля startDate');
-        $this->assertEquals($expectedDueDate, $actualStep->getDueDate(), 'Некорректное значение поля dueDate');
-        $this->assertEquals($expectedFinishDate, $actualStep->getFinishDate(), 'Некорректное значение поля finishDat');
-        $this->assertEquals($expectedStatus, $actualStep->getStatus(), 'Некорректное значение поля status');
-        $this->assertEquals($expectedCaller, $actualStep->getCaller());
+        static::assertEquals($expectedEntryId, $actualStep->getEntryId(), 'Некорректное значение поля entryId');
+        static::assertEquals($expectedStepId, $actualStep->getStepId(), 'Некорректное значение поля stepId');
+        static::assertEquals($expectedActionId, $actualStep->getActionId(), 'Некорректное значение поля actionId');
+        static::assertEquals($expectedOwner, $actualStep->getOwner(), 'Некорректное значение поля owner');
+        static::assertEquals($expectedStartDate, $actualStep->getStartDate(), 'Некорректное значение поля startDate');
+        static::assertEquals($expectedDueDate, $actualStep->getDueDate(), 'Некорректное значение поля dueDate');
+        static::assertEquals($expectedFinishDate, $actualStep->getFinishDate(), 'Некорректное значение поля finishDat');
+        static::assertEquals($expectedStatus, $actualStep->getStatus(), 'Некорректное значение поля status');
+        static::assertEquals($expectedCaller, $actualStep->getCaller());
 
 
         $actualPreviousStepIds = $actualStep->getPreviousStepIds();
@@ -395,7 +392,7 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $countDiff = count($diff);
 
-        $this->assertEquals(0, $countDiff, 'Некорректное значение поля previousStepIds');
+        static::assertEquals(0, $countDiff, 'Некорректное значение поля previousStepIds');
     }
 
 
@@ -427,7 +424,6 @@ class MemoryWorkflowStoreTest extends TestCase
         $actualStep = $store->markFinished($searchStep, $expectedActionId, $expectedFinishDate, $expectedStatus, $expectedCaller);
 
         $errMsg = 'Некорректная логика обработки финиширования шага';
-        $this->assertNull($actualStep, $errMsg);
-
+        static::assertNull($actualStep, $errMsg);
     }
 }

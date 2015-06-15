@@ -14,10 +14,7 @@ use PHPUnit_Framework_TestCase as TestCase;
  */
 class DefaultConfigurationTest extends TestCase
 {
-
-
     public function testGetDefaultWorkflowStore()
     {
-
     }
 }

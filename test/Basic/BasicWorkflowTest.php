@@ -25,6 +25,5 @@ class BasicWorkflowTest extends TestCase
      */
     public function testInitialize()
     {
-
     }
 }

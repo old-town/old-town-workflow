@@ -154,7 +154,6 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      */
     public function findCurrentSteps($entryId)
     {
-
         if (!is_numeric($entryId)) {
             $errMsg = sprintf('Аргумент должен быть числом. Актуальное значение %s', $entryId);
             throw new ArgumentNotNumericException($errMsg);
@@ -184,8 +183,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         $entryId = $step->getEntryId();
         $currentSteps = $this->findCurrentSteps($entryId);
 
-        foreach ($currentSteps as $theStep)
-        {
+        foreach ($currentSteps as $theStep) {
             if ($theStep->getId() == $step->getId()) {
                 $theStep->setStatus($status);
                 $theStep->setActionId($actionId);
@@ -216,7 +214,8 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * @param StepInterface $step
      * @return void
      */
-    public function moveToHistory(StepInterface $step) {
+    public function moveToHistory(StepInterface $step)
+    {
         $entryId = $step->getEntryId();
         $currentSteps = $this->findCurrentSteps($entryId);
 

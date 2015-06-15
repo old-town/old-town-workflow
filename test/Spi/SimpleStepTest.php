@@ -81,7 +81,7 @@ class SimpleStepTest extends TestCase
             $actualValue = call_user_func([$this->simpleStep, $getter]);
 
             $strMsg = 'Метод %s вернул некорректное значение';
-            $this->assertEquals($expectedValue, $actualValue, $strMsg);
+            static::assertEquals($expectedValue, $actualValue, $strMsg);
         }
     }
 
@@ -93,8 +93,8 @@ class SimpleStepTest extends TestCase
         $expectedActionId = 7;
         $result = $this->simpleStep->setActionId($expectedActionId);
 
-        $this->assertEquals($expectedActionId, $this->simpleStep->getActionId());
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedActionId, $this->simpleStep->getActionId());
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
 
@@ -118,8 +118,8 @@ class SimpleStepTest extends TestCase
         $expectedCaller = 'UniqueCallerName';
         $result = $this->simpleStep->setCaller($expectedCaller);
 
-        $this->assertEquals($expectedCaller, $this->simpleStep->getCaller(), 'SimpleStep: property caller');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedCaller, $this->simpleStep->getCaller(), 'SimpleStep: property caller');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
     /**
@@ -130,8 +130,8 @@ class SimpleStepTest extends TestCase
         $expectedDueDate = new DateTime();
         $result = $this->simpleStep->setDueDate($expectedDueDate);
 
-        $this->assertEquals($expectedDueDate, $this->simpleStep->getDueDate(), 'SimpleStep: property dueDate');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedDueDate, $this->simpleStep->getDueDate(), 'SimpleStep: property dueDate');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
 
@@ -143,8 +143,8 @@ class SimpleStepTest extends TestCase
         $expectedEntryId = 9;
         $result = $this->simpleStep->setEntryId($expectedEntryId);
 
-        $this->assertEquals($expectedEntryId, $this->simpleStep->getEntryId(), 'SimpleStep: property entryId');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedEntryId, $this->simpleStep->getEntryId(), 'SimpleStep: property entryId');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
     /**
@@ -167,8 +167,8 @@ class SimpleStepTest extends TestCase
         $expectedFinishDate = new DateTime();
         $result = $this->simpleStep->setFinishDate($expectedFinishDate);
 
-        $this->assertEquals($expectedFinishDate, $this->simpleStep->getFinishDate(), 'SimpleStep: property finishDate');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedFinishDate, $this->simpleStep->getFinishDate(), 'SimpleStep: property finishDate');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
 
@@ -180,8 +180,8 @@ class SimpleStepTest extends TestCase
         $expectedId = 9;
         $result = $this->simpleStep->setId($expectedId);
 
-        $this->assertEquals($expectedId, $this->simpleStep->getId(), 'SimpleStep: property id');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedId, $this->simpleStep->getId(), 'SimpleStep: property id');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
     /**
      * Установка не числового Id
@@ -203,8 +203,8 @@ class SimpleStepTest extends TestCase
         $expectedOwner = 'UniqueTestOwner';
         $result = $this->simpleStep->setOwner($expectedOwner);
 
-        $this->assertEquals($expectedOwner, $this->simpleStep->getOwner(), 'SimpleStep: property owner');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedOwner, $this->simpleStep->getOwner(), 'SimpleStep: property owner');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
 
@@ -222,8 +222,8 @@ class SimpleStepTest extends TestCase
 
         $countDiff = count($diff);
 
-        $this->assertEquals(0, $countDiff, 'SimpleStep: property previousStepIds');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals(0, $countDiff, 'SimpleStep: property previousStepIds');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
 
@@ -235,8 +235,8 @@ class SimpleStepTest extends TestCase
         $expectedStartDate = new DateTime();
         $result = $this->simpleStep->setStartDate($expectedStartDate);
 
-        $this->assertEquals($expectedStartDate, $this->simpleStep->getStartDate(), 'SimpleStep: property startDate');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedStartDate, $this->simpleStep->getStartDate(), 'SimpleStep: property startDate');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
 
@@ -248,8 +248,8 @@ class SimpleStepTest extends TestCase
         $expectedStatus = 'UniqueTestStatus';
         $result = $this->simpleStep->setStatus($expectedStatus);
 
-        $this->assertEquals($expectedStatus, $this->simpleStep->getStatus(), 'SimpleStep: property status');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedStatus, $this->simpleStep->getStatus(), 'SimpleStep: property status');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
     /**
@@ -261,8 +261,8 @@ class SimpleStepTest extends TestCase
         $expectedStepId = 12;
         $result = $this->simpleStep->setStepId($expectedStepId);
 
-        $this->assertEquals($expectedStepId, $this->simpleStep->getStepId(), 'SimpleStep: property stepId');
-        $this->assertInstanceOf(SimpleStep::class, $result);
+        static::assertEquals($expectedStepId, $this->simpleStep->getStepId(), 'SimpleStep: property stepId');
+        static::assertInstanceOf(SimpleStep::class, $result);
     }
 
     /**
@@ -282,8 +282,6 @@ class SimpleStepTest extends TestCase
             $initData['actionId'],
             $initData['status']
         );
-        $this->assertEquals($expectedStr, $actualStr, 'Нарушена логика преобразования в строку');
-
+        static::assertEquals($expectedStr, $actualStr, 'Нарушена логика преобразования в строку');
     }
-
 }
