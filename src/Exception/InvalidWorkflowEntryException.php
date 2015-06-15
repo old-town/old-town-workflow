@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Exception;
 
-
 /**
  * Class InvalidWorkflowEntryException
  * @package OldTown\Workflow\Exception
