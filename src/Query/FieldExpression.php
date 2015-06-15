@@ -192,7 +192,7 @@ class FieldExpression extends AbstractExpression
      */
     public function setValue($value)
     {
-        if (is_object($value)) {
+        if (!is_object($value)) {
             $errMsg = sprintf('Аргумент должен быть объектом.');
             throw new InvalidArgumentException($errMsg);
         }
