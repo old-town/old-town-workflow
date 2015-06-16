@@ -16,7 +16,6 @@ use OldTown\Workflow\Query\FieldExpression;
  */
 class WorkflowExpressionQueryTest extends TestCase
 {
-
     /**
      * @var WorkflowExpressionQuery
      */
@@ -68,7 +67,6 @@ class WorkflowExpressionQueryTest extends TestCase
 
         $msg = 'Некорректная работа с полем: sortOrder';
         static::assertEquals($expected, $this->workflowExpressionQuery->getSortOrder(), $msg);
-
     }
 
 
@@ -82,6 +80,5 @@ class WorkflowExpressionQueryTest extends TestCase
 
         $msg = 'Некорректная работа с полем: orderBy';
         static::assertEquals($expected, $this->workflowExpressionQuery->getOrderBy(), $msg);
-
     }
 }

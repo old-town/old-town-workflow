@@ -41,7 +41,7 @@ class NestedExpression extends AbstractExpression
      * @param array $expressions
      * @param null $expressionOperator
      */
-    public function __construct(array $expressions = null,  $expressionOperator = null)
+    public function __construct(array $expressions = null, $expressionOperator = null)
     {
         if (null !== $expressions) {
             $this->setExpressions($expressions);
