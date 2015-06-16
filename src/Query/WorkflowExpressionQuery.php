@@ -54,7 +54,7 @@ class WorkflowExpressionQuery
     public function __construct(AbstractExpression $expression = null)
     {
         if (null !== $expression) {
-            $this->expression = $expression;
+            $this->setExpression($expression);
         }
     }
 
@@ -107,7 +107,7 @@ class WorkflowExpressionQuery
      */
     public function setSortOrder($sortOrder)
     {
-        $this->sortOrder = $sortOrder;
+        $this->sortOrder = (integer)$sortOrder;
 
         return $this;
     }
