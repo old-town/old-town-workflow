@@ -36,14 +36,14 @@
     "phpunit/phpunit": "5.0.x-dev",
     "zendframework/zend-loader": "*",
     "satooshi/php-coveralls": "*@dev",
-    "symfony/yaml": "=2.1.13",
-    "symfony/console": "=2.1.13",
-    "symfony/config": "=2.1.13",
-    "symfony/stopwatch": "=2.1.13",
-    "symfony/process": "=2.1.13",
-    "symfony/event-dispatcher": "=2.1.13",
-    "symfony/finder": "=2.1.13",
-    "symfony/filesystem": "=2.1.13"
+    "symfony/yaml": "2.1.13",
+    "symfony/console": "2.1.13",
+    "symfony/config": "2.1.13",
+    "symfony/stopwatch": "2.1.13",
+    "symfony/process": "2.1.13",
+    "symfony/event-dispatcher": "2.1.13",
+    "symfony/finder": "2.1.13",
+    "symfony/filesystem": "2.1.13"
   },
   "autoload": {
     "psr-4": {
