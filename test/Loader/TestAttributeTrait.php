@@ -35,7 +35,7 @@ trait TestAttributeTrait
      * @param string $xpathPattern
      * @param array  $attributes
      */
-    public function helperTestAttributeFunctionDescriptor($class, $fileName, $xpathPattern, array $attributes = [])
+    public function helperTestAttributeDescriptor($class, $fileName, $xpathPattern, array $attributes = [])
     {
 
         /** @var \DOMElement $testNode */
@@ -70,18 +70,18 @@ trait TestAttributeTrait
     }
 
 
-
     /**
      * Метод для автоматизации тестирования значений атрибутов
      *
-     * @param string $class         - имя класса дескриптора элемента workflow
-     * @param string $setter        - имя метода устанавливающего  значение атрибута из дескриптора
-     * @param string $getter        - имя метода возвращающего  значение атрибута из дескриптора
-     * @param string $xpathElement  - xpath выражение позволяющие получить тестируемый элемент в сгенерированном xml
+     * @param string $class - имя класса дескриптора элемента workflow
+     * @param string $setter - имя метода устанавливающего  значение атрибута из дескриптора
+     * @param string $getter - имя метода возвращающего  значение атрибута из дескриптора
+     * @param string $xpathElement - xpath выражение позволяющие получить тестируемый элемент в сгенерированном xml
      * @param        $attributeName - имя атрибута в сгенерированном xml
-     * @param        $value         - значение атрибута
+     * @param        $value - значение атрибута
+     * @param callable $di
      */
-    protected function saveAttributeTest($class, $setter, $getter, $xpathElement, $attributeName, $value)
+    protected function saveAttributeTest($class, $setter, $getter, $xpathElement, $attributeName, $value, callable $di = null)
     {
         /** @var WriteXmlInterface $descriptor */
 
@@ -91,6 +91,9 @@ trait TestAttributeTrait
         if (!$descriptor instanceof WriteXmlInterface) {
             $errMsg = 'Объект должен реализовывать интерфейс WriteXmlInterface';
             throw new \RuntimeException($errMsg);
+        }
+        if (null !== $di) {
+            call_user_func($di, $descriptor);
         }
 
         call_user_func([$descriptor, $setter], $value);

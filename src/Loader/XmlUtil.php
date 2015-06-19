@@ -122,4 +122,16 @@ abstract class XmlUtil
 
         return $value;
     }
+
+
+    /**
+     * @fixme Реализовать методу \OldTown\Workflow\Loader\XmlUtil::encode
+     *
+     * @param string $string
+     * @return string
+     */
+    public static function encode($string)
+    {
+        return $string;
+    }
 }

@@ -6,6 +6,8 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use DOMDocument;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
 
 /**
  * Class ConditionDescriptor
@@ -15,7 +17,9 @@ use DOMElement;
 class ValidatorDescriptor extends AbstractDescriptor
     implements Traits\ArgsInterface,
                Traits\TypeInterface,
-               Traits\NameInterface
+               Traits\NameInterface,
+               Traits\CustomArgInterface,
+               WriteXmlInterface
 {
     use Traits\ArgsTrait, Traits\TypeTrait, Traits\IdTrait, Traits\NameTrait;
 
@@ -43,5 +47,74 @@ class ValidatorDescriptor extends AbstractDescriptor
         $this->parseName($element, false);
 
         $this->parseArgs($element);
+    }
+
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('validator');
+
+
+        if ($this->hasId()) {
+            $id = $this->getId();
+            $descriptor->setAttribute('id', $id);
+        }
+
+        $name = $this->getName();
+        if (null !== $name) {
+            $nameEncode = XmlUtil::encode($name);
+            $descriptor->setAttribute('name', $nameEncode);
+        }
+
+        $type = $this->getType();
+        if (null === $type) {
+            $errMsg = 'Некорректное значение для атрибута type';
+            throw new InvalidDescriptorException($errMsg);
+        }
+
+        $descriptor->setAttribute('type', $type);
+
+        $this->writeArgs($descriptor);
+
+        return $descriptor;
+    }
+
+
+    /**
+     * @param string $key
+     * @param string $value
+     *
+     * @return boolean
+     */
+    public function flagUseCustomArgWriter($key, $value)
+    {
+        $flag = 'php-eval' === $this->getType();
+
+        return $flag;
+    }
+
+    /**
+     * Генерирует значение аргумента
+     *
+     * @param            $key
+     * @param            $value
+     *
+     * @param DOMElement $argElement
+     *
+     * @return string
+     */
+    public function buildArgValue($key, $value, DOMElement $argElement)
+    {
+        $dom = $argElement->ownerDocument;
+        $argValueElement = $dom->createCDATASection($value);
+        $argElement->appendChild($argValueElement);
     }
 }

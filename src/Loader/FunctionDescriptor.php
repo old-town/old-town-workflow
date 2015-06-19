@@ -74,7 +74,7 @@ class FunctionDescriptor extends AbstractDescriptor
             $descriptor->setAttribute('id', $id);
         }
         $name = $this->getName();
-        if (null !== $id) {
+        if (null !== $name) {
             $descriptor->setAttribute('name', $name);
         }
 
