@@ -27,7 +27,7 @@ script:
   - if [[ $EXECUTE_CS_CHECK == 'true' ]]; then ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file ./.php_cs ; fi
 
 after_script:
-  - cat .reports/clover.xml
+  - ls .reports
   - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/coveralls -v  --config .coveralls.yml ; fi
 
 notifications:
