@@ -7,12 +7,10 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-matrix:
-  include:
-    - php: 5.6
-      env:
-      - EXECUTE_CS_CHECK=true
-      - EXECUTE_TEST_COVERALLS=true
+env:
+  global:
+    - EXECUTE_CS_CHECK=true
+    - EXECUTE_TEST_COVERALLS=true
 
 before_install:
   - if [[ $EXECUTE_TEST_COVERALLS != 'true' ]]; then phpenv config-rm xdebug.ini || return 0 ; fi
