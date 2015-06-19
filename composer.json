@@ -34,7 +34,8 @@
   "require-dev": {
     "fabpot/php-cs-fixer": "*@dev",
     "phpunit/phpunit": "5.0.x-dev",
-    "zendframework/zend-loader": "*"
+    "zendframework/zend-loader": "*",
+    "satooshi/php-coveralls": "*@dev"
   },
   "autoload": {
     "psr-4": {
