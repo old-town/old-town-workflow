@@ -7,28 +7,23 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-env:
-  global:
-    - EXECUTE_CS_CHECK=true
-    - EXECUTE_TEST_COVERALLS=true
+
 
 before_install:
-  - if [[ $EXECUTE_TEST_COVERALLS != 'true' ]]; then phpenv config-rm xdebug.ini || return 0 ; fi
   - composer self-update
-  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then composer require --dev ; fi
+  - composer require --dev
 
 install:
   - travis_retry composer install
 
 
 script:
-  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/phpunit --coverage-clover .reports/clover.xml ; fi
-  - if [[ $EXECUTE_TEST_COVERALLS != 'true' ]]; then ./vendor/bin/phpunit ; fi
-  - if [[ $EXECUTE_CS_CHECK == 'true' ]]; then ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file ./.php_cs ; fi
+  - ./vendor/bin/phpunit
+  - ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file ./.php_cs
 
 after_script:
   - ls .reports
-  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/coveralls -v  --config .coveralls.yml ; fi
+  - ./vendor/bin/coveralls -v  --config .coveralls.yml
 
 notifications:
   email:
