@@ -1,0 +1,12 @@
+<conditions type="or">
+    <condition type="class" id="1" name="testName1">
+        <arg name="argName1">value1</arg>
+        <arg name="argName2">value2</arg>
+        <arg name="argName3">value3</arg>
+    </condition>
+    <condition type="class" id="2" name="testName2">
+        <arg name="argName1">value1</arg>
+        <arg name="argName2">value2</arg>
+        <arg name="argName3">value3</arg>
+    </condition>
+</conditions>

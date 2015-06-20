@@ -48,7 +48,7 @@ class ConditionsDescriptor extends AbstractDescriptor implements Traits\TypeInte
      */
     protected function init(DOMElement $element)
     {
-        $this->parseType($element, false);
+        $this->parseType($element);
 
         for ($i = 0; $i < $element->childNodes->length; $i++) {
             /** @var DOMElement $child */

@@ -28,7 +28,24 @@ class ConditionsDescriptorTest extends TestCase implements DescriptorTestInterfa
      */
     public function setUp()
     {
-        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/condition-descriptor';
+        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/conditions-descriptor';
     }
+
+    /**
+     * Загрузка из тестового xml conditions с двумя вложенными condition
+     *
+     */
+    public function testLoadFromXmlTwoCondition()
+    {
+        $conditionsElement = $this->getTestNode('conditions-two-child-condition.xml', '/conditions');
+
+        $conditionsDescriptor = new ConditionsDescriptor($conditionsElement);
+
+        static::assertEquals('or', $conditionsDescriptor->getType(), 'Неверное значение атрибута type');
+
+        static::assertEquals(2, $conditionsDescriptor->getConditions()->count(), 'Неверное количество условий');
+
+    }
+
 
 }
