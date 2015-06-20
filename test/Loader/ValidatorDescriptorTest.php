@@ -79,6 +79,13 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
     protected $saveAttributeTestConfig;
 
     /**
+     * Данные для тестирования на чтение аргументов
+     *
+     * @var array|null
+     */
+    protected $dataForReadXmlArgTest;
+
+    /**
      * @return array
      */
     public function saveAttributeTestData()
@@ -143,7 +150,7 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
      */
     public function setUp()
     {
-        $this->pathToXmlFile = __DIR__ . '/../data/workwlow-descriptor/validator-descriptor';
+        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/validator-descriptor';
     }
 
     /**
@@ -219,5 +226,26 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
     public function defaultDiDescriptor(ValidatorDescriptor $descriptor)
     {
         $descriptor->setType('defaultType');
+    }
+
+    /**
+     * Возвращает данные для тестирования аргументов
+     *
+     * @return array
+     */
+    public function readXmlArgCustomTestData()
+    {
+        if ($this->dataForReadXmlArgTest) {
+            return $this->dataForReadXmlArgTest;
+        }
+
+        $this->dataForReadXmlArgTest = [
+            [
+                'file' => 'validator-args.xml',
+                'xpathRoot' => '/validator',
+            ]
+        ];
+
+        return $this->dataForReadXmlArgTest;
     }
 }

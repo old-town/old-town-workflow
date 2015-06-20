@@ -50,4 +50,35 @@ trait ProviderXmlDataTrait
 
         return $element;
     }
+
+    /**
+     * Возвращает узлы для тестирования
+     *
+     * @param string $fileName
+     * @param string $xpathPattern
+     *
+     * @return \DOMElement[]
+     */
+    public function getTestNodes($fileName, $xpathPattern)
+    {
+        $pathToFile = $this->pathToXmlFile . DIRECTORY_SEPARATOR . $fileName;
+        if (!file_exists($pathToFile)) {
+            $errMsg = "Отсутствует файл с тестовыми данными {$pathToFile}";
+            throw new \RuntimeException($errMsg);
+        }
+
+        $xmlDoc = new \DOMDocument();
+        $xmlDoc->load($pathToFile);
+
+        $xpath = new \DOMXpath($xmlDoc);
+        $elements = $xpath->query($xpathPattern);
+
+
+        $arrayElements = [];
+        for ($i = 0; $i < $elements->length; $i++) {
+            $arrayElements[] = $elements->item($i);
+        }
+
+        return $arrayElements;
+    }
 }

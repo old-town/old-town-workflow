@@ -6,14 +6,14 @@
 namespace OldTown\Workflow\Test\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
-use OldTown\Workflow\Loader\FunctionDescriptor;
+use OldTown\Workflow\Loader\RegisterDescriptor;
 
 /**
- * Class FunctionDescriptorTest
+ * Class ValidatorDescriptorTest
  *
  * @package OldTown\Workflow\Test\Loader
  */
-class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
+class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
 {
     use DescriptorTestTrait, ProviderXmlDataTrait, TestAttributeTrait, ArgumentsTraitTest;
 
@@ -22,7 +22,14 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
      *
      * @var string
      */
-    const DESCRIPTOR_CLASS_NAME = FunctionDescriptor::class;
+    const DESCRIPTOR_CLASS_NAME = RegisterDescriptor::class;
+
+    /**
+     * Данные для тестирования на чтение аргументов
+     *
+     * @var array|null
+     */
+    protected $dataForReadXmlArgTest;
 
     /**
      * Тестируем атрибуты
@@ -34,23 +41,23 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
             /**
              * Вариант когда присутствуют все атрибуты
              */
-            'fileName'     => 'function.xml',
-            'xpathPattern' => '/function',
-            'attributes'   => [
+            'fileName' => 'register.xml',
+            'xpathPattern' => '/register',
+            'attributes' => [
                 'type' => [
                     'descriptorMethod' => 'getType',
                     'xmlAttributeName' => 'type',
-                    'required'         => true
+                    'required' => true
                 ],
-                'id'   => [
+                'id' => [
                     'descriptorMethod' => 'getId',
                     'xmlAttributeName' => 'id',
-                    'required'         => false
+                    'required' => false
                 ],
                 'name' => [
-                    'descriptorMethod' => 'getName',
-                    'xmlAttributeName' => 'name',
-                    'required'         => false
+                    'descriptorMethod' => 'getVariableName',
+                    'xmlAttributeName' => 'variable-name',
+                    'required' => true
                 ]
             ]
         ]
@@ -64,10 +71,17 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
     protected $testRequiredAttributesConfig = [
         [
             /**
-             * Вариант когда присутствуют все атрибуты
+             * Вариант когда отсутствует атрибут type
              */
-            'fileName'     => 'function-not-exists-type-attribute.xml',
-            'xpathPattern' => '/function'
+            'fileName' => 'register-not-exists-type-attribute.xml',
+            'xpathPattern' => '/register'
+        ],
+        [
+            /**
+             * Вариант когда отсутствует атрибут
+             */
+            'fileName' => 'register-not-exists-variable-name-attribute.xml',
+            'xpathPattern' => '/register'
         ]
     ];
 
@@ -79,13 +93,6 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
     protected $saveAttributeTestConfig;
 
     /**
-     * Данные для тестирования на чтение аргументов
-     *
-     * @var array|null
-     */
-    protected $dataForReadXmlArgTest;
-
-    /**
      * @return array
      */
     public function saveAttributeTestData()
@@ -95,33 +102,38 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
         }
         $this->saveAttributeTestConfig = [
             [
-                'class'         => FunctionDescriptor::class,
-                'setter'        => 'setType',
-                'getter'        => 'getType',
-                'xpathElement'  => '/function',
+                'class' => RegisterDescriptor::class,
+                'setter' => 'setType',
+                'getter' => 'getType',
+                'xpathElement' => '/register',
                 'attributeName' => 'type',
-                'value'         => 'testType'
+                'value' => 'testType',
+                'di' => function (RegisterDescriptor $descriptor) {
+                    $descriptor->setVariableName('testVariableName');
+
+                }
             ],
             [
-                'class'         => FunctionDescriptor::class,
-                'setter'        => 'setName',
-                'getter'        => 'getName',
-                'xpathElement'  => '/function',
-                'attributeName' => 'name',
-                'value'         => 'testName',
-                'di' => function(FunctionDescriptor $descriptor) {
+                'class' => RegisterDescriptor::class,
+                'setter' => 'setVariableName',
+                'getter' => 'getVariableName',
+                'xpathElement' => '/register',
+                'attributeName' => 'variable-name',
+                'value' => 'testVariableName',
+                'di' => function (RegisterDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ],
             [
-                'class'         => FunctionDescriptor::class,
-                'setter'        => 'setId',
-                'getter'        => 'getId',
-                'xpathElement'  => '/function',
+                'class' => RegisterDescriptor::class,
+                'setter' => 'setId',
+                'getter' => 'getId',
+                'xpathElement' => '/register',
                 'attributeName' => 'id',
-                'value'         => 'testId',
-                'di' => function(FunctionDescriptor $descriptor) {
+                'value' => 'testId',
+                'di' => function (RegisterDescriptor $descriptor) {
                     $descriptor->setType('testType');
+                    $descriptor->setVariableName('testVariableName');
                 }
             ]
         ];
@@ -150,7 +162,7 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
      */
     public function setUp()
     {
-        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/function-descriptor';
+        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/register-descriptor';
     }
 
     /**
@@ -158,11 +170,11 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
      *
      * @return void
      */
-    public function testCreateFunctionDescriptorWithoutElement()
+    public function testCreateValidatorDescriptorWithoutElement()
     {
-        $descriptor = new FunctionDescriptor();
+        $descriptor = new RegisterDescriptor();
 
-        static::assertInstanceOf('\OldTown\Workflow\Loader\FunctionDescriptor', $descriptor);
+        static::assertInstanceOf(RegisterDescriptor::class, $descriptor);
     }
 
     /**
@@ -172,11 +184,11 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
      *
      * @param string $fileName
      * @param string $xpathPattern
-     * @param array  $attributes
+     * @param array $attributes
      */
-    public function testAttributeFunctionDescriptor($fileName, $xpathPattern, array $attributes = [])
+    public function testAttributeValidatorDescriptor($fileName, $xpathPattern, array $attributes = [])
     {
-        $this->helperTestAttributeDescriptor(FunctionDescriptor::class, $fileName, $xpathPattern, $attributes);
+        $this->helperTestAttributeDescriptor(RegisterDescriptor::class, $fileName, $xpathPattern, $attributes);
     }
 
     /**
@@ -189,11 +201,11 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
      * @param string $fileName
      * @param string $xpathPattern
      */
-    public function testRequiredAttributeFunctionDescriptor($fileName, $xpathPattern)
+    public function testRequiredAttributeValidatorDescriptor($fileName, $xpathPattern)
     {
         /** @var \DOMElement $testNode */
         $testNode = $this->getTestNode($fileName, $xpathPattern);
-        new FunctionDescriptor($testNode);
+        new RegisterDescriptor($testNode);
     }
 
 
@@ -219,13 +231,14 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
     /**
      * Настройка зависимостей для тестирования атрибутов
      *
-     * @param FunctionDescriptor $descriptor
+     * @param RegisterDescriptor $descriptor
      *
      * @return void
      */
-    public function defaultDiDescriptor(FunctionDescriptor $descriptor)
+    public function defaultDiDescriptor(RegisterDescriptor $descriptor)
     {
         $descriptor->setType('defaultType');
+        $descriptor->setVariableName('testVariableName');
     }
 
     /**
@@ -241,8 +254,8 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
 
         $this->dataForReadXmlArgTest = [
             [
-                'file' => 'function-args.xml',
-                'xpathRoot' => '/function',
+                'file' => 'register-args.xml',
+                'xpathRoot' => '/register',
             ]
         ];
 

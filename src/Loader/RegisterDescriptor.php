@@ -93,7 +93,7 @@ class RegisterDescriptor extends AbstractDescriptor
      */
     public function writeXml(DOMDocument $dom)
     {
-        $descriptor = $dom->createElement('validator');
+        $descriptor = $dom->createElement('register');
 
 
         if ($this->hasId()) {
@@ -102,7 +102,7 @@ class RegisterDescriptor extends AbstractDescriptor
         }
 
         $variableName = $this->getVariableName();
-        if (null !== $variableName) {
+        if (null === $variableName) {
             $errMsg = 'Некорректное значение для атрибута variable-name';
             throw new InvalidDescriptorException($errMsg);
         }

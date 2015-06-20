@@ -7,6 +7,7 @@ namespace OldTown\Workflow\Test\Loader;
 
 use OldTown\Workflow\Loader\Traits\ArgsInterface;
 use OldTown\Workflow\Loader\WriteXmlInterface;
+use OldTown\Workflow\Loader\XmlUtil;
 
 /**
  * Class FunctionDescriptorTest
@@ -22,12 +23,40 @@ trait ArgumentsTraitTest
      */
     abstract public function getDescriptorClassName();
 
+
+    /**
+     * Возвращает узел для тестирования
+     *
+     * @param string $fileName
+     * @param string $xpathPattern
+     *
+     * @return \DOMElement
+     */
+    abstract public function getTestNode($fileName, $xpathPattern);
+
+    /**
+     * Возвращает узлы для тестирования
+     *
+     * @param string $fileName
+     * @param string $xpathPattern
+     *
+     * @return \DOMElement
+     */
+    abstract public function getTestNodes($fileName, $xpathPattern);
+
     /**
      * Кеш данных для тестирования записи атрибутов
      *
      * @var array
      */
     protected $writeXmlArgTestData;
+
+    /**
+     * Кеш данных для тестирования чтения аргументов
+     *
+     * @var array
+     */
+    protected $readXmlArgTestData;
 
     /**
      * Данные для стандартного тестирования записи аргументов
@@ -42,6 +71,15 @@ trait ArgumentsTraitTest
             'nodeType'      => XML_TEXT_NODE,
             'expectedValue' => 'testArgValue',
         ]
+    ];
+
+    /**
+     * Данные для стандартного тестирования чтения аргументов
+     *
+     * @var array
+     */
+    protected $defaultReadXmlArgTestData = [
+
     ];
 
     /**
@@ -150,5 +188,75 @@ trait ArgumentsTraitTest
             $argElement->firstChild->nodeValue
         );
         call_user_func([static::class, 'assertEquals'], $argElement->firstChild->nodeValue, $expectedValue, $errMsg);
+    }
+
+
+    /**
+     * Возвращает данные для тестирования чтения аргументов
+     *
+     * @return array
+     */
+    public function readXmlArgTestData()
+    {
+        if (null !== $this->readXmlArgTestData) {
+            return $this->readXmlArgTestData;
+        }
+
+        $r = new \ReflectionObject($this);
+
+        $customMethod = $r->hasMethod('readXmlArgCustomTestData') ? $r->getMethod('readXmlArgCustomTestData') : null;
+        $valueCustomMethod = null;
+        if ($customMethod instanceof \ReflectionMethod) {
+            $valueCustomMethod = $customMethod->invoke($this);
+        }
+
+        $customData = is_array($valueCustomMethod) ? $valueCustomMethod : [];
+
+        $data = array_merge($this->defaultReadXmlArgTestData, $customData);
+
+        $this->readXmlArgTestData = $data;
+
+        return $data;
+    }
+
+    /**
+     * Тестирование чтения аргументов
+     *
+     * @dataProvider readXmlArgTestData
+     * @param string $file
+     * @param string $xpathRoot
+     */
+    public function testReadArg($file, $xpathRoot)
+    {
+        /** @var \DOMElement $testNode */
+        $testNode = $this->getTestNode($file, $xpathRoot);
+
+        $descriptorClassName = $this->getDescriptorClassName();
+        $r = new \ReflectionClass($descriptorClassName);
+
+        /** @var ArgsInterface $descriptor */
+        $descriptor = $r->newInstance($testNode);
+
+        $xpath = new \DOMXpath($testNode->ownerDocument);
+        $argsDomElements = $xpath->query('arg', $testNode);
+
+        $expectedArgs = [];
+        for ($i = 0; $i < $argsDomElements->length; $i++) {
+            /** @var \DOMElement $element */
+            $element = $argsDomElements->item($i);
+            $name = XmlUtil::getRequiredAttributeValue($element, 'name');
+            $value = XmlUtil::getText($element);
+
+            $expectedArgs[$name] = $value;
+        }
+
+        foreach ($expectedArgs as $argName => $argValue) {
+            $errMsg = sprintf('Неверное значение для аргумента с именем %s', $argName);
+            call_user_func([static::class, 'assertEquals'], $descriptor->getArg($argName), $argValue, $errMsg);
+        }
+
+        $errMsg = 'Разное колличество аргументов';
+        call_user_func([static::class, 'assertEquals'], count($descriptor->getArgs()), count($expectedArgs), $errMsg);
+
     }
 }
