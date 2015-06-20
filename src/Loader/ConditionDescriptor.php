@@ -6,6 +6,9 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use DOMDocument;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+
 
 /**
  * Class ConditionDescriptor
@@ -13,27 +16,15 @@ use DOMElement;
  * @package OldTown\Workflow\Loader
  */
 class ConditionDescriptor extends AbstractDescriptor
+    implements
+        Traits\ArgsInterface,
+        Traits\TypeInterface,
+        Traits\NameInterface,
+        Traits\CustomArgInterface,
+        WriteXmlInterface
 {
-    /**
-     * Аргументы
-     *
-     * @var array
-     */
-    protected $args = [];
+    use Traits\ArgsTrait, Traits\TypeTrait, Traits\IdTrait, Traits\NameTrait;
 
-    /**
-     * Имя условия
-     *
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * Тип условия
-     *
-     * @var string
-     */
-    protected $type;
 
     /**
      * @var bool
@@ -59,13 +50,11 @@ class ConditionDescriptor extends AbstractDescriptor
      */
     protected function init(DOMElement $condition)
     {
-        $this->type = XmlUtil::getRequiredAttributeValue($condition, 'type');
+        $this->parseType($condition);
+        $this->parseId($condition, false);
+        $this->parseName($condition, false);
 
-        if ($condition->hasAttribute('id')) {
-            $id = XmlUtil::getRequiredAttributeValue($condition, 'id');
-            $this->setId($id);
-        }
-
+        $this->parseArgs($condition);
 
         if ($condition->hasAttribute('negate')) {
             $n =  XmlUtil::getRequiredAttributeValue($condition, 'negate');
@@ -77,65 +66,6 @@ class ConditionDescriptor extends AbstractDescriptor
             }
         }
 
-        if ($condition->hasAttribute('name')) {
-            $this->name =  XmlUtil::getRequiredAttributeValue($condition, 'name');
-        }
-
-        $args = XmlUtil::getChildElements($condition, 'arg');
-        foreach ($args as $arg) {
-            $name = XmlUtil::getRequiredAttributeValue($arg, 'name');
-            $value = XmlUtil::getText($arg);
-
-            $this->args[$name] = $value;
-        }
-    }
-
-    /**
-     * Возвращает тип условия
-     *
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * Устанавливает тип условия
-     *
-     * @param string $type
-     *
-     * @return $this
-     */
-    public function setType($type)
-    {
-        $this->type = (string)$type;
-
-        return $this;
-    }
-
-    /**
-     * Возвращает имя условия
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Устанавливает имя условия
-     *
-     * @param string $name
-     *
-     * @return $this
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     /**
@@ -159,44 +89,73 @@ class ConditionDescriptor extends AbstractDescriptor
     }
 
     /**
-     * Возвращает аргументы
+     * Создает DOMElement - эквивалентный состоянию дескриптора
      *
-     * @return array
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement
+     * @throws InvalidDescriptorException
      */
-    public function getArgs()
+    public function writeXml(DOMDocument $dom)
     {
-        return $this->args;
+        $descriptor = $dom->createElement('condition');
+
+
+        if ($this->hasId()) {
+            $id = $this->getId();
+            $descriptor->setAttribute('id', $id);
+        }
+
+        $name = $this->getName();
+        if (null !== $name && is_string($name) && strlen($name) > 0) {
+            $descriptor->setAttribute('name', $name);
+        }
+
+        $type = $this->getType();
+        if (null === $type) {
+            $errMsg = 'Некорректное значение для атрибута type';
+            throw new InvalidDescriptorException($errMsg);
+        }
+
+        $descriptor->setAttribute('type', $type);
+
+        if ($this->isNegate()) {
+            $descriptor->setAttribute('negate', 'true');
+        }
+
+        $this->writeArgs($descriptor);
+
+        return $descriptor;
+    }
+
+
+    /**
+     * @param string $key
+     * @param string $value
+     *
+     * @return boolean
+     */
+    public function flagUseCustomArgWriter($key, $value)
+    {
+        $flag = 'php-eval' === $this->getType();
+
+        return $flag;
     }
 
     /**
-     * Устанавливает аргумент
+     * Генерирует значение аргумента
      *
-     * @param $name
-     * @param $value
+     * @param            $key
+     * @param            $value
      *
-     * @return $this
-     */
-    public function setArg($name, $value)
-    {
-        $this->args[$name] = $value;
-
-        return $this;
-    }
-
-    /**
-     * Устанавливает аргумент
-     *
-     * @param string $name
-     * @param mixed $defaultValue
+     * @param DOMElement $argElement
      *
      * @return string
      */
-    public function getArg($name, $defaultValue = null)
+    public function buildArgValue($key, $value, DOMElement $argElement)
     {
-        if (array_key_exists($name, $this->args)) {
-            return $this->args[$name];
-        }
-
-        return $defaultValue;
+        $dom = $argElement->ownerDocument;
+        $argValueElement = $dom->createCDATASection($value);
+        $argElement->appendChild($argValueElement);
     }
 }

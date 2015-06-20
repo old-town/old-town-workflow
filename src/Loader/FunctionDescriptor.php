@@ -16,11 +16,12 @@ use DOMDocument;
  * @package OldTown\Workflow\Loader
  */
 class FunctionDescriptor extends AbstractDescriptor
-    implements Traits\ArgsInterface,
-    Traits\TypeInterface,
-    Traits\NameInterface,
-    Traits\CustomArgInterface,
-    WriteXmlInterface
+    implements
+        Traits\ArgsInterface,
+        Traits\TypeInterface,
+        Traits\NameInterface,
+        Traits\CustomArgInterface,
+        WriteXmlInterface
 {
     use Traits\ArgsTrait, Traits\TypeTrait, Traits\IdTrait, Traits\NameTrait;
 
