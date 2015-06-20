@@ -58,4 +58,14 @@ class ConditionalResultDescriptor extends ResultDescriptor
     {
         return $this->conditions;
     }
+
+    /**
+     * @fixme Реализовать
+     *
+     * @return string
+     */
+    public function getDestination()
+    {
+        return '';
+    }
 }

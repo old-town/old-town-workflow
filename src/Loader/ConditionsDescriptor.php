@@ -7,26 +7,25 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 use DOMNode;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
+use DOMDocument;
+
 
 /**
  * Interface WorkflowDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class ConditionsDescriptor extends AbstractDescriptor
+class ConditionsDescriptor extends AbstractDescriptor implements Traits\TypeInterface, WriteXmlInterface
 {
+    use Traits\TypeTrait;
+
     /**
      * @var ConditionsDescriptor[]|SplObjectStorage
      */
     private $conditions;
-
-    /**
-     * Тип условий
-     *
-     * @var string
-     */
-    private $type;
 
     /**
      * @param $element
@@ -49,9 +48,7 @@ class ConditionsDescriptor extends AbstractDescriptor
      */
     protected function init(DOMElement $element)
     {
-        if ($element->hasAttribute('type')) {
-            $this->type = XmlUtil::getRequiredAttributeValue($element, 'type');
-        }
+        $this->parseType($element, false);
 
         for ($i = 0; $i < $element->childNodes->length; $i++) {
             /** @var DOMElement $child */
@@ -67,30 +64,6 @@ class ConditionsDescriptor extends AbstractDescriptor
                 }
             }
         }
-    }
-
-    /**
-     * Возвращает тип условий
-     *
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * Устанавливает тип условий
-     *
-     * @param string $type
-     *
-     * @return $this
-     */
-    public function setType($type)
-    {
-        $this->type = (string)$type;
-
-        return $this;
     }
 
     /**
@@ -111,5 +84,86 @@ class ConditionsDescriptor extends AbstractDescriptor
         $this->conditions = $conditions;
 
         return $this;
+    }
+
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $countConditions = $this->getConditions()->count();
+        if ($countConditions > 0) {
+            $descriptor = $dom->createElement('conditions');
+
+            if ($countConditions > 1) {
+                $type = $this->getType();
+                if (null === $type) {
+                    $errMsg = 'Некорректное значение для атрибута type';
+                    throw new InvalidDescriptorException($errMsg);
+                }
+                $descriptor->setAttribute('type', $type);
+            }
+
+            foreach ($this->getConditions() as $condition) {
+                $conditionDescriptor = $condition->writeXml($dom);
+                $descriptor->appendChild($conditionDescriptor);
+            }
+        }
+
+        return null;
+
+    }
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $conditions = $this->getConditions();
+        ValidationHelper::validate($conditions);
+
+
+        $countConditions = $conditions->count();
+
+        if ($countConditions === 0) {
+            $desc = $this->getParent();
+            if (($desc != null) && ($desc instanceof ConditionalResultDescriptor)) {
+                $parentConditionalResult = $desc->getParent();
+                if (is_object($parentConditionalResult)) {
+                    if (method_exists($parentConditionalResult, 'getName')) {
+                        $from = call_user_func([$parentConditionalResult, 'getName']);
+                    } else {
+                        $from = get_class($parentConditionalResult);
+                    }
+
+                } else {
+                    $from = 'Unknown';
+                }
+                $destination = $desc->getDestination();
+
+
+                $errMsg = sprintf(
+                    'Результат условия от %s к %s должны иметь по крайней мере одну условие',
+                    $from,
+                    $destination
+                );
+                throw new InvalidWorkflowDescriptorException($errMsg);
+            }
+        }
+
+        if ($countConditions > 0 && null !== $this->getType()) {
+            $errMsg = 'В условие должен быть определен тип AND или OR';
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+
     }
 }

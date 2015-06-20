@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use DOMDocument;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 
 
 /**
@@ -21,7 +22,8 @@ class ConditionDescriptor extends AbstractDescriptor
         Traits\TypeInterface,
         Traits\NameInterface,
         Traits\CustomArgInterface,
-        WriteXmlInterface
+        WriteXmlInterface,
+        ValidateDescriptorInterface
 {
     use Traits\ArgsTrait, Traits\TypeTrait, Traits\IdTrait, Traits\NameTrait;
 
@@ -157,5 +159,16 @@ class ConditionDescriptor extends AbstractDescriptor
         $dom = $argElement->ownerDocument;
         $argValueElement = $dom->createCDATASection($value);
         $argElement->appendChild($argValueElement);
+    }
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+
     }
 }

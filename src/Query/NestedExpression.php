@@ -23,7 +23,7 @@ class NestedExpression extends AbstractExpression
      *
      * @var integer
      */
-    const OR_OPERATOR = 6;
+    const OR_OPERATOR = 7;
 
     /**
      *
