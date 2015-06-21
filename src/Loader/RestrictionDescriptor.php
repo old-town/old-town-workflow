@@ -5,14 +5,18 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use DOMElement; use SplObjectStorage;
+use DOMElement;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use SplObjectStorage;
+use DOMDocument;
 
 /**
  * Class ConditionDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class RestrictionDescriptor extends AbstractDescriptor
+class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescriptorInterface, WriteXmlInterface
 {
     /**
      * @var ConditionsDescriptor[]|SplObjectStorage
@@ -34,6 +38,14 @@ class RestrictionDescriptor extends AbstractDescriptor
     }
 
     /**
+     * @return ConditionsDescriptor[]|SplObjectStorage
+     */
+    public function getConditions()
+    {
+        return $this->conditions;
+    }
+
+    /**
      * @param DOMElement $restriction
      *
      * @return void
@@ -49,7 +61,7 @@ class RestrictionDescriptor extends AbstractDescriptor
     }
 
     /**
-     * @return ConditionsDescriptor[]|SplObjectStorage
+     * @return ConditionsDescriptor
      */
     public function getConditionsDescriptor()
     {
@@ -76,4 +88,49 @@ class RestrictionDescriptor extends AbstractDescriptor
         }
         return $this;
     }
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $conditions = $this->getConditions();
+        $countConditions = $conditions->count();
+
+        if ($countConditions >1) {
+            $errMsg = 'Restriction может иметь только один вложенный Condition';
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+        ValidationHelper::validate($conditions);
+    }
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $conditions = $this->getConditionsDescriptor();
+
+        $list = $conditions->getConditions();
+
+        if (0 === $list->count()) {
+            return null;
+        }
+
+        $descriptor = $dom->createElement('restrict-to');
+        $conditionsDescriptor = $conditions->writeXml($dom);
+        $descriptor->appendChild($conditionsDescriptor);
+
+        return $descriptor;
+
+    }
+
 }

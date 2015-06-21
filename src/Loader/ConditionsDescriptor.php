@@ -18,7 +18,11 @@ use DOMDocument;
  *
  * @package OldTown\Workflow\Loader
  */
-class ConditionsDescriptor extends AbstractDescriptor implements Traits\TypeInterface, WriteXmlInterface
+class ConditionsDescriptor extends AbstractDescriptor
+    implements
+        Traits\TypeInterface,
+        WriteXmlInterface,
+        ValidateDescriptorInterface
 {
     use Traits\TypeTrait;
 
