@@ -16,7 +16,11 @@ use DOMDocument;
  *
  * @package OldTown\Workflow\Loader
  */
-class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterface
+class ActionDescriptor extends AbstractDescriptor
+    implements
+        Traits\NameInterface,
+        ValidateDescriptorInterface,
+        WriteXmlInterface
 {
     use Traits\NameTrait, Traits\IdTrait;
 

@@ -6,7 +6,9 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
 
 /**
@@ -14,7 +16,10 @@ use SplObjectStorage;
  *
  * @package OldTown\Workflow\Loader
  */
-class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
+class StepDescriptor extends AbstractDescriptor
+    implements
+        Traits\NameInterface,
+        ValidateDescriptorInterface
 {
     use Traits\NameTrait, Traits\IdTrait;
 
@@ -22,6 +27,13 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
      * @var ActionDescriptor[]|SplObjectStorage
      */
     protected $actions;
+
+    /**
+     * Список id дейсвтия являющихся общими для всего workflow
+     *
+     * @var array
+     */
+    protected $commonActions = [];
 
     /**
      * @var FunctionDescriptor[]|SplObjectStorage
@@ -52,14 +64,14 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
 
 
     /**
-     * @param DOMElement         $element
+     * @param DOMElement $element
      * @param AbstractDescriptor $parent
      */
     public function __construct(DOMElement $element = null, AbstractDescriptor $parent = null)
     {
         $this->preFunctions = new SplObjectStorage();
         $this->postFunctions = new SplObjectStorage();
-        $this->actions  = new SplObjectStorage();
+        $this->actions = new SplObjectStorage();
 
         parent::__construct($element);
 
@@ -138,6 +150,7 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
                 if ($commonActionReference !== null) {
                     $this->actions->attach($commonActionReference);
                 }
+                $this->commonActions[$actionId] = $actionId;
             }
         }
 
@@ -154,6 +167,17 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
             }
         }
     }
+
+    /**
+     * Возвращает список id дейсвтий являющихся общим для всего workflow
+     *
+     * @return array
+     */
+    public function getCommonActions()
+    {
+        return $this->commonActions;
+    }
+
 
     /**
      * @return FunctionDescriptor[]|SplObjectStorage
@@ -221,5 +245,107 @@ class StepDescriptor extends AbstractDescriptor implements Traits\NameInterface
             }
         }
         return null;
+    }
+
+    /**
+     * Удаляет действия для данного шага
+     *
+     * @return $this
+     */
+    public function removeActions()
+    {
+        $this->commonActions = [];
+        $this->actions = new SplObjectStorage();
+        $this->hasActions = false;
+        return $this;
+    }
+
+    /**
+     * @param integer $join
+     * @return boolean
+     *
+     * @throws ArgumentNotNumericException
+     */
+    public function resultsInJoin($join)
+    {
+        if (!is_numeric($join)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+
+        $join = (integer)$join;
+
+        $actions = $this->getActions();
+
+        foreach ($actions as $actionDescriptor) {
+            if ($join === $actionDescriptor->getUnconditionalResult()->getJoin()) {
+                return true;
+            }
+
+            $results = $actionDescriptor->getConditionalResults();
+            foreach($results as $resultDescriptor) {
+                if ($join === $resultDescriptor->getJoin()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $commonActions = $this->getCommonActions();
+        $actions = $this->getActions();
+        $hasActions = $this->hasActions;
+
+        if (0 === count($commonActions) && 0 === $actions->count() && $hasActions) {
+            $stepName = (string)$this->getName();
+            $errMsg = sprintf('Шаг %s должен содержать одни действие или одно общее действие', $stepName);
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+
+        if (-1 === $this->getId()) {
+            $errMsg = 'В качестве id шага нельзя использовать -1, так как это зарезериврованное значение';
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+
+        $preFunctions = $this->getPreFunctions();
+        $postFunctions = $this->getPostFunctions();
+        $actions = $this->getActions();
+        $permissions = $this->getPermissions();
+
+        ValidationHelper::validate($preFunctions);
+        ValidationHelper::validate($postFunctions);
+        ValidationHelper::validate($actions);
+        ValidationHelper::validate($permissions);
+
+        $workflowDescriptor = $this->getParent();
+        if (!$workflowDescriptor instanceof WorkflowDescriptor) {
+            $errMsg = sprintf('Родительский элемент для шага должен реализовывать ', WorkflowDescriptor::class);
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+        foreach ($commonActions as $actionId) {
+            try {
+                $commonActionReference = $workflowDescriptor->getCommonAction($actionId);
+
+                if (null === $commonActionReference) {
+                    $stepName = (string)$this->getName();
+                    $errMsg = sprintf('Common-action %s указанное для шага %s не существует', $actionId, $stepName);
+                    throw new InvalidWorkflowDescriptorException($errMsg);
+                }
+            } catch (\Exception $e) {
+                $actionIdStr = (string)$actionId;
+                $errMsg = sprintf('Некорректный id для common-action: id ', $actionIdStr);
+                throw  new InvalidWorkflowDescriptorException($errMsg, $e->getCode(), $e);
+            }
+        }
     }
 }
