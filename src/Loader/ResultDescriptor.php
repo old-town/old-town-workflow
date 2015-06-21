@@ -6,14 +6,16 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
+use DOMDocument;
 
 /**
  * Class ConditionDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class ResultDescriptor extends AbstractDescriptor
+class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorInterface
 {
     use Traits\IdTrait;
 
@@ -378,5 +380,22 @@ class ResultDescriptor extends AbstractDescriptor
     public function getPostFunctions()
     {
         return $this->postFunctions;
+    }
+
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+
+    }
+
+    protected function printPostFunctions(DOMDocument $dom)
+    {
+
     }
 }

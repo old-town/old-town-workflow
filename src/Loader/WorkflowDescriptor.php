@@ -5,11 +5,13 @@
  */
 namespace OldTown\Workflow\Loader;
 
+use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use DOMElement;
 use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
+
 /**
  * Interface WorkflowDescriptor
  *
@@ -298,6 +300,28 @@ class WorkflowDescriptor extends AbstractDescriptor
 
         $errMsg = 'Ошибка при добавления перехода workflow';
         throw new RuntimeException($errMsg);
+    }
+
+    /**
+     * Возвращает шаг по его id
+     *
+     * @param integer $id
+     * @return StepDescriptor|null
+     */
+    public function getStep($id)
+    {
+        if (is_numeric($id)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+        $id = (integer)$id;
+
+        foreach ($this->getSteps() as $step) {
+            if ($id === $step->getId()) {
+                return $step;
+            }
+        }
+        return null;
     }
 
     /**
