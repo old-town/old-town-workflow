@@ -47,5 +47,20 @@ class ConditionsDescriptorTest extends TestCase implements DescriptorTestInterfa
 
     }
 
+    /**
+     * Загрузка из тестового xml conditions с двумя вложенными condition
+     *
+     */
+    public function testLoadFromXmlConditionsAndCondition()
+    {
+        $conditionsElement = $this->getTestNode('conditions-two-child-condition-and-conditions.xml', '/conditions');
+
+        $conditionsDescriptor = new ConditionsDescriptor($conditionsElement);
+
+        static::assertEquals('or', $conditionsDescriptor->getType(), 'Неверное значение атрибута type');
+
+        static::assertEquals(2, $conditionsDescriptor->getConditions()->count(), 'Неверное количество условий');
+
+    }
 
 }
