@@ -405,7 +405,7 @@ class ActionDescriptor extends AbstractDescriptor
      *
      * @param DOMDocument $dom
      *
-     * @return DOMElement|null
+     * @return DOMElement
      * @throws InvalidDescriptorException
      */
     public function writeXml(DOMDocument $dom)

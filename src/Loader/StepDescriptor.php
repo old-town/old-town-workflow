@@ -7,9 +7,11 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
+use DOMDocument;
 
 /**
  * Class ConditionDescriptor
@@ -19,7 +21,8 @@ use SplObjectStorage;
 class StepDescriptor extends AbstractDescriptor
     implements
         Traits\NameInterface,
-        ValidateDescriptorInterface
+        ValidateDescriptorInterface,
+        WriteXmlInterface
 {
     use Traits\NameTrait, Traits\IdTrait;
 
@@ -347,5 +350,110 @@ class StepDescriptor extends AbstractDescriptor
                 throw  new InvalidWorkflowDescriptorException($errMsg, $e->getCode(), $e);
             }
         }
+    }
+
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('step');
+
+        if (!$this->hasId()) {
+            $errMsg = 'Отсутствует атрибут id';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $id = $this->getId();
+        $descriptor->setAttribute('id', $id);
+
+        $name = (string)$this->getName();
+        $name = trim($name);
+        if (strlen($name) > 0) {
+            $nameEncode = XmlUtil::encode($name);
+            $descriptor->setAttribute('name', $nameEncode);
+        }
+
+
+        $metaAttributes = $this->getMetaAttributes();
+        foreach ($metaAttributes as $metaAttributeName => $metaAttributeValue) {
+            $metaAttributeNameEncode = XmlUtil::encode($metaAttributeName);
+            $metaAttributeValueEnEncode = XmlUtil::encode($metaAttributeValue);
+
+            $metaElement = $dom->createElement('meta');
+            $metaElement->setAttribute('name', $metaAttributeNameEncode);
+            $metaValueElement = $dom->createTextNode($metaAttributeValueEnEncode);
+            $metaElement->appendChild($metaValueElement);
+
+            $descriptor->appendChild($metaElement);
+        }
+
+
+        $preFunctions = $this->getPreFunctions();
+        if ($preFunctions->count() > 0) {
+            $preFunctionsElement = $dom->createElement('pre-functions');
+            foreach ($preFunctions as $function) {
+                $functionElement = $function->writeXml($dom);
+                $preFunctionsElement->appendChild($functionElement);
+            }
+
+            $descriptor->appendChild($preFunctionsElement);
+        }
+
+
+        $permissions = $this->getPermissions();
+        if ($permissions->count() > 0) {
+            $permissionsElement = $dom->createElement('external-permissions');
+            foreach ($permissions as $permission) {
+                $permissionElement = $permission->writeXml($dom);
+                $permissionsElement->appendChild($permissionElement);
+            }
+
+            $descriptor->appendChild($permissionsElement);
+        }
+
+        $actions = $this->getActions();
+        $commonActions = $this->getCommonActions();
+
+        if ($actions->count() > 0 || count($commonActions) > 0) {
+            $actionsElement = $dom->createElement('actions');
+
+            foreach ($commonActions as $commonActionId) {
+                $commonActionElement = $dom->createElement('common-action');
+                $commonActionElement->setAttribute('id', $commonActionId);
+
+                $actionsElement->appendChild($commonActionElement);
+            }
+
+            foreach($actions as $action) {
+                if (!$action->isCommon()) {
+                    $actionElement = $action->writeXml($dom);
+                    $actionsElement->appendChild($actionElement);
+                }
+
+            }
+
+            $descriptor->appendChild($actionsElement);
+        }
+
+        $postFunctions = $this->getPostFunctions();
+        if ($postFunctions->count() > 0) {
+            $postFunctionsElement = $dom->createElement('post-functions');
+            foreach ($postFunctions as $function) {
+                $functionElement = $function->writeXml($dom);
+                $postFunctionsElement->appendChild($functionElement);
+            }
+
+            $descriptor->appendChild($postFunctionsElement);
+        }
+
+
+        return $descriptor;
+
     }
 }
