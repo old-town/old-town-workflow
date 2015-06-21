@@ -6,6 +6,7 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
 use DOMDocument;
@@ -14,8 +15,10 @@ use DOMDocument;
  * Class ConditionDescriptor
  *
  * @package OldTown\Workflow\Loader
+ *
+ * @method ActionDescriptor getParent()
  */
-class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorInterface
+class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorInterface, WriteXmlInterface
 {
     use Traits\IdTrait;
 
@@ -382,18 +385,6 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
         return $this->postFunctions;
     }
 
-
-    /**
-     * Валидация дескриптора
-     *
-     * @return void
-     * @throws InvalidWorkflowDescriptorException
-     */
-    public function validate()
-    {
-
-    }
-
     /**
      * Вывод информации о функциях пост обработки
      *
@@ -436,5 +427,123 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
         }
 
         return null;
+    }
+
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('unconditional-result');
+
+        if ($this->hasId()) {
+            $id = $this->getId();
+            $descriptor->setAttribute('id', $id);
+        }
+
+        $dueDate = $this->getDueDate();
+        if (null !== $dueDate && is_string($dueDate) && strlen($dueDate) > 0) {
+            $descriptor->setAttribute('due-date', $dueDate);
+        }
+
+        $oldStatus = $this->getOldStatus();
+        if (null === $oldStatus) {
+            $errMsg = 'Некорректное значение для атрибута old-status';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $descriptor->setAttribute('old-status', $oldStatus);
+
+
+
+        $join = $this->getJoin();
+        $split = $this->getSplit();
+        if (null !== $join && 0 !== $join) {
+            $descriptor->setAttribute('join', $join);
+        } elseif (null !== $split && 0 !== $split) {
+            $descriptor->setAttribute('split', $split);
+        } else {
+            $status = $this->getStatus();
+            if (null === $status) {
+                $errMsg = 'Некорректное значение для атрибута status';
+                throw new InvalidDescriptorException($errMsg);
+            }
+            $descriptor->setAttribute('status', $status);
+
+            $step = $this->getStep();
+            if (null === $step) {
+                $errMsg = 'Некорректное значение для атрибута step';
+                throw new InvalidDescriptorException($errMsg);
+            }
+            $descriptor->setAttribute('step', $step);
+
+            $owner = $this->getOwner();
+            if (null !== $owner && is_string($owner) && strlen($owner) > 0) {
+                $descriptor->setAttribute('owner', $owner);
+            }
+
+            $displayName = $this->getDisplayName();
+            if (null !== $displayName && is_string($displayName) && strlen($displayName) > 0) {
+                $descriptor->setAttribute('display-name', $displayName);
+            }
+        }
+
+        $postFunctionsElement = $this->printPostFunctions($dom);
+        if (null !== $postFunctionsElement) {
+            $descriptor->appendChild($postFunctionsElement);
+        }
+
+        $preFunctionsElement = $this->printPreFunctions($dom);
+        if (null !== $preFunctionsElement) {
+            $descriptor->appendChild($preFunctionsElement);
+        }
+        return $descriptor;
+    }
+
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $preFunctions = $this->getPreFunctions();
+        $postFunctions = $this->getPostFunctions();
+        $validators = $this->getValidators();
+
+        ValidationHelper::validate($preFunctions);
+        ValidationHelper::validate($postFunctions);
+        ValidationHelper::validate($validators);
+
+        $split = $this->getSplit();
+        $join = $this->getJoin();
+
+        $parent = $this->getParent();
+        if ((0 === $split) && (0 === $join) && !($parent instanceof ActionDescriptor && ($parent->isFinish()))) {
+            $errMsg = '';
+            $id = (integer)$this->getId();
+            if ($id > 0) {
+                $errMsg .= sprintf('#%s', $id);
+            }
+            $errMsg .= 'Не имеет ни split ни join вложенных дескрипторов';
+
+            if ($this->hasStep) {
+                $errMsg .= ' для следующего шага';
+                throw new InvalidWorkflowDescriptorException($errMsg);
+            }
+
+            $status = $this->getStatus();
+            if (!$status) {
+                $errMsg .= ' для статуса';
+                throw new InvalidWorkflowDescriptorException($errMsg);
+            }
+        }
     }
 }
