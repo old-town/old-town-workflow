@@ -6,14 +6,18 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
+use DOMDocument;
+
 
 /**
  * Interface WorkflowDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class JoinDescriptor extends AbstractDescriptor
+class JoinDescriptor extends AbstractDescriptor  implements ValidateDescriptorInterface, WriteXmlInterface
 {
     use Traits\IdTrait;
 
@@ -92,5 +96,64 @@ class JoinDescriptor extends AbstractDescriptor
         $this->result = $result;
 
         return $this;
+    }
+
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $conditions = $this->getConditions();
+        ValidationHelper::validate($conditions);
+
+        $result = $this->getResult();
+        if (null === $result) {
+            $errMsg = 'Join должен иметь реузультат';
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+
+        $result->validate();
+    }
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('join');
+
+        if (!$this->hasId()) {
+            $errMsg = 'Отсутствует атрибут id';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $id =  $this->getId();
+        $descriptor->setAttribute('id',$id);
+
+        $conditions = $this->getConditions();
+        foreach ($conditions as $condition) {
+            $conditionElement = $condition->writeXml($dom);
+            if (null !== $conditionElement) {
+                $descriptor->appendChild($conditionElement);
+            }
+        }
+
+        $result = $this->getResult();
+
+        if (null !== $result) {
+            $resultElement = $result->writeXml($dom);
+            $descriptor->appendChild($resultElement);
+        }
+
+        return $descriptor;
+
     }
 }
