@@ -7,10 +7,12 @@ namespace OldTown\Workflow\Loader;
 
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use DOMElement;
 use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
+use DOMDocument;
 
 /**
  * Interface WorkflowDescriptor
@@ -40,7 +42,7 @@ class WorkflowDescriptor extends AbstractDescriptor
     protected $joins;
 
     /**
-     * @var SplObjectStorage
+     * @var RegisterDescriptor[]|SplObjectStorage
      */
     protected $registers;
 
@@ -259,6 +261,15 @@ class WorkflowDescriptor extends AbstractDescriptor
     }
 
     /**
+     * @return null|ConditionsDescriptor
+     */
+    public function getGlobalConditions()
+    {
+        return $this->globalConditions;
+    }
+
+
+    /**
      * Добавляет новый переход между действиями
      *
      * @param ActionDescriptor $descriptor
@@ -398,5 +409,388 @@ class WorkflowDescriptor extends AbstractDescriptor
             return $this->commonActions[$id];
         }
         return null;
+    }
+
+
+    /**
+     * @param $id
+     *
+     * @return ActionDescriptor|null
+     */
+    public function getInitialAction($id)
+    {
+        if (!is_numeric($id)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+
+        $initialActions = $this->getInitialActions();
+        foreach ($initialActions as $actionDescriptor) {
+            if ($id === $actionDescriptor->getId()) {
+                return $actionDescriptor;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return JoinDescriptor[]|SplObjectStorage
+     */
+    public function getJoins()
+    {
+        return $this->joins;
+    }
+
+
+    /**
+     * @param $id
+     *
+     * @return JoinDescriptor|null
+     */
+    public function getJoin($id)
+    {
+        if (!is_numeric($id)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+
+        $joins = $this->getJoins();
+        foreach ($joins as $joinDescriptor) {
+            if ($id === $joinDescriptor->getId()) {
+                return $joinDescriptor;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMetaAttributes()
+    {
+        return $this->metaAttributes;
+    }
+
+    /**
+     * @return RegisterDescriptor[]|SplObjectStorage
+     */
+    public function getRegisters()
+    {
+        return $this->registers;
+    }
+
+    /**
+     * @return SplitDescriptor[]|SplObjectStorage
+     */
+    public function getSplits()
+    {
+        return $this->splits;
+    }
+
+
+
+    /**
+     * @param $id
+     *
+     * @return SplitDescriptor|null
+     */
+    public function getSplit($id)
+    {
+        if (!is_numeric($id)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+
+        $splits = $this->getSplits();
+        foreach ($splits as $splitDescriptor) {
+            if ($id === $splitDescriptor->getId()) {
+                return $splitDescriptor;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param integer  $id
+     * @param FunctionDescriptor $descriptor
+     * @return $this
+     */
+    public function setTriggerFunction($id, FunctionDescriptor $descriptor)
+    {
+        if (!is_numeric($id)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+        $id = (integer)$id;
+        $this->timerFunctions[$id] = $descriptor;
+
+        return $this;
+    }
+
+    /**
+     * @param integer  $id
+     * @return FunctionDescriptor
+     */
+    public function getTriggerFunction($id)
+    {
+        if (!is_numeric($id)) {
+            $errMsg = 'Аргумент должен быть числом';
+            throw new ArgumentNotNumericException($errMsg);
+        }
+        $id = (integer)$id;
+
+        if (!array_key_exists($id, $this->timerFunctions)) {
+            $errMsg = sprintf('Не найдена trigger-function с id %s', $id);
+            throw new ArgumentNotNumericException($errMsg);
+        }
+
+        $this->timerFunctions[$id];
+
+        return $this->timerFunctions[$id];
+    }
+
+    /**
+     * @return FunctionDescriptor[]
+     */
+    public function getTriggerFunctions()
+    {
+        return $this->timerFunctions;
+    }
+
+    /**
+     * @param ActionDescriptor $descriptor
+     * @return $this
+     */
+    public function addGlobalAction(ActionDescriptor $descriptor)
+    {
+        $this->addAction($this->globalActions, $descriptor);
+        return $this;
+    }
+
+    /**
+     * @param ActionDescriptor $descriptor
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function addInitialAction(ActionDescriptor $descriptor)
+    {
+        $this->addAction($this->initialActions, $descriptor);
+        return $this;
+    }
+
+
+    /**
+     * @param JoinDescriptor $descriptor
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function addJoin(JoinDescriptor $descriptor)
+    {
+        $id = $descriptor->getId();
+        if (null !== $this->getJoin($id)) {
+            $errMsg = sprintf('Объеденение с id %s уже существует', $id);
+            throw new InvalidArgumentException($errMsg);
+        }
+
+        $this->getJoins()->attach($descriptor);
+        return $this;
+    }
+
+
+    /**
+     * @param SplitDescriptor $descriptor
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function addSplit(SplitDescriptor $descriptor)
+    {
+        $id = $descriptor->getId();
+        if (null !== $this->getSplit($id)) {
+            $errMsg = sprintf('Ветвление с id %s уже существует', $id);
+            throw new InvalidArgumentException($errMsg);
+        }
+
+        $this->getSplits()->attach($descriptor);
+        return $this;
+    }
+
+    /**
+     * @param StepDescriptor $descriptor
+     * @return $this
+     */
+    public function addStep(StepDescriptor $descriptor)
+    {
+        $id = $descriptor->getId();
+        if (null !== $this->getStep($id)) {
+            $errMsg = sprintf('Шаг с id %s уже существует', $id);
+            throw new InvalidArgumentException($errMsg);
+        }
+
+        $this->getSteps()->attach($descriptor);
+        return $this;
+    }
+
+    /**
+     * @param ActionDescriptor $actionToRemove
+     * @return boolean
+     */
+    public function removeAction(ActionDescriptor $actionToRemove)
+    {
+        $actionToRemoveId = $actionToRemove->getId();
+        $globalActions = $this->getGlobalActions();
+        foreach ($globalActions as $actionDescriptor) {
+                if ($actionToRemoveId === $actionDescriptor->getId()) {
+                    $globalActions->detach($actionDescriptor);
+
+                    return true;
+                }
+        }
+
+        $steps = $this->getSteps();
+        foreach ($steps as $stepDescriptor) {
+            $actionDescriptor = $stepDescriptor->getAction($actionToRemoveId);
+
+            if (null !== $actionDescriptor) {
+                $stepDescriptor->getActions()->detach($actionDescriptor);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('workflow');
+
+        $metaAttributes = $this->getMetaAttributes();
+        foreach ($metaAttributes as $metaAttributeName => $metaAttributeValue) {
+            $metaAttributeNameEncode = XmlUtil::encode($metaAttributeName);
+            $metaAttributeValueEnEncode = XmlUtil::encode($metaAttributeValue);
+
+            $metaElement = $dom->createElement('meta');
+            $metaElement->setAttribute('name', $metaAttributeNameEncode);
+            $metaValueElement = $dom->createTextNode($metaAttributeValueEnEncode);
+            $metaElement->appendChild($metaValueElement);
+
+            $descriptor->appendChild($metaElement);
+        }
+
+        $registers = $this->getRegisters();
+        if ($registers->count() > 0) {
+            $registersElement = $dom->createElement('registers');
+            foreach ($registers as $register) {
+                $registerElement = $register->writeXml($dom);
+                $registersElement->appendChild($registerElement);
+            }
+
+            $descriptor->appendChild($registersElement);
+        }
+
+
+        $timerFunctions = $this->getTriggerFunctions();
+        if (count($timerFunctions) > 0) {
+            $timerFunctionsElement = $dom->createElement('trigger-functions');
+            foreach ($timerFunctions as $timerFunctionId => $timerFunction) {
+                $timerFunctionElement = $dom->createElement('trigger-function');
+                $timerFunctionElement->setAttribute('id', $timerFunctionId);
+                $functionElement = $timerFunction->writeXml($dom);
+                $timerFunctionElement->appendChild($functionElement);
+
+                $timerFunctionsElement->appendChild($timerFunctionElement);
+            }
+            $descriptor->appendChild($timerFunctionsElement);
+
+        }
+
+
+        $globalConditions = $this->getGlobalConditions();
+        if (null !== $globalConditions) {
+            $globalConditionsElement = $dom->createElement('global-conditions');
+            $globalConditionElement = $globalConditions->writeXml($dom);
+            $globalConditionsElement->appendChild($globalConditionElement);
+            $descriptor->appendChild($globalConditionsElement);
+        }
+
+
+        $initialActionsElement = $dom->createElement('initial-actions');
+        $initialActions = $this->getInitialActions();
+        foreach ($initialActions as $initialAction) {
+            $initialActionElement = $initialAction->writeXml($dom);
+            $initialActionsElement->appendChild($initialActionElement);
+        }
+        $descriptor->appendChild($initialActionsElement);
+
+
+        $globalActions = $this->getGlobalActions();
+        if ($globalActions->count() > 0) {
+            $globalActionsElement = $dom->createElement('global-actions');
+            foreach ($globalActions as $globalAction) {
+                $globalActionElement = $globalAction->writeXml($dom);
+                $globalActionsElement->appendChild($globalActionElement);
+            }
+
+            $descriptor->appendChild($globalActionsElement);
+        }
+
+        $commonActions = $this->getCommonActions();
+        if (count($commonActions) > 0) {
+            $commonActionsElement = $dom->createElement('common-actions');
+            foreach ($commonActions as $commonAction) {
+                $commonActionElement = $commonAction->writeXml($dom);
+                $commonActionsElement->appendChild($commonActionElement);
+            }
+
+            $descriptor->appendChild($commonActionsElement);
+        }
+
+
+        $stepsElement = $dom->createElement('steps');
+        $steps = $this->getSteps();
+        foreach ($steps as $step) {
+            $stepElement = $step->writeXml($dom);
+            $stepsElement->appendChild($stepElement);
+        }
+
+        $descriptor->appendChild($stepsElement);
+
+
+        $joins = $this->getJoins();
+        if ($joins->count() > 0) {
+            $joinsElement = $dom->createElement('joins');
+            foreach ($joins as $join) {
+                $joinElement = $join->writeXml($dom);
+                $joinsElement->appendChild($joinElement);
+            }
+
+            $descriptor->appendChild($joinsElement);
+        }
+
+        $splits = $this->getSplits();
+        if ($splits->count() > 0) {
+            $splitsElement = $dom->createElement('splits');
+            foreach ($splits as $split) {
+                $splitElement = $split->writeXml($dom);
+                $splitsElement->appendChild($splitElement);
+            }
+
+            $descriptor->appendChild($splitsElement);
+        }
+
+        return $descriptor;
+
     }
 }
