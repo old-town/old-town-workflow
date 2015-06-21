@@ -6,13 +6,16 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use DOMDocument;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+
 
 /**
  * Interface WorkflowDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInterface
+class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInterface, WriteXmlInterface
 {
     use Traits\NameTrait, Traits\IdTrait;
 
@@ -66,5 +69,46 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
         $this->restriction = $restriction;
 
         return $this;
+    }
+
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('permission');
+
+        if ($this->hasId()) {
+            $id = $this->getId();
+            $descriptor->setAttribute('id', $id);
+        }
+        $name = $this->getName();
+        if (null === $name) {
+            $errMsg = 'Некорректное значение для атрибута name';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $descriptor->setAttribute('name', $name);
+
+
+        $restriction = $this->getRestriction();
+        if (null === $restriction) {
+            $errMsg = 'Некорректное значение для restriction';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $restrictionElement = $restriction->writeXml($dom);
+        if (null === $restrictionElement) {
+            $errMsg = 'Некорректное значение сгенерированного xml для restriction';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $descriptor->appendChild($restrictionElement);
+
+        return $descriptor;
+
     }
 }
