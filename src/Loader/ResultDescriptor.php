@@ -394,8 +394,47 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
 
     }
 
+    /**
+     * Вывод информации о функциях пост обработки
+     *
+     * @param DOMDocument $dom
+     * @return DOMElement|null
+     */
     protected function printPostFunctions(DOMDocument $dom)
     {
+        $postFunctions = $this->getPostFunctions();
+        if ($postFunctions->count() > 0) {
+            $postFunctionsElements = $dom->createElement('post-functions');
+            foreach ($postFunctions as $function) {
+                $functionElement = $function->writeXml($dom);
+                $postFunctionsElements->appendChild($functionElement);
+            }
 
+            return $postFunctionsElements;
+        }
+
+        return null;
+    }
+
+    /**
+     * Вывод информации о функциях пред обработки
+     *
+     * @param DOMDocument $dom
+     * @return DOMElement|null
+     */
+    protected function printPreFunctions(DOMDocument $dom)
+    {
+        $preFunctions = $this->getPreFunctions();
+        if ($preFunctions->count() > 0) {
+            $preFunctionsElements = $dom->createElement('pre-functions');
+            foreach ($preFunctions as $function) {
+                $functionElement = $function->writeXml($dom);
+                $preFunctionsElements->appendChild($functionElement);
+            }
+
+            return $preFunctionsElements;
+        }
+
+        return null;
     }
 }

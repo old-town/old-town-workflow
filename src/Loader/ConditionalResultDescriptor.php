@@ -238,6 +238,16 @@ class ConditionalResultDescriptor extends ResultDescriptor implements WriteXmlIn
                 $validatorsDescriptor->appendChild($validatorElement);
             }
         }
+
+        $postFunctionsElement = $this->printPostFunctions($dom);
+        if (null !== $postFunctionsElement) {
+            $descriptor->appendChild($postFunctionsElement);
+        }
+
+        $preFunctionsElement = $this->printPreFunctions($dom);
+        if (null !== $preFunctionsElement) {
+            $descriptor->appendChild($preFunctionsElement);
+        }
         return $descriptor;
     }
 
