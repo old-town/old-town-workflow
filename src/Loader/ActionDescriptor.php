@@ -6,7 +6,10 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
+use DOMDocument;
 
 /**
  * Class ConditionDescriptor
@@ -355,5 +358,156 @@ class ActionDescriptor extends AbstractDescriptor implements Traits\NameInterfac
     public function getConditionalResults()
     {
         return $this->conditionalResults;
+    }
+
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $preFunctions = $this->getPreFunctions();
+        $postFunctions = $this->getPostFunctions();
+        $validators = $this->getValidators();
+        $conditionalResults = $this->getConditionalResults();
+
+        ValidationHelper::validate($preFunctions);
+        ValidationHelper::validate($postFunctions);
+        ValidationHelper::validate($validators);
+        ValidationHelper::validate($conditionalResults);
+
+        $unconditionalResult = $this->getUnconditionalResult();
+        if ($conditionalResults->count() > 0 && null === $unconditionalResult) {
+            $name = (string)$this->getName();
+            $errMsg = sprintf('Действие %s имеет безусловные условия, но не имеет запасного безусловного', $name);
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
+
+        $restrictions = $this->getRestriction();
+        if ($restrictions != null) {
+            $restrictions->validate();
+        }
+
+        if ($unconditionalResult != null) {
+            $unconditionalResult->validate();
+        }
+    }
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('action');
+
+        if (!$this->hasId()) {
+            $errMsg = 'Отсутствует атрибут id';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $id = $this->getId();
+        $descriptor->setAttribute('id', $id);
+
+        $name = (string)$this->getName();
+        $name = trim($name);
+        if (strlen($name) > 0) {
+            $nameEncode = XmlUtil::encode($name);
+            $descriptor->setAttribute('name', $nameEncode);
+        }
+
+        $view = (string)$this->getView();
+        $view = trim($view);
+        if (strlen($view) > 0) {
+            $viewEncode = XmlUtil::encode($view);
+            $descriptor->setAttribute('view', $viewEncode);
+        }
+
+        if ($this->isFinish()) {
+            $descriptor->setAttribute('finish', 'true');
+        }
+
+        if ($this->getAutoExecute()) {
+            $descriptor->setAttribute('auto', 'true');
+        }
+
+        $metaAttributes = $this->getMetaAttributes();
+        foreach ($metaAttributes as $metaAttributeName => $metaAttributeValue) {
+            $metaAttributeNameEncode = XmlUtil::encode($metaAttributeName);
+            $metaAttributeValueEnEncode = XmlUtil::encode($metaAttributeValue);
+
+            $metaElement = $dom->createElement('meta');
+            $metaElement->setAttribute('name', $metaAttributeNameEncode);
+            $metaValueElement = $dom->createTextNode($metaAttributeValueEnEncode);
+            $metaElement->appendChild($metaValueElement);
+
+            $descriptor->appendChild($metaElement);
+        }
+
+
+        $restrictions = $this->getRestriction();
+        if ($restrictions != null) {
+            $restrictionsElement = $restrictions->writeXml($dom);
+            if (null !== $restrictionsElement) {
+                $descriptor->appendChild($restrictionsElement);
+            }
+        }
+
+        $validators = $this->getValidators();
+        if ($validators->count() > 0) {
+            $validatorsElement = $dom->createElement('validators');
+            foreach ($validators as $validator) {
+                $validatorElement = $validator->writeXml($dom);
+                $validatorsElement->appendChild($validatorElement);
+            }
+            $descriptor->appendChild($validatorsElement);
+        }
+
+        $preFunctions = $this->getPreFunctions();
+        if ($preFunctions->count() > 0) {
+            $preFunctionsElement = $dom->createElement('pre-functions');
+            foreach ($preFunctions as $function) {
+                $functionElement = $function->writeXml($dom);
+                $preFunctionsElement->appendChild($functionElement);
+            }
+
+            $descriptor->appendChild($preFunctionsElement);
+        }
+
+        $resultsElement = $dom->createElement('results');
+        $descriptor->appendChild($resultsElement);
+
+        $conditionalResults = $this->getConditionalResults();
+        foreach ($conditionalResults as $conditionalResult) {
+            $conditionalResultElement = $conditionalResult->writeXml($dom);
+            $resultsElement->appendChild($conditionalResultElement);
+        }
+
+        $unconditionalResult = $this->getUnconditionalResult();
+        if ($unconditionalResult != null) {
+            $unconditionalResultElement = $unconditionalResult->writeXml($dom);
+            $resultsElement->appendChild($unconditionalResultElement);
+        }
+
+        $postFunctions = $this->getPostFunctions();
+        if ($postFunctions->count() > 0) {
+            $postFunctionsElement = $dom->createElement('post-functions');
+            foreach ($postFunctions as $function) {
+                $functionElement = $function->writeXml($dom);
+                $postFunctionsElement->appendChild($functionElement);
+            }
+
+            $descriptor->appendChild($postFunctionsElement);
+        }
+
+
+        return $descriptor;
+
     }
 }
