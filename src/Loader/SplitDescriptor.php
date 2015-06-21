@@ -6,14 +6,18 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
+use DOMDocument;
+
 
 /**
  * Interface WorkflowDescriptor
  *
  * @package OldTown\Workflow\Loader
  */
-class SplitDescriptor extends AbstractDescriptor
+class SplitDescriptor extends AbstractDescriptor implements ValidateDescriptorInterface, WriteXmlInterface
 {
     use Traits\IdTrait;
 
@@ -61,5 +65,47 @@ class SplitDescriptor extends AbstractDescriptor
     public function getResults()
     {
         return $this->results;
+    }
+
+    /**
+     * Валидация дескриптора
+     *
+     * @return void
+     * @throws InvalidWorkflowDescriptorException
+     */
+    public function validate()
+    {
+        $results = $this->getResults();
+        ValidationHelper::validate($results);
+    }
+
+    /**
+     * Создает DOMElement - эквивалентный состоянию дескриптора
+     *
+     * @param DOMDocument $dom
+     *
+     * @return DOMElement|null
+     * @throws InvalidDescriptorException
+     */
+    public function writeXml(DOMDocument $dom)
+    {
+        $descriptor = $dom->createElement('split');
+
+        if (!$this->hasId()) {
+            $errMsg = 'Отсутствует атрибут id';
+            throw new InvalidDescriptorException($errMsg);
+        }
+        $id =  $this->getId();
+        $descriptor->setAttribute('id',$id);
+
+        $results = $this->getResults();
+
+        foreach ($results as $result) {
+            $resultElement = $result->writeXml($dom);
+            $descriptor->appendChild($resultElement);
+        }
+
+        return $descriptor;
+
     }
 }
