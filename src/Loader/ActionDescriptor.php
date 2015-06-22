@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use SplObjectStorage;
 use DOMDocument;
 
@@ -153,15 +154,15 @@ class ActionDescriptor extends AbstractDescriptor
         }
 
         // set up results - REQUIRED
-        $resultsElememt = XMLUtil::getChildElement($action, 'results');
-        $results = XMLUtil::getChildElements($resultsElememt, 'result');
+        $resultsElement = XMLUtil::getChildElement($action, 'results');
+        $results = XMLUtil::getChildElements($resultsElement, 'result');
         foreach ($results as $result) {
             $conditionalResultDescriptor = new ConditionalResultDescriptor($result);
             $conditionalResultDescriptor->setParent($this);
             $this->conditionalResults->attach($conditionalResultDescriptor);
         }
 
-        $unconditionalResult = XMLUtil::getChildElement($resultsElememt, 'unconditional-result');
+        $unconditionalResult = XMLUtil::getChildElement($resultsElement, 'unconditional-result');
         if (null !== $unconditionalResult) {
             $this->unconditionalResult = DescriptorFactory::getFactory()->createResultDescriptor($unconditionalResult);
             $this->unconditionalResult->setParent($this);
@@ -384,18 +385,18 @@ class ActionDescriptor extends AbstractDescriptor
         ValidationHelper::validate($conditionalResults);
 
         $unconditionalResult = $this->getUnconditionalResult();
-        if ($conditionalResults->count() > 0 && null === $unconditionalResult) {
+        if (null === $unconditionalResult && $conditionalResults->count() > 0) {
             $name = (string)$this->getName();
             $errMsg = sprintf('Действие %s имеет безусловные условия, но не имеет запасного безусловного', $name);
             throw new InvalidWorkflowDescriptorException($errMsg);
         }
 
         $restrictions = $this->getRestriction();
-        if ($restrictions != null) {
+        if ($restrictions !== null) {
             $restrictions->validate();
         }
 
-        if ($unconditionalResult != null) {
+        if ($unconditionalResult !== null) {
             $unconditionalResult->validate();
         }
     }
@@ -407,8 +408,9 @@ class ActionDescriptor extends AbstractDescriptor
      *
      * @return DOMElement
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('action');
 
@@ -442,11 +444,12 @@ class ActionDescriptor extends AbstractDescriptor
         }
 
         $metaAttributes = $this->getMetaAttributes();
+        $baseMeta = $dom->createElement('meta');
         foreach ($metaAttributes as $metaAttributeName => $metaAttributeValue) {
             $metaAttributeNameEncode = XmlUtil::encode($metaAttributeName);
             $metaAttributeValueEnEncode = XmlUtil::encode($metaAttributeValue);
 
-            $metaElement = $dom->createElement('meta');
+            $metaElement = clone $baseMeta;
             $metaElement->setAttribute('name', $metaAttributeNameEncode);
             $metaValueElement = $dom->createTextNode($metaAttributeValueEnEncode);
             $metaElement->appendChild($metaValueElement);
@@ -456,7 +459,7 @@ class ActionDescriptor extends AbstractDescriptor
 
 
         $restrictions = $this->getRestriction();
-        if ($restrictions != null) {
+        if ($restrictions !== null) {
             $restrictionsElement = $restrictions->writeXml($dom);
             if (null !== $restrictionsElement) {
                 $descriptor->appendChild($restrictionsElement);
@@ -494,7 +497,7 @@ class ActionDescriptor extends AbstractDescriptor
         }
 
         $unconditionalResult = $this->getUnconditionalResult();
-        if ($unconditionalResult != null) {
+        if ($unconditionalResult !== null) {
             $unconditionalResultElement = $unconditionalResult->writeXml($dom);
             $resultsElement->appendChild($unconditionalResultElement);
         }

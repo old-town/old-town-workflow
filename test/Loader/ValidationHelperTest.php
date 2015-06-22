@@ -27,7 +27,7 @@ class ValidationHelperTest extends TestCase
     {
         $descriptor = $this->getMockForAbstractClass(ValidateDescriptorInterface::class);
         $exception = new InvalidWorkflowDescriptorException();
-        $descriptor->expects($this->once())->method('validate')->will($this->throwException($exception));
+        $descriptor->expects(static::once())->method('validate')->will(static::throwException($exception));
         $c = [
             $descriptor
         ];
@@ -71,7 +71,7 @@ class ValidationHelperTest extends TestCase
     {
         $descriptor = $this->getMockForAbstractClass(ValidateDescriptorInterface::class);
         $exception = new InvalidWorkflowDescriptorException();
-        $descriptor->expects($this->once())->method('validate')->will($this->throwException($exception));
+        $descriptor->expects(static::once())->method('validate')->will(static::throwException($exception));
         $c = new \ArrayObject([
             $descriptor
         ]);

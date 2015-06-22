@@ -40,6 +40,8 @@ class NestedExpression extends AbstractExpression
     /**
      * @param array $expressions
      * @param null $expressionOperator
+     * @throws ArgumentNotNumericException
+     * @throws InvalidArgumentException
      */
     public function __construct(array $expressions = null, $expressionOperator = null)
     {
@@ -107,6 +109,7 @@ class NestedExpression extends AbstractExpression
      *
      * @param AbstractExpression[] $expressions
      * @return $this
+     * @throws InvalidArgumentException
      */
     public function setExpressions(array $expressions = [])
     {

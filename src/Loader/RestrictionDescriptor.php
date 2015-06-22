@@ -6,8 +6,8 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
-use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use SplObjectStorage;
 use DOMDocument;
 
@@ -113,9 +113,9 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
      * @param DOMDocument $dom
      *
      * @return DOMElement|null
-     * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $conditions = $this->getConditionsDescriptor();
 
@@ -126,7 +126,13 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
         }
 
         $descriptor = $dom->createElement('restrict-to');
-        $conditionsDescriptor = $conditions->writeXml($dom);
+        try {
+            $conditionsDescriptor = $conditions->writeXml($dom);
+        } catch (\Exception $e) {
+            $errMsg  = 'Ошибка сохранения workflow';
+            throw new InvalidWriteWorkflowException($errMsg, $e->getCode(), $e);
+        }
+
         $descriptor->appendChild($conditionsDescriptor);
 
         return $descriptor;

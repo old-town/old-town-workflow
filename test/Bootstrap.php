@@ -21,6 +21,8 @@ class Bootstrap
 {
     /**
      * Настройка тестов
+     *
+     * @throws \RuntimeException
      */
     public static function init()
     {
@@ -32,6 +34,8 @@ class Bootstrap
      * Инициализация автозагрузчика
      *
      * @return void
+     *
+     * @throws RuntimeException
      */
     protected static function initAutoloader()
     {
@@ -55,24 +59,33 @@ class Bootstrap
                 include $zf2Path . '/Zend/Loader/AutoloaderFactory.php';
             }
         }
-        AutoloaderFactory::factory([
-            StandardAutoloader::class => [
-                'autoregister_zf' => true,
-                'namespaces' => [
-                    'OldTown\Workflow' => __DIR__ . '/../src/',
-                    __NAMESPACE__ => __DIR__
+
+        try {
+            AutoloaderFactory::factory([
+                StandardAutoloader::class => [
+                    'autoregister_zf' => true,
+                    'namespaces' => [
+                        'OldTown\Workflow' => __DIR__ . '/../src/',
+                        __NAMESPACE__ => __DIR__
+                    ]
                 ]
-            ]
-        ]);
-        AutoloaderFactory::factory([
-            StandardAutoloader::class => [
-                'autoregister_zf' => true,
-                'namespaces' => [
-                    'OldTown\Workflow\Test' => __DIR__ . '/../test/',
-                    __NAMESPACE__ => __DIR__
+            ]);
+            AutoloaderFactory::factory([
+                StandardAutoloader::class => [
+                    'autoregister_zf' => true,
+                    'namespaces' => [
+                        'OldTown\Workflow\Test' => __DIR__ . '/../test/',
+                        __NAMESPACE__ => __DIR__
+                    ]
                 ]
-            ]
-        ]);
+            ]);
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка инициации автолоадеров';
+            throw new RuntimeException($errMsg, $e->getCode(), $e);
+        }
+
+
+
     }
 
     /**

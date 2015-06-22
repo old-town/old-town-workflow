@@ -91,6 +91,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      *
      * @return void
      * @throws FactoryException
+     * @throws InvalidParsingWorkflowException
      */
     public function initDone()
     {
@@ -183,6 +184,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      * @param boolean        $validate
      *
      * @return void
+     * @throws FactoryException
      */
     private function loadWorkflow(WorkflowConfig $c, $validate)
     {
@@ -252,6 +254,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      * @param string $name
      *
      * @return string
+     * @throws FactoryException
      */
     protected function getContentWorkflowFile($name)
     {

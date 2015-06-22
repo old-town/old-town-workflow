@@ -59,7 +59,7 @@ class FunctionDescriptor extends AbstractDescriptor
      * @return DOMElement
      * @throws InvalidDescriptorException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('function');
         $type = $this->getType();

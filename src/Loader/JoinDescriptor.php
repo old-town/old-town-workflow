@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use SplObjectStorage;
 use DOMDocument;
 
@@ -126,8 +127,9 @@ class JoinDescriptor extends AbstractDescriptor  implements ValidateDescriptorIn
      *
      * @return DOMElement|null
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('join');
 

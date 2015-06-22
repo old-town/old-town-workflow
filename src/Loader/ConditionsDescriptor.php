@@ -7,6 +7,7 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 use DOMNode;
+use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use SplObjectStorage;
@@ -99,7 +100,7 @@ class ConditionsDescriptor extends AbstractDescriptor
      * @return DOMElement|null
      * @throws InvalidDescriptorException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $countConditions = $this->getConditions()->count();
         if ($countConditions > 0) {
@@ -129,6 +130,7 @@ class ConditionsDescriptor extends AbstractDescriptor
      *
      * @return void
      * @throws InvalidWorkflowDescriptorException
+     * @throws InternalWorkflowException
      */
     public function validate()
     {
@@ -140,7 +142,7 @@ class ConditionsDescriptor extends AbstractDescriptor
 
         if ($countConditions === 0) {
             $desc = $this->getParent();
-            if (($desc != null) && ($desc instanceof ConditionalResultDescriptor)) {
+            if ($desc instanceof ConditionalResultDescriptor) {
                 $parentConditionalResult = $desc->getParent();
                 if (is_object($parentConditionalResult)) {
                     if (method_exists($parentConditionalResult, 'getName')) {

@@ -80,6 +80,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws WorkflowException
      * @throws InvalidEntryStateException
      * @throws InvalidActionException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
@@ -91,6 +93,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @return WorkflowStoreInterface
      * @throws StoreException
+     * @throws InternalWorkflowException
      */
     protected function getPersistence()
     {
@@ -104,6 +107,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * Если конфигурация не была установленна, то возвращает конфигурацию по умолчанию
      *
      * @return ConfigurationInterface Конфигурация которая была установленна
+     *
+     * @throws InternalWorkflowException
      */
     public function getConfiguration()
     {
@@ -134,16 +139,42 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param LoggerInterface $log
      *
      * @return $this
+     * @throws InternalWorkflowException
      */
     public function setLog($log)
     {
-        LogFactory::validLogger($log);
+        try {
+            LogFactory::validLogger($log);
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка при валидации логера';
+            throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+        }
+
 
         $this->log = $log;
 
         return $this;
     }
 
+
+    /**
+     * Get the workflow descriptor for the specified workflow name.
+     *
+     * @param string $workflowName The workflow name.
+     * @return WorkflowDescriptor
+     * @throws InternalWorkflowException
+     */
+    public function getWorkflowDescriptor($workflowName)
+    {
+        try {
+            $w = $this->getConfiguration()->getWorkflow($workflowName);
+            return $w;
+        } catch (FactoryException $e) {
+            $errMsg = 'Ошибка при загрузке workflow';
+            $this->getLog()->error($errMsg, ['exception' => $e]);
+            throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+        }
+    }
 ########################################################################################################################
 #Методы заглушки, при портирование заменять на реализацию ##############################################################
 ########################################################################################################################
@@ -198,15 +229,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     {
     }
 
-    /**
-     * Get the workflow descriptor for the specified workflow name.
-     *
-     * @param string $workflowName The workflow name.
-     * @return WorkflowDescriptor
-     */
-    public function getWorkflowDescriptor($workflowName)
-    {
-    }
 
     /**
      * Get the name of the specified workflow instance.
@@ -268,7 +290,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * Executes a special trigger-function using the context of the given workflow instance id.
      * Note that this method is exposed for Quartz trigger jobs, user code should never call it.
      * @param integer $id The workflow instance id
-     * @param integer $triggerId The id of the speciail trigger-function
+     * @param integer $triggerId The id of the special trigger-function
      * @thrown WorkflowException
      */
     public function executeTriggerFunction($id, $triggerId)

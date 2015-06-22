@@ -6,8 +6,10 @@
 namespace OldTown\Workflow\Loader;
 
 use DOMElement;
+use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use SplObjectStorage;
 use DOMDocument;
 
@@ -17,7 +19,7 @@ use DOMDocument;
  *
  * @package OldTown\Workflow\Loader
  */
-class ConditionalResultDescriptor extends ResultDescriptor implements WriteXmlInterface, ValidateDescriptorInterface
+class ConditionalResultDescriptor extends ResultDescriptor
 {
     /**
      * @var ConditionsDescriptor[]|SplObjectStorage
@@ -67,6 +69,8 @@ class ConditionalResultDescriptor extends ResultDescriptor implements WriteXmlIn
      *
      *
      * @return string
+     * @throws InvalidWorkflowDescriptorException
+     * @throws InternalWorkflowException
      */
     public function getDestination()
     {
@@ -106,9 +110,16 @@ class ConditionalResultDescriptor extends ResultDescriptor implements WriteXmlIn
             return $result;
         } else {
             $step = $this->getStep();
-            if ($desc != null) {
+            if ($desc !== null) {
                 /** @var WorkflowDescriptor $desc */
-                $stepDescriptor = $desc->getStep($step);
+
+                try {
+                    $stepDescriptor = $desc->getStep($step);
+                } catch (\Exception $e) {
+                    $errMsg  = 'Ошибка при получение шага workflow';
+                    throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+                }
+
                 if (!$stepDescriptor instanceof StepDescriptor) {
                     $errMsg = sprintf(
                         'Дескриптор шалаг должен реализовывать  %s',
@@ -130,6 +141,7 @@ class ConditionalResultDescriptor extends ResultDescriptor implements WriteXmlIn
      *
      * @return void
      * @throws InvalidWorkflowDescriptorException
+     * @throws InternalWorkflowException
      */
     public function validate()
     {
@@ -165,8 +177,9 @@ class ConditionalResultDescriptor extends ResultDescriptor implements WriteXmlIn
      *
      * @return DOMElement
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('result');
 

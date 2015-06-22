@@ -5,7 +5,7 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use OldTown\Workflow\Exception\InvalidDescriptorException;
+
 use DOMDocument;
 use DOMElement;
 
@@ -20,8 +20,8 @@ interface  WriteXmlInterface
      * Создает DOMElement - эквивалентный состоянию дескриптора
      *
      * @param DOMDocument $dom
+     *
      * @return DOMElement
-     * @throws InvalidDescriptorException
      */
-    public function writeXml(DOMDocument $dom);
+    public function writeXml(DOMDocument $dom = null);
 }

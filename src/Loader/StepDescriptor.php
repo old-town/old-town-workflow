@@ -10,6 +10,7 @@ use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use SplObjectStorage;
 use DOMDocument;
 
@@ -69,12 +70,15 @@ class StepDescriptor extends AbstractDescriptor
     /**
      * @param DOMElement $element
      * @param AbstractDescriptor $parent
+     *
+     * @throws InvalidParsingWorkflowException
      */
     public function __construct(DOMElement $element = null, AbstractDescriptor $parent = null)
     {
         $this->preFunctions = new SplObjectStorage();
         $this->postFunctions = new SplObjectStorage();
         $this->actions = new SplObjectStorage();
+        $this->permissions = new SplObjectStorage();
 
         parent::__construct($element);
 
@@ -90,6 +94,7 @@ class StepDescriptor extends AbstractDescriptor
      * @param DOMElement $step
      *
      * @return void
+     * @throws InvalidParsingWorkflowException
      */
     protected function init(DOMElement $step)
     {
@@ -309,7 +314,7 @@ class StepDescriptor extends AbstractDescriptor
         $actions = $this->getActions();
         $hasActions = $this->hasActions;
 
-        if (0 === count($commonActions) && 0 === $actions->count() && $hasActions) {
+        if ($hasActions && 0 === count($commonActions) && 0 === $actions->count()) {
             $stepName = (string)$this->getName();
             $errMsg = sprintf('Шаг %s должен содержать одни действие или одно общее действие', $stepName);
             throw new InvalidWorkflowDescriptorException($errMsg);
@@ -360,8 +365,9 @@ class StepDescriptor extends AbstractDescriptor
      *
      * @return DOMElement|null
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('step');
 
@@ -381,11 +387,12 @@ class StepDescriptor extends AbstractDescriptor
 
 
         $metaAttributes = $this->getMetaAttributes();
+        $baseMeta = $dom->createElement('meta');
         foreach ($metaAttributes as $metaAttributeName => $metaAttributeValue) {
             $metaAttributeNameEncode = XmlUtil::encode($metaAttributeName);
             $metaAttributeValueEnEncode = XmlUtil::encode($metaAttributeValue);
 
-            $metaElement = $dom->createElement('meta');
+            $metaElement = clone $baseMeta;
             $metaElement->setAttribute('name', $metaAttributeNameEncode);
             $metaValueElement = $dom->createTextNode($metaAttributeValueEnEncode);
             $metaElement->appendChild($metaValueElement);
@@ -423,8 +430,9 @@ class StepDescriptor extends AbstractDescriptor
         if ($actions->count() > 0 || count($commonActions) > 0) {
             $actionsElement = $dom->createElement('actions');
 
+            $commonActionElementBase = $dom->createElement('common-action');
             foreach ($commonActions as $commonActionId) {
-                $commonActionElement = $dom->createElement('common-action');
+                $commonActionElement = clone $commonActionElementBase;
                 $commonActionElement->setAttribute('id', $commonActionId);
 
                 $actionsElement->appendChild($commonActionElement);

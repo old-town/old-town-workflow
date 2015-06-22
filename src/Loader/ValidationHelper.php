@@ -24,7 +24,7 @@ class ValidationHelper
     {
         if ($c && (is_array($c) || $c instanceof Traversable)) {
             foreach ($c as $o) {
-                if ((is_object($o) && method_exists($o, 'validate')) || $o instanceof ValidateDescriptorInterface) {
+                if ($o instanceof ValidateDescriptorInterface || (is_object($o) && method_exists($o, 'validate'))) {
                     $o->validate();
                 }
             }

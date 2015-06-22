@@ -19,6 +19,7 @@ class WorkflowLoader
      * @param      $resource
      * @param bool $validate
      * @return WorkflowDescriptor
+     * @throws InvalidParsingWorkflowException
      */
     public static function load($resource, $validate = true)
     {

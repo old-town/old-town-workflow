@@ -97,6 +97,8 @@ class SimpleStep implements StepInterface, Serializable
      *
      * @param integer $actionId
      * @return $this
+     *
+     * @throws ArgumentNotNumericException
      */
     public function setActionId($actionId)
     {
@@ -126,12 +128,7 @@ class SimpleStep implements StepInterface, Serializable
      */
     public function setCaller($caller = null)
     {
-        if (null !== $caller) {
-            $this->caller = (string)$caller;
-        } else {
-            $this->caller = null;
-        }
-
+        $this->caller = (null !== $caller) ? (string)$caller : null;
 
         return $this;
     }
@@ -174,6 +171,8 @@ class SimpleStep implements StepInterface, Serializable
      *
      * @param integer $entryId
      * @return $this
+     *
+     * @throws ArgumentNotNumericException
      */
     public function setEntryId($entryId)
     {
@@ -224,6 +223,8 @@ class SimpleStep implements StepInterface, Serializable
      *
      * @param integer $id
      * @return $this
+     *
+     * @throws ArgumentNotNumericException
      */
     public function setId($id)
     {
@@ -341,6 +342,8 @@ class SimpleStep implements StepInterface, Serializable
      *
      * @param integer $stepId
      * @return $this
+     *
+     * @throws ArgumentNotNumericException
      */
     public function setStepId($stepId)
     {

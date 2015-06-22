@@ -70,6 +70,8 @@ class SimpleWorkflowEntry implements Serializable, WorkflowEntryInterface
      *
      * @param int $id
      * @return $this
+     *
+     * @throws ArgumentNotNumericException
      */
     public function setId($id)
     {
@@ -121,6 +123,7 @@ class SimpleWorkflowEntry implements Serializable, WorkflowEntryInterface
      * @param int $state
      *
      * @return $this
+     * @throws ArgumentNotNumericException
      */
     public function setState($state)
     {

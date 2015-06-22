@@ -91,7 +91,7 @@ class RegisterDescriptor extends AbstractDescriptor
      * @return DOMElement
      * @throws InvalidDescriptorException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('register');
 

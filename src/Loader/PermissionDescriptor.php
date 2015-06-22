@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use DOMDocument;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 
 
 /**
@@ -79,8 +80,9 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
      *
      * @return DOMElement|null
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('permission');
 

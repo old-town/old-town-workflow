@@ -163,6 +163,9 @@ class FieldExpression extends AbstractExpression
      * @param integer $operator
      * @param Object $value
      * @param bool $negate
+     *
+     * @throws ArgumentNotNumericException
+     * @throws InvalidArgumentException
      */
     public function __construct($field, $context, $operator, $value, $negate = false)
     {

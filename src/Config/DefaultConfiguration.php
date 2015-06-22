@@ -284,6 +284,8 @@ class  DefaultConfiguration implements ConfigurationInterface
      * @param UriInterface $url
      *
      * @return string
+     *
+     * @throws FactoryException
      */
     protected function getContentConfigFile(UriInterface $url = null)
     {
@@ -388,8 +390,12 @@ class  DefaultConfiguration implements ConfigurationInterface
      * @param string $name имя сохраняемого workflow
      * @param WorkflowDescriptor $descriptor дескриптор workflow
      * @param boolean $replace - флаг определяющий, можно ли замениить workflow
-     * @throws FactoryException
+     *
      * @return boolean
+     *
+     * @throws FactoryException
+     * @throws \OldTown\Workflow\Exception\InvalidWorkflowDescriptorException
+     *
      */
     public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false)
     {
@@ -460,6 +466,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      *
      * @return WorkflowStoreInterface
      * @throws StoreException
+     * @throws \OldTown\Workflow\Exception\FactoryException
      */
     public function getWorkflowStore()
     {

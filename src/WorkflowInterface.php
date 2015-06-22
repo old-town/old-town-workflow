@@ -174,7 +174,7 @@ interface WorkflowInterface
      * Executes a special trigger-function using the context of the given workflow instance id.
      * Note that this method is exposed for Quartz trigger jobs, user code should never call it.
      * @param integer $id The workflow instance id
-     * @param integer $triggerId The id of the speciail trigger-function
+     * @param integer $triggerId The id of the special trigger-function
      * @thrown WorkflowException
      */
     public function executeTriggerFunction($id, $triggerId);

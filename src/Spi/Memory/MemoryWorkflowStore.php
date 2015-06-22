@@ -63,6 +63,9 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      *
      * @return $this
      * @throws StoreException
+     * @throws NotFoundWorkflowEntryException
+     * @throws ArgumentNotNumericException
+     * @throws InvalidWorkflowEntryException
      */
     public function setEntryState($entryId, $state)
     {
@@ -151,6 +154,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      *
      * @param Integer $entryId
      * @return SimpleStep[]|SplObjectStorage
+     * @throws ArgumentNotNumericException
      */
     public function findCurrentSteps($entryId)
     {
@@ -177,6 +181,8 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * @param string $status
      * @param string $caller
      * @return null|SimpleStep
+     *
+     * @throws ArgumentNotNumericException
      */
     public function markFinished(StepInterface $step, $actionId, DateTime $finishDate, $status, $caller)
     {
@@ -184,7 +190,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         $currentSteps = $this->findCurrentSteps($entryId);
 
         foreach ($currentSteps as $theStep) {
-            if ($theStep->getId() == $step->getId()) {
+            if ($theStep->getId() === $step->getId()) {
                 $theStep->setStatus($status);
                 $theStep->setActionId($actionId);
                 $theStep->setFinishDate($finishDate);
@@ -213,6 +219,8 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      *
      * @param StepInterface $step
      * @return void
+     *
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function moveToHistory(StepInterface $step)
     {

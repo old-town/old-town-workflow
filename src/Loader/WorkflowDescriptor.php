@@ -6,10 +6,12 @@
 namespace OldTown\Workflow\Loader;
 
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
+use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use DOMElement;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
 use DOMDocument;
@@ -19,7 +21,7 @@ use DOMDocument;
  *
  * @package OldTown\Workflow\Loader
  */
-class WorkflowDescriptor extends AbstractDescriptor
+class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 {
     /**
      * @var ConditionsDescriptor|null
@@ -85,6 +87,8 @@ class WorkflowDescriptor extends AbstractDescriptor
 
     /**
      * @param DOMElement $element
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function __construct(DOMElement $element = null)
     {
@@ -138,6 +142,8 @@ class WorkflowDescriptor extends AbstractDescriptor
 
     /**
      * @param DOMElement $root
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     protected function init(DOMElement $root)
     {
@@ -274,6 +280,9 @@ class WorkflowDescriptor extends AbstractDescriptor
      *
      * @param ActionDescriptor $descriptor
      * @return $this
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function addCommonAction(ActionDescriptor $descriptor)
     {
@@ -289,6 +298,8 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param ActionDescriptor $descriptor
      *
      * @return $this
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     private function addAction($actionsCollectionOrMap, ActionDescriptor $descriptor)
     {
@@ -318,6 +329,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      *
      * @param integer $id
      * @return StepDescriptor|null
+     * @throws ArgumentNotNumericException
      */
     public function getStep($id)
     {
@@ -416,6 +428,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param $id
      *
      * @return ActionDescriptor|null
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getInitialAction($id)
     {
@@ -447,6 +460,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param $id
      *
      * @return JoinDescriptor|null
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getJoin($id)
     {
@@ -495,6 +509,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param $id
      *
      * @return SplitDescriptor|null
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getSplit($id)
     {
@@ -517,6 +532,8 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param integer  $id
      * @param FunctionDescriptor $descriptor
      * @return $this
+     *
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function setTriggerFunction($id, FunctionDescriptor $descriptor)
     {
@@ -533,6 +550,7 @@ class WorkflowDescriptor extends AbstractDescriptor
     /**
      * @param integer  $id
      * @return FunctionDescriptor
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getTriggerFunction($id)
     {
@@ -563,6 +581,8 @@ class WorkflowDescriptor extends AbstractDescriptor
     /**
      * @param ActionDescriptor $descriptor
      * @return $this
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function addGlobalAction(ActionDescriptor $descriptor)
     {
@@ -574,6 +594,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param ActionDescriptor $descriptor
      * @return $this
      * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function addInitialAction(ActionDescriptor $descriptor)
     {
@@ -586,6 +607,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param JoinDescriptor $descriptor
      * @return $this
      * @throws InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function addJoin(JoinDescriptor $descriptor)
     {
@@ -604,6 +626,7 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param SplitDescriptor $descriptor
      * @return $this
      * @throws InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function addSplit(SplitDescriptor $descriptor)
     {
@@ -620,6 +643,9 @@ class WorkflowDescriptor extends AbstractDescriptor
     /**
      * @param StepDescriptor $descriptor
      * @return $this
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws ArgumentNotNumericException
      */
     public function addStep(StepDescriptor $descriptor)
     {
@@ -670,18 +696,22 @@ class WorkflowDescriptor extends AbstractDescriptor
      * @param DOMDocument $dom
      *
      * @return DOMElement|null
+     * @throws InternalWorkflowException
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
+     *
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('workflow');
 
         $metaAttributes = $this->getMetaAttributes();
+        $metaElementBase = $dom->createElement('meta');
         foreach ($metaAttributes as $metaAttributeName => $metaAttributeValue) {
             $metaAttributeNameEncode = XmlUtil::encode($metaAttributeName);
             $metaAttributeValueEnEncode = XmlUtil::encode($metaAttributeValue);
 
-            $metaElement = $dom->createElement('meta');
+            $metaElement = clone $metaElementBase;
             $metaElement->setAttribute('name', $metaAttributeNameEncode);
             $metaValueElement = $dom->createTextNode($metaAttributeValueEnEncode);
             $metaElement->appendChild($metaValueElement);
@@ -704,8 +734,9 @@ class WorkflowDescriptor extends AbstractDescriptor
         $timerFunctions = $this->getTriggerFunctions();
         if (count($timerFunctions) > 0) {
             $timerFunctionsElement = $dom->createElement('trigger-functions');
+            $timerFunctionElementBase = $dom->createElement('trigger-function');
             foreach ($timerFunctions as $timerFunctionId => $timerFunction) {
-                $timerFunctionElement = $dom->createElement('trigger-function');
+                $timerFunctionElement = clone $timerFunctionElementBase;
                 $timerFunctionElement->setAttribute('id', $timerFunctionId);
                 $functionElement = $timerFunction->writeXml($dom);
                 $timerFunctionElement->appendChild($functionElement);
@@ -739,7 +770,13 @@ class WorkflowDescriptor extends AbstractDescriptor
         if ($globalActions->count() > 0) {
             $globalActionsElement = $dom->createElement('global-actions');
             foreach ($globalActions as $globalAction) {
-                $globalActionElement = $globalAction->writeXml($dom);
+                try {
+                    $globalActionElement = $globalAction->writeXml($dom);
+                } catch (\Exception $e) {
+                    $errMsg  = 'Ошибка генерации workflow';
+                    throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+                }
+
                 $globalActionsElement->appendChild($globalActionElement);
             }
 
@@ -750,7 +787,12 @@ class WorkflowDescriptor extends AbstractDescriptor
         if (count($commonActions) > 0) {
             $commonActionsElement = $dom->createElement('common-actions');
             foreach ($commonActions as $commonAction) {
-                $commonActionElement = $commonAction->writeXml($dom);
+                try {
+                    $commonActionElement = $commonAction->writeXml($dom);
+                } catch (\Exception $e) {
+                    $errMsg  = 'Ошибка генерации workflow';
+                    throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+                }
                 $commonActionsElement->appendChild($commonActionElement);
             }
 
@@ -761,7 +803,12 @@ class WorkflowDescriptor extends AbstractDescriptor
         $stepsElement = $dom->createElement('steps');
         $steps = $this->getSteps();
         foreach ($steps as $step) {
-            $stepElement = $step->writeXml($dom);
+            try {
+                $stepElement = $step->writeXml($dom);
+            } catch (\Exception $e) {
+                $errMsg  = 'Ошибка генерации workflow';
+                throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+            }
             $stepsElement->appendChild($stepElement);
         }
 

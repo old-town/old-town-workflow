@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use SplObjectStorage;
 use DOMDocument;
 
@@ -390,6 +391,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      *
      * @param DOMDocument $dom
      * @return DOMElement|null
+     * @throws InvalidWriteWorkflowException
      */
     protected function printPostFunctions(DOMDocument $dom)
     {
@@ -397,7 +399,13 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
         if ($postFunctions->count() > 0) {
             $postFunctionsElements = $dom->createElement('post-functions');
             foreach ($postFunctions as $function) {
-                $functionElement = $function->writeXml($dom);
+                try {
+                    $functionElement = $function->writeXml($dom);
+                } catch (\Exception $e) {
+                    $errMsg  = 'Ошибка сохранения workflow';
+                    throw new InvalidWriteWorkflowException($errMsg, $e->getCode(), $e);
+                }
+
                 $postFunctionsElements->appendChild($functionElement);
             }
 
@@ -412,6 +420,8 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      *
      * @param DOMDocument $dom
      * @return DOMElement|null
+     *
+     * @throws InvalidWriteWorkflowException
      */
     protected function printPreFunctions(DOMDocument $dom)
     {
@@ -419,7 +429,12 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
         if ($preFunctions->count() > 0) {
             $preFunctionsElements = $dom->createElement('pre-functions');
             foreach ($preFunctions as $function) {
-                $functionElement = $function->writeXml($dom);
+                try {
+                    $functionElement = $function->writeXml($dom);
+                } catch (\Exception $e) {
+                    $errMsg  = 'Ошибка сохранения workflow';
+                    throw new InvalidWriteWorkflowException($errMsg, $e->getCode(), $e);
+                }
                 $preFunctionsElements->appendChild($functionElement);
             }
 
@@ -437,8 +452,9 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      *
      * @return DOMElement
      * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('unconditional-result');
 

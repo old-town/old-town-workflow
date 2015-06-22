@@ -61,11 +61,9 @@ class ConditionDescriptor extends AbstractDescriptor
         if ($condition->hasAttribute('negate')) {
             $n =  XmlUtil::getRequiredAttributeValue($condition, 'negate');
             $nNormalize = strtolower($n);
-            if ('true' === $nNormalize || 'yes' === $nNormalize) {
-                $this->negate = true;
-            } else {
-                $this->negate = false;
-            }
+
+            $this->negate = ('true' === $nNormalize || 'yes' === $nNormalize);
+
         }
 
     }
@@ -98,7 +96,7 @@ class ConditionDescriptor extends AbstractDescriptor
      * @return DOMElement
      * @throws InvalidDescriptorException
      */
-    public function writeXml(DOMDocument $dom)
+    public function writeXml(DOMDocument $dom = null)
     {
         $descriptor = $dom->createElement('condition');
 

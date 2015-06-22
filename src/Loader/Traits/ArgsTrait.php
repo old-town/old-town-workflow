@@ -90,8 +90,9 @@ trait ArgsTrait
         }
 
         $dom = $parent->ownerDocument;
+        $argBase = $dom->createElement('arg');
         foreach ($args as $key => $value) {
-            $arg = $dom->createElement('arg');
+            $arg = clone $argBase;
             $arg->setAttribute('name', $key);
 
             if ($this instanceof CustomArgInterface && $this->flagUseCustomArgWriter($key, $value)) {
