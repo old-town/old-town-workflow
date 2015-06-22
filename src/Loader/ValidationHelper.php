@@ -20,7 +20,7 @@ class ValidationHelper
      * @param array|Traversable $c
      * @throws InvalidWorkflowDescriptorException
      */
-    public static function  validate($c)
+    public static function validate($c)
     {
         if ($c && (is_array($c) || $c instanceof Traversable)) {
             foreach ($c as $o) {

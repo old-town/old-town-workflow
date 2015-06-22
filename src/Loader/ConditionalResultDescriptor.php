@@ -263,5 +263,4 @@ class ConditionalResultDescriptor extends ResultDescriptor
         }
         return $descriptor;
     }
-
 }

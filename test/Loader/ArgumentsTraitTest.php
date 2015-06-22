@@ -257,6 +257,5 @@ trait ArgumentsTraitTest
 
         $errMsg = 'Разное колличество аргументов';
         call_user_func([static::class, 'assertEquals'], count($descriptor->getArgs()), count($expectedArgs), $errMsg);
-
     }
 }

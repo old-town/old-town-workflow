@@ -291,7 +291,7 @@ class StepDescriptor extends AbstractDescriptor
             }
 
             $results = $actionDescriptor->getConditionalResults();
-            foreach($results as $resultDescriptor) {
+            foreach ($results as $resultDescriptor) {
                 if ($join === $resultDescriptor->getJoin()) {
                     return true;
                 }
@@ -438,12 +438,11 @@ class StepDescriptor extends AbstractDescriptor
                 $actionsElement->appendChild($commonActionElement);
             }
 
-            foreach($actions as $action) {
+            foreach ($actions as $action) {
                 if (!$action->isCommon()) {
                     $actionElement = $action->writeXml($dom);
                     $actionsElement->appendChild($actionElement);
                 }
-
             }
 
             $descriptor->appendChild($actionsElement);
@@ -462,6 +461,5 @@ class StepDescriptor extends AbstractDescriptor
 
 
         return $descriptor;
-
     }
 }

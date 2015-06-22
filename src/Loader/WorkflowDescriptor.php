@@ -668,11 +668,11 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         $actionToRemoveId = $actionToRemove->getId();
         $globalActions = $this->getGlobalActions();
         foreach ($globalActions as $actionDescriptor) {
-                if ($actionToRemoveId === $actionDescriptor->getId()) {
-                    $globalActions->detach($actionDescriptor);
+            if ($actionToRemoveId === $actionDescriptor->getId()) {
+                $globalActions->detach($actionDescriptor);
 
-                    return true;
-                }
+                return true;
+            }
         }
 
         $steps = $this->getSteps();
@@ -744,7 +744,6 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
                 $timerFunctionsElement->appendChild($timerFunctionElement);
             }
             $descriptor->appendChild($timerFunctionsElement);
-
         }
 
 
@@ -838,6 +837,5 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         }
 
         return $descriptor;
-
     }
 }

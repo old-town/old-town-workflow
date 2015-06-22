@@ -98,7 +98,7 @@ class SplitDescriptor extends AbstractDescriptor implements ValidateDescriptorIn
             throw new InvalidDescriptorException($errMsg);
         }
         $id =  $this->getId();
-        $descriptor->setAttribute('id',$id);
+        $descriptor->setAttribute('id', $id);
 
         $results = $this->getResults();
 
@@ -108,6 +108,5 @@ class SplitDescriptor extends AbstractDescriptor implements ValidateDescriptorIn
         }
 
         return $descriptor;
-
     }
 }

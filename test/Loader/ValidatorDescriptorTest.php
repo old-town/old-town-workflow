@@ -109,7 +109,7 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
                 'xpathElement'  => '/validator',
                 'attributeName' => 'name',
                 'value'         => 'testName',
-                'di' => function(ValidatorDescriptor $descriptor) {
+                'di' => function (ValidatorDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ],
@@ -120,7 +120,7 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
                 'xpathElement'  => '/validator',
                 'attributeName' => 'id',
                 'value'         => 'testId',
-                'di' => function(ValidatorDescriptor $descriptor) {
+                'di' => function (ValidatorDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ]

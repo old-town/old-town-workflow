@@ -122,7 +122,6 @@ class ConditionsDescriptor extends AbstractDescriptor
         }
 
         return null;
-
     }
 
     /**
@@ -150,7 +149,6 @@ class ConditionsDescriptor extends AbstractDescriptor
                     } else {
                         $from = get_class($parentConditionalResult);
                     }
-
                 } else {
                     $from = 'Unknown';
                 }
@@ -170,6 +168,5 @@ class ConditionsDescriptor extends AbstractDescriptor
             $errMsg = 'В условие должен быть определен тип AND или OR';
             throw new InvalidWorkflowDescriptorException($errMsg);
         }
-
     }
 }

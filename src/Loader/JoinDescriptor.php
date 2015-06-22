@@ -138,7 +138,7 @@ class JoinDescriptor extends AbstractDescriptor  implements ValidateDescriptorIn
             throw new InvalidDescriptorException($errMsg);
         }
         $id =  $this->getId();
-        $descriptor->setAttribute('id',$id);
+        $descriptor->setAttribute('id', $id);
 
         $conditions = $this->getConditions();
         foreach ($conditions as $condition) {
@@ -156,6 +156,5 @@ class JoinDescriptor extends AbstractDescriptor  implements ValidateDescriptorIn
         }
 
         return $descriptor;
-
     }
 }

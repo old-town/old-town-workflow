@@ -83,9 +83,6 @@ class Bootstrap
             $errMsg = 'Ошибка инициации автолоадеров';
             throw new RuntimeException($errMsg, $e->getCode(), $e);
         }
-
-
-
     }
 
     /**

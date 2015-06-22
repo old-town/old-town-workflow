@@ -16,7 +16,6 @@ use OldTown\Workflow\Loader\ValidateDescriptorInterface;
  */
 class ValidationHelperTest extends TestCase
 {
-
     /**
      * Тест когда один из элементов коллекции не прошел валидацию
      *
@@ -33,7 +32,6 @@ class ValidationHelperTest extends TestCase
         ];
 
         ValidationHelper::validate($c);
-
     }
 
     /**
@@ -77,6 +75,5 @@ class ValidationHelperTest extends TestCase
         ]);
 
         ValidationHelper::validate($c);
-
     }
 }

@@ -136,7 +136,5 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
         $descriptor->appendChild($conditionsDescriptor);
 
         return $descriptor;
-
     }
-
 }

@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Loader;
 
-
 use DOMDocument;
 use DOMElement;
 

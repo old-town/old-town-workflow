@@ -515,6 +515,5 @@ class ActionDescriptor extends AbstractDescriptor
 
 
         return $descriptor;
-
     }
 }

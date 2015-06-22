@@ -111,6 +111,5 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
         $descriptor->appendChild($restrictionElement);
 
         return $descriptor;
-
     }
 }

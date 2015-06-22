@@ -109,7 +109,7 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
                 'xpathElement'  => '/function',
                 'attributeName' => 'name',
                 'value'         => 'testName',
-                'di' => function(FunctionDescriptor $descriptor) {
+                'di' => function (FunctionDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ],
@@ -120,7 +120,7 @@ class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
                 'xpathElement'  => '/function',
                 'attributeName' => 'id',
                 'value'         => 'testId',
-                'di' => function(FunctionDescriptor $descriptor) {
+                'di' => function (FunctionDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ]

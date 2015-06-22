@@ -63,9 +63,7 @@ class ConditionDescriptor extends AbstractDescriptor
             $nNormalize = strtolower($n);
 
             $this->negate = ('true' === $nNormalize || 'yes' === $nNormalize);
-
         }
-
     }
 
     /**
@@ -167,6 +165,5 @@ class ConditionDescriptor extends AbstractDescriptor
      */
     public function validate()
     {
-
     }
 }

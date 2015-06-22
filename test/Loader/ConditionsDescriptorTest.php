@@ -44,7 +44,6 @@ class ConditionsDescriptorTest extends TestCase implements DescriptorTestInterfa
         static::assertEquals('or', $conditionsDescriptor->getType(), 'Неверное значение атрибута type');
 
         static::assertEquals(2, $conditionsDescriptor->getConditions()->count(), 'Неверное количество условий');
-
     }
 
     /**
@@ -60,7 +59,5 @@ class ConditionsDescriptorTest extends TestCase implements DescriptorTestInterfa
         static::assertEquals('or', $conditionsDescriptor->getType(), 'Неверное значение атрибута type');
 
         static::assertEquals(2, $conditionsDescriptor->getConditions()->count(), 'Неверное количество условий');
-
     }
-
 }
