@@ -18,10 +18,6 @@ class BasicWorkflowTest extends TestCase
      * Инициализация workflow. Workflow нужно иницаилизровать прежде, чем выполнять какие либо действия.
      * Workflow может быть инициализированно только один раз
      *
-     * @param string $workflowName Имя workflow
-     * @param integer $initialAction Имя первого шага, с которого начинается workflow
-     * @param array $inputs Данные введеные пользователем
-     * @return integer
      */
     public function testInitialize()
     {

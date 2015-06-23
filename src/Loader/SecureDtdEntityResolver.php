@@ -16,7 +16,6 @@ use Psr\Http\Message\UriInterface;
  */
 class SecureDtdEntityResolver
 {
-
     /**
      * Правильный заголовк для uri схемы
      *
@@ -114,7 +113,6 @@ class SecureDtdEntityResolver
         $flag = self::VALID_URI === $host;
 
         return $flag;
-
     }
 
 
@@ -130,7 +128,6 @@ class SecureDtdEntityResolver
         $flag = '.dtd' === substr($path, -4);
 
         return $flag;
-
     }
 
 
@@ -180,5 +177,4 @@ class SecureDtdEntityResolver
 
         return $this->pathToSchemas;
     }
-
 }

@@ -57,7 +57,6 @@ class ConditionalResultDescriptor extends ResultDescriptor
             $conditionDescriptor = DescriptorFactory::getFactory()->createConditionsDescriptor($condition);
             $conditionDescriptor->setParent($this);
             $this->conditions->attach($conditionDescriptor);
-
         }
     }
 

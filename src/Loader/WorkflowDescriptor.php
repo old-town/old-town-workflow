@@ -159,6 +159,9 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * Валидация workflow
      *
      * @throws InvalidWorkflowDescriptorException
+     * @throws InternalWorkflowException
+     * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
      * @return void
      */
     public function validate()
@@ -217,7 +220,6 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
                     $actionsStorage->attach($action);
                 }
             }
-
         }
 
 
@@ -321,7 +323,6 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         $initialActions = XMLUtil::getChildElements($initialActionsElement, 'action');
 
         foreach ($initialActions as $initialAction) {
-
             $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($initialAction);
             $actionDescriptor->setParent($this);
             $this->initialActions->attach($actionDescriptor);
