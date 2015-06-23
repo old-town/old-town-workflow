@@ -138,6 +138,82 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      */
     public function validate()
     {
+        $registers = $this->getRegisters();
+        $triggerFunctions = $this->getTriggerFunctions();
+        $globalActions = $this->getGlobalActions();
+        $initialActions = $this->getInitialActions();
+        $commonActions = $this->getCommonActions();
+        $steps = $this->getSteps();
+        $splits = $this->getSplits();
+        $joins = $this->getJoins();
+
+
+        ValidationHelper::validate($registers);
+        ValidationHelper::validate($triggerFunctions);
+        ValidationHelper::validate($globalActions);
+        ValidationHelper::validate($initialActions);
+        ValidationHelper::validate($commonActions);
+        ValidationHelper::validate($steps);
+        ValidationHelper::validate($splits);
+        ValidationHelper::validate($joins);
+
+
+        $actions = [];
+        $actionsStorage = new SplObjectStorage();
+
+        foreach ($globalActions as $action) {
+            $actionId = $action->getId();
+            if (array_key_exists($actionId, $actions)) {
+                $errMsg = sprintf(
+                    'Действие с id %s уже существует ',
+                    $actionId
+                );
+                throw new InvalidWorkflowDescriptorException($errMsg);
+            }
+            $actions[$actionId] = $actionId;
+            $actionsStorage->attach($action);
+        }
+
+        foreach ($steps as $step) {
+            $j = $step->getActions();
+
+            foreach ($j as $action) {
+                if (!$action->isCommon()) {
+                    $actionId = $action->getId();
+                    if (array_key_exists($actionId, $actions)) {
+                        $errMsg = sprintf(
+                            'Действие с id %s найденное у шага %s является дубликатом. ',
+                            $actionId,
+                            $step->getId()
+                        );
+                        throw new InvalidWorkflowDescriptorException($errMsg);
+                    }
+                    $actions[$actionId] = $actionId;
+                    $actionsStorage->attach($action);
+                }
+            }
+
+        }
+
+
+        foreach ($commonActions as $action) {
+            if ($actionsStorage->contains($action)) {
+                $actionId = $action->getId();
+                $errMsg = sprintf(
+                    'common-action  с id %s дублирует действие с шага . ',
+                    $actionId
+                );
+                throw new InvalidWorkflowDescriptorException($errMsg);
+            }
+        }
+
+
+        $this->validateDtd();
+    }
+
+    private function validateDtd()
+    {
+
     }
 
     /**

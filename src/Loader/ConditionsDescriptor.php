@@ -133,6 +133,7 @@ class ConditionsDescriptor extends AbstractDescriptor
      */
     public function validate()
     {
+
         $conditions = $this->getConditions();
         ValidationHelper::validate($conditions);
 

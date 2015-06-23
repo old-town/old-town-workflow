@@ -456,6 +456,10 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $errMsg = 'Не передан DOMDocument';
+            throw new InvalidWriteWorkflowException($errMsg);
+        }
         $descriptor = $dom->createElement('unconditional-result');
 
         if ($this->hasId()) {

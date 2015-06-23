@@ -84,6 +84,10 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $errMsg = 'Не передан DOMDocument';
+            throw new InvalidWriteWorkflowException($errMsg);
+        }
         $descriptor = $dom->createElement('permission');
 
         if ($this->hasId()) {

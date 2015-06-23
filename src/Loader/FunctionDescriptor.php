@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Loader;
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
 use DOMDocument;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 
 
 /**
@@ -58,9 +59,15 @@ class FunctionDescriptor extends AbstractDescriptor
      *
      * @return DOMElement
      * @throws InvalidDescriptorException
+     * @throws \OldTown\Workflow\Exception\InvalidWriteWorkflowException
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $errMsg = 'Не передан DOMDocument';
+            throw new InvalidWriteWorkflowException($errMsg);
+        }
+
         $descriptor = $dom->createElement('function');
         $type = $this->getType();
         if (null === $type) {

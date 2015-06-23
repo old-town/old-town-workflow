@@ -369,6 +369,10 @@ class StepDescriptor extends AbstractDescriptor
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $errMsg = 'Не передан DOMDocument';
+            throw new InvalidWriteWorkflowException($errMsg);
+        }
         $descriptor = $dom->createElement('step');
 
         if (!$this->hasId()) {

@@ -131,6 +131,10 @@ class JoinDescriptor extends AbstractDescriptor  implements ValidateDescriptorIn
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $errMsg = 'Не передан DOMDocument';
+            throw new InvalidWriteWorkflowException($errMsg);
+        }
         $descriptor = $dom->createElement('join');
 
         if (!$this->hasId()) {
