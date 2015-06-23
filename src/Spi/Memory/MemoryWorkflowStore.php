@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Spi\Memory;
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidWorkflowEntryException;
 use OldTown\Workflow\Exception\NotFoundWorkflowEntryException;
+use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\SimpleStep;
 use OldTown\Workflow\Spi\SimpleWorkflowEntry;
 use OldTown\Workflow\Spi\StepInterface;
@@ -211,7 +212,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         static::$entryCache = [];
         static::$currentStepsCache = [];
         static::$historyStepsCache = [];
-        static::$propertySetCache= [];
+        static::$propertySetCache = [];
     }
 
     /**
@@ -249,62 +250,32 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         }
     }
 
-//
-//
-//
+    /**
+     * Поиск по истории шагов
+     *
+     * @param $entryId
+     * @return SimpleStep[]|SplObjectStorage
+     */
+    public function findHistorySteps($entryId)
+    {
+        if (array_key_exists($entryId, static::$historyStepsCache)) {
+            return static::$historyStepsCache[$entryId];
+        }
+        return new SplObjectStorage();
+    }
 
-//
-//
-//
-//    public List findHistorySteps(long entryId) {
-//    List historySteps = (List) historyStepsCache.get(new Long(entryId));
-//
-//        if (historySteps == null) {
-//            historySteps = new ArrayList();
-//            historyStepsCache.put(new Long(entryId), historySteps);
-//        }
-//
-//        return new ArrayList(historySteps);
-//    }
-//
-//    public void init(Map props) {
-//}
-//
+    public function query(WorkflowExpressionQuery $query)
+    {
+        $results = new ArrayList();
 
-//
+        foreach (static::entryCache as $entryId => $mapEntry) {
+            if ($this->query($entryId, $query)) {
+                $results[$entryId] = $entryId;
+            }
+        }
 
-//
-//    public List query(WorkflowQuery query) {
-//    ArrayList results = new ArrayList();
-//
-//        for (Iterator iterator = entryCache.entrySet().iterator();
-//             iterator.hasNext();) {
-//        Map.Entry mapEntry = (Map.Entry) iterator.next();
-//            Long entryId = (Long) mapEntry.getKey();
-//
-//            if (query(entryId, query)) {
-//                results.add(entryId);
-//            }
-//        }
-//
-//        return results;
-//    }
-//
-//    public List query(WorkflowExpressionQuery query) {
-//    ArrayList results = new ArrayList();
-//
-//        for (Iterator iterator = entryCache.entrySet().iterator();
-//             iterator.hasNext();) {
-//        Map.Entry mapEntry = (Map.Entry) iterator.next();
-//            Long entryId = (Long) mapEntry.getKey();
-//
-//            if (query(entryId.longValue(), query)) {
-//                results.add(entryId);
-//            }
-//        }
-//
-//        return results;
-//    }
+        return $results;
+    }
 //
 //    private boolean checkExpression(long entryId, FieldExpression expression) {
 //    Object value = expression.getValue();
