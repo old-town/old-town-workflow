@@ -266,15 +266,26 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 
     public function query(WorkflowExpressionQuery $query)
     {
-        $results = new ArrayList();
+        $results = [];
 
-        foreach (static::entryCache as $entryId => $mapEntry) {
-            if ($this->query($entryId, $query)) {
+        foreach (static::$entryCache as $entryId => $mapEntry) {
+            if ($this->queryInternal($entryId, $query)) {
                 $results[$entryId] = $entryId;
             }
         }
 
         return $results;
+    }
+
+    private function queryInternal($entryId, WorkflowExpressionQuery $query)
+    {
+        $expression = $query->getExpression();
+
+        if ($expression->isNested()) {
+            return $this->checkNestedExpression($entryId, $expression);
+        } else {
+            return $this->checkExpression($entryId, $expression);
+        }
     }
 //
 //    private boolean checkExpression(long entryId, FieldExpression expression) {
@@ -560,15 +571,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 //    return false;
 //}
 //
-//    private boolean query(long entryId, WorkflowExpressionQuery query) {
-//    Expression expression = query.getExpression();
-//
-//        if (expression.isNested()) {
-//            return this.checkNestedExpression(entryId, (NestedExpression) expression);
-//        } else {
-//            return this.checkExpression(entryId, (FieldExpression) expression);
-//        }
-//    }
+
 //
 //    private boolean queryBasic(Long entryId, WorkflowQuery query) {
 //    // the query object is a comparison
