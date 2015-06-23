@@ -33,7 +33,9 @@ class ConditionalResultDescriptor extends ResultDescriptor
     {
         $this->conditions = new SplObjectStorage();
 
+        $this->flagNotExecuteInit = true;
         parent::__construct($element);
+        $this->flagNotExecuteInit = false;
 
         if (null !== $element) {
             $this->init($element);
@@ -50,10 +52,12 @@ class ConditionalResultDescriptor extends ResultDescriptor
         parent::init($conditionalResult);
 
         $conditionNodes = XMLUtil::getChildElements($conditionalResult, 'conditions');
+
         foreach ($conditionNodes as $condition) {
             $conditionDescriptor = DescriptorFactory::getFactory()->createConditionsDescriptor($condition);
             $conditionDescriptor->setParent($this);
             $this->conditions->attach($conditionDescriptor);
+
         }
     }
 
@@ -238,6 +242,7 @@ class ConditionalResultDescriptor extends ResultDescriptor
                 $descriptor->setAttribute('display-name', $displayName);
             }
         }
+
 
         foreach ($this->getConditions() as $condition) {
             $conditionElement = $condition->writeXml($dom);

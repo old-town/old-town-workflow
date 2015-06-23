@@ -90,6 +90,13 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
     protected $postFunctions;
 
     /**
+     * Если флаг установлен в true, то не запускаем инициализацию дескриптора для элемента
+     *
+     * @var bool
+     */
+    protected $flagNotExecuteInit = false;
+
+    /**
      * @param $element
      */
     public function __construct(DOMElement $element = null)
@@ -100,7 +107,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
 
         parent::__construct($element);
 
-        if (null !== $element) {
+        if (null !== $element && !$this->flagNotExecuteInit) {
             $this->init($element);
         }
     }

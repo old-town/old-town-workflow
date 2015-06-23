@@ -69,6 +69,10 @@ class ConditionsDescriptor extends AbstractDescriptor
                 }
             }
         }
+
+
+
+
     }
 
     /**
@@ -119,6 +123,8 @@ class ConditionsDescriptor extends AbstractDescriptor
                 $conditionDescriptor = $condition->writeXml($dom);
                 $descriptor->appendChild($conditionDescriptor);
             }
+
+            return $descriptor;
         }
 
         return null;
@@ -165,7 +171,7 @@ class ConditionsDescriptor extends AbstractDescriptor
             }
         }
 
-        if ($countConditions > 0 && null !== $this->getType()) {
+        if ($countConditions > 0 && null === $this->getType()) {
             $errMsg = 'В условие должен быть определен тип AND или OR';
             throw new InvalidWorkflowDescriptorException($errMsg);
         }

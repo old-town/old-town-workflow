@@ -15,6 +15,8 @@ use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
 use OldTown\Workflow\Exception\RuntimeException;
 use SplObjectStorage;
 use DOMDocument;
+use DOMImplementation;
+use \LibXMLError;
 
 /**
  * Interface WorkflowDescriptor
@@ -23,6 +25,29 @@ use DOMDocument;
  */
 class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 {
+    /**
+     *
+     *
+     * @var string
+     */
+    const DOCUMENT_TYPE_QUALIFIED_NAME = 'workflow';
+
+    /**
+     *
+     *
+     * @var string
+     */
+    const DOCUMENT_TYPE_PUBLIC_ID = '-//OpenSymphony Group//DTD OSWorkflow 2.8//EN';
+
+    /**
+     *
+     *
+     * @var string
+     */
+    const DOCUMENT_TYPE_SYSTEM_ID = 'http://www.opensymphony.com/osworkflow/workflow_2_8.dtd';
+
+
+
     /**
      * @var ConditionsDescriptor|null
      */
@@ -211,9 +236,47 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         $this->validateDtd();
     }
 
+    /**
+     * Валидация схемы документа
+     *
+     * @return void
+     * @throws InternalWorkflowException
+     * @throws InvalidDescriptorException
+     * @throws InvalidWriteWorkflowException
+     */
     private function validateDtd()
     {
+        $dom = $this->writeXml();
 
+        $secureDtdEntityResolver = new SecureDtdEntityResolver();
+        $dtd = $secureDtdEntityResolver->resolveEntity($dom->doctype);
+
+
+        $systemId = 'data://text/plain;base64,'.base64_encode($dtd);
+
+        $creator = new DOMImplementation;
+        $doctype = $creator->createDocumentType(
+            static::DOCUMENT_TYPE_QUALIFIED_NAME,
+            static::DOCUMENT_TYPE_PUBLIC_ID,
+            $systemId
+        );
+        $new = $creator->createDocument('', '', $doctype);
+
+        $oldNode = $dom->getElementsByTagName(static::DOCUMENT_TYPE_QUALIFIED_NAME)->item(0);
+        $newNode = $new->importNode($oldNode, true);
+        $new->appendChild($newNode);
+
+        if (!$new->validate()) {
+            /** @var LibXMLError[] $errors */
+            $errors = libxml_get_errors();
+            $errMsgStack = [];
+            foreach ($errors as $error) {
+                $errMsgStack[] = $error->message;
+            }
+            $errMsg = implode(" \n", $errMsgStack);
+
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        };
     }
 
     /**
@@ -255,14 +318,14 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 
         // handle initial-steps - REQUIRED
         $initialActionsElement = XMLUtil::getChildElement($root, 'initial-actions');
-        $initialActions = XMLUtil::getChildElement($initialActionsElement, 'action');
+        $initialActions = XMLUtil::getChildElements($initialActionsElement, 'action');
 
         foreach ($initialActions as $initialAction) {
+
             $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($initialAction);
             $actionDescriptor->setParent($this);
             $this->initialActions->attach($actionDescriptor);
         }
-
 
         // handle global-actions - OPTIONAL
         $globalActionsElement = XMLUtil::getChildElement($root, 'global-actions');
@@ -771,7 +834,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      *
      * @param DOMDocument $dom
      *
-     * @return DOMElement|null
+     * @return DOMDocument
      * @throws InternalWorkflowException
      * @throws InvalidDescriptorException
      * @throws InvalidWriteWorkflowException
@@ -779,6 +842,19 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $imp = new DOMImplementation();
+            $dtd  = $imp->createDocumentType(
+                static::DOCUMENT_TYPE_QUALIFIED_NAME,
+                static::DOCUMENT_TYPE_PUBLIC_ID,
+                static::DOCUMENT_TYPE_SYSTEM_ID
+            );
+            $dom = $imp->createDocument('', '', $dtd);
+            $dom->encoding = 'UTF-8';
+            $dom->xmlVersion = '1.0';
+            $dom->formatOutput = true;
+        }
+
         $descriptor = $dom->createElement('workflow');
 
         $metaAttributes = $this->getMetaAttributes();
@@ -889,6 +965,16 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 
         $descriptor->appendChild($stepsElement);
 
+        $splits = $this->getSplits();
+        if ($splits->count() > 0) {
+            $splitsElement = $dom->createElement('splits');
+            foreach ($splits as $split) {
+                $splitElement = $split->writeXml($dom);
+                $splitsElement->appendChild($splitElement);
+            }
+
+            $descriptor->appendChild($splitsElement);
+        }
 
         $joins = $this->getJoins();
         if ($joins->count() > 0) {
@@ -901,17 +987,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             $descriptor->appendChild($joinsElement);
         }
 
-        $splits = $this->getSplits();
-        if ($splits->count() > 0) {
-            $splitsElement = $dom->createElement('splits');
-            foreach ($splits as $split) {
-                $splitElement = $split->writeXml($dom);
-                $splitsElement->appendChild($splitElement);
-            }
-
-            $descriptor->appendChild($splitsElement);
-        }
-
-        return $descriptor;
+        $dom->appendChild($descriptor);
+        return $dom;
     }
 }
