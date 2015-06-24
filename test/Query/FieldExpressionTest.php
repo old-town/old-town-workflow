@@ -11,6 +11,7 @@ use \OldTown\Workflow\Query\FieldExpression;
 /**
  * Class FieldExpressionTest
  *
+ * @todo занчение \OldTown\Workflow\Query\FieldExpression::getValue - не объект(а mixed) - поправить тесты
  * @package OldTown\Workflow\Test\Query
  */
 class FieldExpressionTest extends TestCase

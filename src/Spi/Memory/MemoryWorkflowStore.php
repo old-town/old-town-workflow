@@ -1,6 +1,6 @@
 <?php
 /**
- * @link https://github.com/old-town/old-town-workflow
+ * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 namespace OldTown\Workflow\Spi\Memory;
@@ -22,6 +22,7 @@ use OldTown\Workflow\Exception\InvalidArgumentException;
 
 /**
  * Class MemoryWorkflowStore
+ *
  * @package OldTown\Workflow\Spi\Memory
  */
 class MemoryWorkflowStore // implements WorkflowStoreInterface
@@ -82,6 +83,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * Ищет сущность workflow с заданным id во внутреннем кеше
      *
      * @param int $entryId
+     *
      * @return WorkflowEntryInterface
      * @throws NotFoundWorkflowEntryException
      * @throws ArgumentNotNumericException
@@ -114,6 +116,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * Создает экземпляр workflow
      *
      * @param string $workflowName
+     *
      * @return SimpleWorkflowEntry
      */
     public function createEntry($workflowName)
@@ -128,13 +131,14 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
     /**
      * Создает новый шаг
      *
-     * @param integer $entryId
-     * @param integer $stepId
-     * @param string $owner
+     * @param integer  $entryId
+     * @param integer  $stepId
+     * @param string   $owner
      * @param DateTime $startDate
      * @param DateTime $dueDate
-     * @param string $status
-     * @param array $previousIds
+     * @param string   $status
+     * @param array    $previousIds
+     *
      * @return SimpleStep
      */
     public function createCurrentStep($entryId, $stepId, $owner, DateTime $startDate, DateTime $dueDate, $status, array $previousIds = [])
@@ -157,6 +161,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * Ищет текущий набор шагов для сущности workflow c заданным id
      *
      * @param Integer $entryId
+     *
      * @return SimpleStep[]|SplObjectStorage
      * @throws ArgumentNotNumericException
      */
@@ -180,10 +185,11 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * Пометить текущий шаг как выполненный
      *
      * @param StepInterface $step
-     * @param integer $actionId
-     * @param DateTime $finishDate
-     * @param string $status
-     * @param string $caller
+     * @param integer       $actionId
+     * @param DateTime      $finishDate
+     * @param string        $status
+     * @param string        $caller
+     *
      * @return null|SimpleStep
      *
      * @throws ArgumentNotNumericException
@@ -222,6 +228,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * Перенос шага в историю
      *
      * @param StepInterface $step
+     *
      * @return void
      *
      * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
@@ -257,6 +264,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * Поиск по истории шагов
      *
      * @param $entryId
+     *
      * @return SimpleStep[]|SplObjectStorage
      */
     public function findHistorySteps($entryId)
@@ -264,9 +272,17 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         if (array_key_exists($entryId, static::$historyStepsCache)) {
             return static::$historyStepsCache[$entryId];
         }
+
         return new SplObjectStorage();
     }
 
+    /**
+     * Поиск в хранилище
+     *
+     * @param WorkflowExpressionQuery $query
+     *
+     * @return array
+     */
     public function query(WorkflowExpressionQuery $query)
     {
         $results = [];
@@ -280,7 +296,15 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         return $results;
     }
 
-    private function queryInternal($entryId, WorkflowExpressionQuery $query)
+    /**
+     * Реализация поиска в харинилище
+     *
+     * @param integer                 $entryId
+     * @param WorkflowExpressionQuery $query
+     *
+     * @return bool
+     */
+    protected function queryInternal($entryId, WorkflowExpressionQuery $query)
     {
         $expression = $query->getExpression();
 
@@ -293,6 +317,16 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 
 //
 
+    /**
+     * Проверка выражения
+     *
+     * @param integer         $entryId
+     * @param FieldExpression $expression
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     */
     private function checkExpression($entryId, FieldExpression $expression)
     {
         $value = $expression->getValue();
@@ -310,12 +344,18 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
             }
 
             if ($field === FieldExpression::STATE) {
-                //@fixme значение value может быть не только объектом
+                if (!is_numeric($value)) {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
+                }
+
                 $valueInt = (integer)$value;
+
                 return $this->compareLong($valueInt, $theEntry->getState(), $operator);
             }
 
-            throw new InvalidArgumentException('unknown field');
+            $errMsg = 'unknown field';
+            throw new InvalidArgumentException($errMsg);
         }
 
         /** @var SplObjectStorage[]|SimpleStep[] $steps */
@@ -323,10 +363,11 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 
         if ($context === FieldExpression::CURRENT_STEPS) {
             $steps = array_key_exists($id, static::$currentStepsCache) ? static::$currentStepsCache[$id] : $steps;
-        } else if ($context == FieldExpression::HISTORY_STEPS) {
+        } elseif ($context === FieldExpression::HISTORY_STEPS) {
             $steps = array_key_exists($id, static::$historyStepsCache) ? static::$historyStepsCache[$id] : $steps;
         } else {
-            throw new InvalidArgumentException('unknown field context');
+            $errMsg = 'unknown field context';
+            throw new InvalidArgumentException($errMsg);
         }
 
         if (0 === count($steps)) {
@@ -337,8 +378,11 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 
         switch ($field) {
             case FieldExpression::ACTION:
+                if (!is_numeric($value)) {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
+                }
 
-                //@fixme значение value может быть не только объектом
                 $actionId = (integer)$value;
 
                 foreach ($steps as $step) {
@@ -353,8 +397,11 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
                 break;
 
             case FieldExpression::CALLER:
-
-                $caller = (String)$value;
+                $caller = $value;
+                if (false === settype($caller, 'string')) {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
+                }
 
                 foreach ($steps as $step) {
                     if ($this->compareText($step->getCaller(), $caller, $operator)) {
@@ -376,13 +423,20 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
                             break;
                         }
                     }
+                } else {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
                 }
 
                 break;
 
             case FieldExpression::OWNER:
 
-                $owner = (string)$value;
+                $owner = $value;
+                if (false === settype($owner, 'string')) {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
+                }
 
                 foreach ($steps as $step) {
                     if ($this->compareText($step->getOwner(), $owner, $operator)) {
@@ -405,13 +459,19 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
                             break;
                         }
                     }
+                } else {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
                 }
 
                 break;
 
             case FieldExpression::STEP:
 
-                //@fixme значение value может быть не только объектом
+                if (!is_numeric($value)) {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
+                }
                 $stepId = (integer)$value;
 
                 foreach ($steps as $step) {
@@ -426,7 +486,11 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
 
             case FieldExpression::STATUS:
 
-                $status = (string)$value;
+                $status = $value;
+                if (false === settype($status, 'string')) {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
+                }
 
                 foreach ($steps as $step) {
                     if ($this->compareText($step->getStatus(), $status, $operator)) {
@@ -449,6 +513,9 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
                             break;
                         }
                     }
+                } else {
+                    $errMsg = 'unknown field';
+                    throw new InvalidArgumentException($errMsg);
                 }
 
 
@@ -462,7 +529,15 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
         }
     }
 
-//
+    /**
+     * Проверка вложенных выражений
+     *
+     * @param integer          $entryId
+     * @param NestedExpression $nestedExpression
+     *
+     * @return bool
+     * @throws InvalidArgumentException
+     */
     private function checkNestedExpression($entryId, NestedExpression $nestedExpression)
     {
         $expressions = $nestedExpression->getExpressions();
@@ -473,65 +548,100 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
                 $expressionResult = $this->checkExpression($entryId, $expression);
             }
 
-            if ($nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR) {
-                if ($expressionResult === false) {
-                    return $nestedExpression->isNegate();
-                }
-            } else if ($nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR) {
-                if ($expressionResult === true) {
-                    return !$nestedExpression->isNegate();
-                }
+            if ($nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR && false === $expressionResult) {
+                return $nestedExpression->isNegate();
+            }
+            if ($nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR && true === $expressionResult) {
+                return !$nestedExpression->isNegate();
             }
         }
 
 
         if ($nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR) {
             return !$nestedExpression->isNegate();
-        } else if ($nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR) {
+        } elseif ($nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR) {
             return $nestedExpression->isNegate();
         }
 
-        throw new InvalidArgumentException('unknown operator');
+        $errMsg = 'unknown field';
+        throw new InvalidArgumentException($errMsg);
     }
 
+    /**
+     * Сравнение дат
+     *
+     * @param DateTime $value1
+     * @param DateTime $value2
+     * @param integer  $operator
+     *
+     * @return bool
+     * @throws InvalidArgumentException
+     */
     private function compareDate(DateTime $value1, DateTime $value2, $operator)
     {
+        $diff = $value1->format('U') - $value2->format('U');
         switch ($operator) {
             case FieldExpression::EQUALS:
-                return $value1->diff($value2) == 0;
-
+                return $diff === 0;
             case FieldExpression::NOT_EQUALS:
-                return $value1->diff($value2) != 0;
+                return $diff !== 0;
 
             case FieldExpression::GT:
-                return $value1->diff($value2) > 0;
+                return $diff > 0;
 
             case FieldExpression::LT:
-                return $value1->diff($value2) < 0;
+                return $diff < 0;
         }
 
-        throw new InvalidArgumentException('unknown field operator');
+        $errMsg = 'unknown field operator';
+        throw new InvalidArgumentException($errMsg);
     }
 
+    /**
+     * Сравнивает целые числа
+     *
+     * @param string  $value1
+     * @param string  $value2
+     * @param integer $operator
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     */
     private function compareLong($value1, $value2, $operator)
     {
         switch ($operator) {
             case FieldExpression::EQUALS:
-                return $value1 ==  $value2;
+                return $value1 === $value2;
 
             case FieldExpression::NOT_EQUALS:
-                return $value1 !=  $value2;
+                return $value1 !== $value2;
 
             case FieldExpression::GT:
-                return $value1 >  $value2;
+                return $value1 > $value2;
 
             case FieldExpression::LT:
-                return $value1 <  $value2;
+                return $value1 < $value2;
         }
 
-        throw new InvalidArgumentException('unknown field operator');
+        $errMsg = 'unknown field operator';
+        throw new InvalidArgumentException($errMsg);
     }
 
+    /**
+     *
+     * @todo поправить для юникода
+     *
+     * Сравнение строк
+     *
+     * @param $value1
+     * @param $value2
+     * @param $operator
+     *
+     * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     */
     private function compareText($value1, $value2, $operator)
     {
         switch ($operator) {
@@ -548,7 +658,7 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
                 return strlen($value1) < strlen($value2);
         }
 
-        throw new InvalidArgumentException('unknown field operator');
+        $errMsg = 'unknown field operator';
+        throw new InvalidArgumentException($errMsg);
     }
-
 }

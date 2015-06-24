@@ -179,7 +179,7 @@ class FieldExpression extends AbstractExpression
     /**
      * Возвращает значение
      *
-     * @return Object
+     * @return mixed
      */
     public function getValue()
     {
@@ -189,16 +189,12 @@ class FieldExpression extends AbstractExpression
     /**
      * Устанавливает значение
      *
-     * @param Object $value
+     * @param mixed $value
      * @return $this
      * @throws InvalidArgumentException
      */
     public function setValue($value)
     {
-        if (!is_object($value)) {
-            $errMsg = sprintf('Аргумент должен быть объектом.');
-            throw new InvalidArgumentException($errMsg);
-        }
         $this->value = $value;
 
         return $this;
