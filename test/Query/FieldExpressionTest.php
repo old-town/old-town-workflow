@@ -171,6 +171,4 @@ class FieldExpressionTest extends TestCase
 
         static::assertEquals($expected, $this->fieldExpression->getValue(), 'Ошибка поле: value');
     }
-
-
 }
