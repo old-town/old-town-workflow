@@ -173,14 +173,4 @@ class FieldExpressionTest extends TestCase
     }
 
 
-    /**
-     * Тестирование поля value. Значение не объект
-     *
-     * @expectedException  \OldTown\Workflow\Exception\InvalidArgumentException
-     */
-    public function testValueNotObject()
-    {
-        $expected = 'not object';
-        $this->fieldExpression->setValue($expected);
-    }
 }
