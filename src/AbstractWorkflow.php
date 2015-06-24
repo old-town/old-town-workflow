@@ -82,10 +82,17 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws InvalidActionException
      * @throws \OldTown\Workflow\Exception\FactoryException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
      */
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
+
+        $store = $this->getPersistence();
+
+        $entry = $store->createEntry($workflowName);
+
+
     }
 
     /**
