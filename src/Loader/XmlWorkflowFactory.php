@@ -138,7 +138,10 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
                 $this->workflows[$name] = $config;
             }
         } catch (\Exception $e) {
-            $errMsg = 'Ошибка в конфигурации workflow';
+            $errMsg = sprintf(
+                'Ошибка в конфигурации workflow: %s',
+                $e->getMessage()
+            );
             throw new InvalidParsingWorkflowException($errMsg, $e->getCode(), $e);
         }
     }
@@ -214,7 +217,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         if (file_exists($basedir)) {
             $absolutePath = realpath($basedir);
         } else {
-            $basedirResolve = $this->getProperties('user.dir', $basedir);
+            $basedirResolve = $this->getProperties()->getProperty('user.dir', $basedir);
             $absolutePath = realpath($basedirResolve);
         }
 

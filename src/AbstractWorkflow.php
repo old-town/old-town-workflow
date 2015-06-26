@@ -12,16 +12,23 @@ use OldTown\Workflow\Config\DefaultConfiguration;
 use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidActionException;
+use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\InvalidEntryStateException;
 use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\InvalidRoleException;
 use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Exception\WorkflowException;
+use OldTown\Workflow\Loader\RegisterDescriptor;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
+use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use Psr\Log\LoggerInterface;
+use Traversable;
+use SplObjectStorage;
+
+
 
 /**
  * Class AbstractWorkflow
@@ -86,13 +93,118 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
+        $initialAction = (integer)$initialAction;
+
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
 
         $store = $this->getPersistence();
 
         $entry = $store->createEntry($workflowName);
+
+        $ps = $store->getPropertySet($entry->getId());
+
+
+        $transientVars = [];
+
+        if (null !== $inputs) {
+            $transientVars = $inputs;
+        }
+
+
+        $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
     }
 
+//    protected function canInitialize($workflowName, $initialAction, array $transientVars = [], PropertySetInterface $ps)
+//    {
+//
+//    }
+    /**
+     * @param WorkflowEntryInterface $entry
+     * @param array $transientVars
+     * @param array|Traversable|RegisterDescriptor[]|SplObjectStorage $registersStorage
+     * @param integer $actionId
+     * @param array $currentSteps
+     * @param PropertySetInterface $ps
+     *
+     * @return $this
+     *
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     */
+    protected function populateTransientMap(WorkflowEntryInterface $entry, array &$transientVars, $registersStorage, $actionId = null, array $currentSteps, PropertySetInterface $ps)
+    {
+        if ($registersStorage instanceof Traversable) {
+            $registers = [];
+            foreach ($registersStorage as $k => $v) {
+                $registers[$k] = $v;
+            }
+        } elseif (is_array($registersStorage)) {
+            $registers = $registersStorage;
+        } else {
+            $errMsg = 'Registers должен быть массивом, либо реализовывать интерфейс Traversable';
+            throw new InvalidArgumentException($errMsg);
+        }
+        /** @var RegisterDescriptor[]  $registers*/
+
+        $transientVars['context'] = $this->context;
+        $transientVars['entry'] = $entry;
+        $transientVars['store'] = $this->getPersistence();
+        $transientVars['configuration'] = $this->getConfiguration();
+        $transientVars['descriptor'] = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+        if (null !== $actionId) {
+            $actionId = (integer)$actionId;
+            $transientVars['actionId'] = $actionId;
+        }
+
+        $transientVars['currentSteps'] = $currentSteps;
+
+
+        foreach ($registers as $register) {
+            $args = $register->getArgs();
+            $type = $register->getType();
+
+
+            $r = $this->getResolver()->getRegister($type, $args);
+
+            if (null === $r) {
+                $errMsg = 'Ошибка при инициализации register';
+                $this->context->setRollbackOnly();
+                throw new WorkflowException($errMsg);
+            }
+
+            try {
+                $variableName = $register->getVariableName();
+                $value = $r->registerVariable($this->context, $entry, $args, $ps);
+
+                $transientVars[$variableName] = $value;
+            } catch (\Exception $e) {
+                $this->context->setRollbackOnly();
+
+                $errMsg = sprintf(
+                    'Ошибка при регистрации переменной в регистре %s',
+                    get_class($r)
+                );
+
+                throw new WorkflowException($errMsg, $e->getCode(), $e);
+            }
+        }
+    }
+
+    /**
+     * Возвращает резолвер
+     *
+     * @return TypeResolver
+     */
+    public function getResolver()
+    {
+        if (null !== $this->typeResolver) {
+            return $this->typeResolver;
+        }
+
+        $this->typeResolver = TypeResolver::getResolver();
+
+        return $this->typeResolver;
+    }
     /**
      * Возвращает хранилище состояния workflow
      *

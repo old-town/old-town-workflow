@@ -88,6 +88,18 @@ class TypeResolver
      */
     protected function init()
     {
+        $this->registers = [
+
+        ];
+        $this->validators = [
+
+        ];
+        $this->conditions = [
+
+        ];
+        $this->functions = [
+
+        ];
     }
 
     /**
@@ -118,6 +130,41 @@ class TypeResolver
      */
     public function getValidator($type, array $args = [])
     {
+        $className = null;
+        if (array_key_exists($type, $this->validators)) {
+            $className = $this->validators[$type];
+        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
+            $className = $args[WorkflowInterface::CLASS_NAME];
+        }
+
+        if (null === $className) {
+            $type = (string)$type;
+            $errMsg = sprintf(
+                'Нет типа(%s) или аргумента class.name',
+                $type
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        if (!class_exists($className)) {
+            $errMsg = sprintf(
+                'Отсутствует класс %s',
+                $className
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        $validator = new $className();
+
+        if (!$validator instanceof ValidatorInterface) {
+            $errMsg = sprintf(
+                'Validator должен реализовывать интерфейс %s',
+                ValidatorInterface::class
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        return $validator;
     }
 
     /**
@@ -130,6 +177,42 @@ class TypeResolver
      */
     public function getRegister($type, array $args = [])
     {
+
+        $className = null;
+        if (array_key_exists($type, $this->registers)) {
+            $className = $this->registers[$type];
+        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
+            $className = $args[WorkflowInterface::CLASS_NAME];
+        }
+
+        if (null === $className) {
+            $type = (string)$type;
+            $errMsg = sprintf(
+                'Нет типа(%s) или аргумента class.name',
+                $type
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        if (!class_exists($className)) {
+            $errMsg = sprintf(
+                'Отсутствует класс %s',
+                $className
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        $register = new $className();
+
+        if (!$register instanceof RegisterInterface) {
+            $errMsg = sprintf(
+                'Register должен реализовывать интерфейс %s',
+                RegisterInterface::class
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        return $register;
     }
 
     /**
@@ -143,6 +226,41 @@ class TypeResolver
      */
     public function getFunction($type, array $args = [])
     {
+        $className = null;
+        if (array_key_exists($type, $this->functions)) {
+            $className = $this->functions[$type];
+        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
+            $className = $args[WorkflowInterface::CLASS_NAME];
+        }
+
+        if (null === $className) {
+            $type = (string)$type;
+            $errMsg = sprintf(
+                'Нет типа(%s) или аргумента class.name',
+                $type
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        if (!class_exists($className)) {
+            $errMsg = sprintf(
+                'Отсутствует класс %s',
+                $className
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        $function = new $className();
+
+        if (!$function instanceof FunctionProviderInterface) {
+            $errMsg = sprintf(
+                'Function должен реализовывать интерфейс %s',
+                FunctionProviderInterface::class
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        return $function;
     }
 
     /**
@@ -156,5 +274,41 @@ class TypeResolver
      */
     public function getCondition($type, array $args = [])
     {
+        $className = null;
+        if (array_key_exists($type, $this->conditions)) {
+            $className = $this->conditions[$type];
+        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
+            $className = $args[WorkflowInterface::CLASS_NAME];
+        }
+
+        if (null === $className) {
+            $type = (string)$type;
+            $errMsg = sprintf(
+                'Нет типа(%s) или аргумента class.name',
+                $type
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        if (!class_exists($className)) {
+            $errMsg = sprintf(
+                'Отсутствует класс %s',
+                $className
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        $condition = new $className();
+
+
+        if (!$condition instanceof ConditionInterface) {
+            $errMsg = sprintf(
+                'Condition должен реализовывать интерфейс %s',
+                ConditionInterface::class
+            );
+            throw new WorkflowException($errMsg);
+        }
+
+        return $condition;
     }
 }

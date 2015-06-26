@@ -470,8 +470,17 @@ class  DefaultConfiguration implements ConfigurationInterface
      */
     public function getWorkflowStore()
     {
-        if ($this->store) {
+        if (!$this->store) {
             $class = $this->getPersistence();
+
+            if (!class_exists($class)) {
+                $errMsg = sprintf(
+                    'Отсутствует класс хранилища %s',
+                    $class
+                );
+                throw new FactoryException($errMsg);
+            }
+
 
             $store = new $class();
             if (!$store instanceof WorkflowStoreInterface) {

@@ -5,6 +5,8 @@
  */
 namespace OldTown\Workflow\Spi\Memory;
 
+use OldTown\PropertySet\PropertySetInterface;
+use OldTown\PropertySet\PropertySetManager;
 use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InvalidWorkflowEntryException;
 use OldTown\Workflow\Exception\NotFoundWorkflowEntryException;
@@ -17,6 +19,7 @@ use OldTown\Workflow\Spi\StepInterface;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\Exception\StoreException;
 use DateTime;
+use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use SplObjectStorage;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 
@@ -25,7 +28,7 @@ use OldTown\Workflow\Exception\InvalidArgumentException;
  *
  * @package OldTown\Workflow\Spi\Memory
  */
-class MemoryWorkflowStore // implements WorkflowStoreInterface
+class MemoryWorkflowStore  implements WorkflowStoreInterface
 {
     /**
      * @var SimpleWorkflowEntry[]
@@ -56,6 +59,44 @@ class MemoryWorkflowStore // implements WorkflowStoreInterface
      * @var int
      */
     private static $globalStepId = 1;
+
+    /**
+     * Вызывается один раз, при инициализации хранилища
+     *
+     * @param array $props
+     * @throws StoreException
+     */
+    public function init(array $props = [])
+    {
+        // TODO: Implement init() method.
+    }
+
+    /**
+     * Возвращает PropertySet that связанный с данным экземпляром workflow
+     * @param integer $entryId id workflow
+     * @return PropertySetInterface
+     * @throws StoreException
+     */
+    public function getPropertySet($entryId)
+    {
+        if (array_key_exists($entryId, static::$propertySetCache)) {
+            return static::$propertySetCache[$entryId];
+        }
+
+        if (!is_numeric($entryId)) {
+            $errMsg = sprintf('Аргумент должен быть числом. Актуальное значение %s', $entryId);
+            throw new ArgumentNotNumericException($errMsg);
+        }
+        $entryId = (integer)$entryId;
+
+        $ps = PropertySetManager::getInstance('memory');
+        static::$propertySetCache[$entryId] = $ps;
+
+        return static::$propertySetCache[$entryId];
+    }
+
+
+
 
 
     //~ Methods ////////////////////////////////////////////////////////////////

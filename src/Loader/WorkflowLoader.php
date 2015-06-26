@@ -23,7 +23,19 @@ class WorkflowLoader
      */
     public static function load($resource, $validate = true)
     {
-        $resource = (string)$resource;
+        if (!is_string($resource)) {
+            $errMsg = 'Путь к файлу workflow должен быть строкой';
+            throw new InvalidParsingWorkflowException($errMsg);
+        }
+
+        if (!file_exists($resource)) {
+            $errMsg = sprintf(
+                'По пути %s отсутствует файл с workflow',
+                $resource
+            );
+            throw new InvalidParsingWorkflowException($errMsg);
+        }
+
 
         try {
             libxml_use_internal_errors(true);
