@@ -91,8 +91,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $store = $this->getPersistence();
 
         $entry = $store->createEntry($workflowName);
-
-
     }
 
     /**
