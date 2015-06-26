@@ -62,5 +62,4 @@ class  LogRegister implements RegisterInterface
 
         return $log;
     }
-
 }

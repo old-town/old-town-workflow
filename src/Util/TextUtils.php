@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Util;
 
-
 /**
  * Class TextUtil
  * @package OldTown\Workflow\Util
@@ -45,8 +44,5 @@ class  TextUtils
             }
 
         }
-
-
     }
-
 }

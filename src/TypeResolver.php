@@ -177,7 +177,6 @@ class TypeResolver
      */
     public function getRegister($type, array $args = [])
     {
-
         $className = null;
         if (array_key_exists($type, $this->registers)) {
             $className = $this->registers[$type];
