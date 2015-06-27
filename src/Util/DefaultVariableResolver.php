@@ -62,7 +62,6 @@ class  DefaultVariableResolver implements VariableResolverInterface
 
                 if (null !== $t) {
                     $s = substr($s, 0, $x) . $t . substr($s, $y + 1);
-
                 } else {
                     $s = substr($s, 0, $x) . substr($s, $y + 1);
                 }
@@ -78,7 +77,6 @@ class  DefaultVariableResolver implements VariableResolverInterface
         }
 
         return $s;
-
     }
 
     /**
@@ -192,11 +190,9 @@ class  DefaultVariableResolver implements VariableResolverInterface
                 $result = $rProperty->getValue($obj);
                 return $result;
             }
-
         }
 
         return null;
-
     }
 
     /**

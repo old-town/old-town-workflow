@@ -264,7 +264,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         } else {
             return false;
         }
-
     }
 
     /**
@@ -280,8 +279,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     protected function passesCondition(ConditionDescriptor $conditionDesc, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
     {
-
-
         $type = $conditionDesc->getType();
 
         $argsOriginal = $conditionDesc->getArgs();

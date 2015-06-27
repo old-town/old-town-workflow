@@ -595,7 +595,7 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
                 $expressionResult = $this->checkExpression($entryId, $expression);
             }
 
-            if (false === $expressionResult && $nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR ) {
+            if (false === $expressionResult && $nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR) {
                 return $nestedExpression->isNegate();
             }
             if (true === $expressionResult && $nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR) {
