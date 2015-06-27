@@ -133,12 +133,15 @@ interface WorkflowInterface
     public function getWorkflowName($id);
 
     /**
-     * Check if the calling user has enough permissions to initialise the specified workflow.
-     * @param string $workflowName The name of the workflow to check.
-     * @param integer $initialStep The id of the initial state to check.
-     * @return Boolean true if the user can successfully call initialize, false otherwise.
+     * Проверяет имеет ли пользователь достаточно прав, что бы иниициировать вызываемый процесс
+     *
+     * @param string  $workflowName  имя workflow
+     * @param integer $initialAction id начального состояния
+     * @param array|null   $inputs
+     *
+     * @return bool
      */
-    public function canInitialize($workflowName, $initialStep);
+    public function canInitialize($workflowName, $initialAction, array $inputs = null);
 
     /**
      * Check if the state of the specified workflow instance can be changed to the new specified one.

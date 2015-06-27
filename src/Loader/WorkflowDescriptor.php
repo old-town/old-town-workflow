@@ -141,6 +141,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         return $this->workflowName;
     }
 
+
     /**
      * Устанавливает имя workflow
      *

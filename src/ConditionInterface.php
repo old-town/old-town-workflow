@@ -22,7 +22,7 @@ interface ConditionInterface
      * @param PropertySetInterface $ps
      *
      * @throws WorkflowException
-     * @return void
+     * @return boolean
      */
     public function passesCondition($transientVars, $args, PropertySetInterface $ps);
 }

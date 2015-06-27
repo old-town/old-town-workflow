@@ -13,11 +13,12 @@ use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidActionException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
-use OldTown\Workflow\Exception\InvalidEntryStateException;
 use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\InvalidRoleException;
 use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Exception\WorkflowException;
+use OldTown\Workflow\Loader\ConditionDescriptor;
+use OldTown\Workflow\Loader\ConditionsDescriptor;
 use OldTown\Workflow\Loader\RegisterDescriptor;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
@@ -82,15 +83,17 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param integer $initialAction Имя первого шага, с которого начинается workflow
      * @param array $inputs Данные введеные пользователем
      * @return integer
-     * @throws InvalidRoleException
-     * @throws InvalidInputException
-     * @throws WorkflowException
-     * @throws InvalidEntryStateException
-     * @throws InvalidActionException
+     * @throws \OldTown\Workflow\Exception\InvalidRoleException
+     * @throws \OldTown\Workflow\Exception\InvalidInputException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidEntryStateException
+     * @throws \OldTown\Workflow\Exception\InvalidActionException
      * @throws \OldTown\Workflow\Exception\FactoryException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\StoreException
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     *
      */
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
@@ -113,12 +116,219 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
 
         $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
+
+        if (!$this->canInitializeInternal($workflowName, $initialAction, $transientVars, $ps)) {
+            $this->context->setRollbackOnly();
+            $errMsg = 'Вы не можете инициироват данный рабочий процесс';
+            throw new InvalidRoleException($errMsg);
+        }
     }
 
-//    protected function canInitialize($workflowName, $initialAction, array $transientVars = [], PropertySetInterface $ps)
-//    {
-//
-//    }
+    /**
+     * Проверяет имеет ли пользователь достаточно прав, что бы иниициировать вызываемый процесс
+     *
+     * @param string     $workflowName  имя workflow
+     * @param integer    $initialAction id начального состояния
+     * @param array|null $inputs
+     *
+     * @return bool
+     */
+    public function canInitialize($workflowName, $initialAction, array $inputs = null)
+    {
+        // TODO: Implement canInitialize() method.
+    }
+
+
+    /**
+     * Проверяет имеет ли пользователь достаточно прав, что бы иниициировать вызываемый процесс
+     *
+     * @param string               $workflowName  имя workflow
+     * @param integer              $initialAction id начального состояния
+     * @param array|null           $transientVars
+     *
+     * @param PropertySetInterface $ps
+     *
+     * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     * @throws \OldTown\Workflow\Exception\InvalidActionException
+     */
+    protected function canInitializeInternal($workflowName, $initialAction, array $transientVars = null, PropertySetInterface $ps)
+    {
+        $wf = $this->getConfiguration()->getWorkflow($workflowName);
+
+        $actionDescriptor = $wf->getInitialAction($initialAction);
+
+        if (null === $actionDescriptor) {
+            $errMsg = sprintf(
+                'Некорректное инициирующие действие # %s',
+                $initialAction
+            );
+            throw new InvalidActionException($errMsg);
+        }
+
+        $restriction = $actionDescriptor->getRestriction();
+
+
+        $conditions = null;
+        if (null !== $restriction) {
+            $conditions = $restriction->getConditionsDescriptor();
+        }
+
+        $passesConditions = $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, 0);
+
+        return $passesConditions;
+    }
+
+    /**
+     * @param ConditionsDescriptor $descriptor
+     * @param array                $transientVars
+     * @param PropertySetInterface $ps
+     * @param                      $currentStepId
+     *
+     * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     */
+    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
+    {
+        if (null === $descriptor) {
+            return true;
+        }
+
+        $type = $descriptor->getType();
+        $conditions = $descriptor->getConditions();
+        $passesConditions = $this->passesConditions($type, $conditions, $transientVars, $ps, $currentStepId);
+
+        return $passesConditions;
+    }
+
+    /**
+     * @param string               $conditionType
+     * @param array                $conditionsStorage
+     * @param array                $transientVars
+     * @param PropertySetInterface $ps
+     * @param integer              $currentStepId
+     *
+     * @return bool
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     */
+    protected function passesConditions($conditionType, $conditionsStorage = null, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
+    {
+        if (null === $conditionsStorage) {
+            return true;
+        }
+
+
+        if ($conditionsStorage instanceof Traversable) {
+            $conditions = [];
+            foreach ($conditionsStorage as $k => $v) {
+                $conditions[$k] = $v;
+            }
+        } elseif (is_array($conditionsStorage)) {
+            $conditions = $conditionsStorage;
+        } else {
+            $errMsg = 'Conditions должен быть массивом, либо реализовывать интерфейс Traversable';
+            throw new InvalidArgumentException($errMsg);
+        }
+
+
+        if (0 === count($conditions)) {
+            return true;
+        }
+
+
+        $and = strtoupper($conditionType) === 'AND';
+        $or = !$and;
+
+        foreach ($conditions as $descriptor) {
+            if ($descriptor instanceof ConditionsDescriptor) {
+                $result = $this->passesConditions($descriptor->getType(), $descriptor->getConditions(), $transientVars, $ps, $currentStepId);
+            } else {
+                $result = $this->passesCondition($descriptor, $transientVars, $ps, $currentStepId);
+            }
+
+            if ($and && !$result) {
+                return false;
+            } elseif ($or && $result) {
+                return true;
+            }
+        }
+
+        if ($and) {
+            return true;
+        } elseif ($or) {
+            return false;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     * @param ConditionDescriptor  $conditionDesc
+     * @param array                $transientVars
+     * @param PropertySetInterface $ps
+     * @param integer              $currentStepId
+     *
+     * @return boolean
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     */
+    protected function passesCondition(ConditionDescriptor $conditionDesc, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
+    {
+
+
+        $type = $conditionDesc->getType();
+
+        $argsOriginal = $conditionDesc->getArgs();
+
+
+        $args = [];
+        foreach ($argsOriginal as $key => $value) {
+            $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($value, $transientVars, $ps);
+            $args[$key] = $translateValue;
+        }
+
+        if (-1 !== $currentStepId) {
+            $stepId = array_key_exists('stepId', $args) ? (integer)$args['stepId'] : null;
+
+            if (null !== $stepId && -1 === $stepId) {
+                $args['stepId'] = $currentStepId;
+            }
+        }
+
+        $condition = $this->getResolver()->getCondition($type, $args);
+
+        if (null === $condition) {
+            $this->context->setRollbackOnly();
+            $errMsg = 'Огибка при загрузки условия';
+            throw new WorkflowException($errMsg);
+        }
+
+        try {
+            $passed = $condition->passesCondition($transientVars, $args, $ps);
+
+            if ($conditionDesc->isNegate()) {
+                $passed = !$passed;
+            }
+        } catch (\Exception $e) {
+            $this->context->setRollbackOnly();
+
+            $errMsg = sprintf(
+                'Ошбика при выполнение условия %s',
+                get_class($condition)
+            );
+
+            throw new WorkflowException($errMsg, $e->getCode(), $e);
+        }
+
+        return $passed;
+    }
+
     /**
      * @param WorkflowEntryInterface $entry
      * @param array $transientVars
@@ -229,7 +439,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * Если конфигурация не была установленна, то возвращает конфигурацию по умолчанию
      *
-     * @return ConfigurationInterface Конфигурация которая была установленна
+     * @return ConfigurationInterface|DefaultConfiguration Конфигурация которая была установленна
      *
      * @throws InternalWorkflowException
      */
@@ -363,15 +573,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     {
     }
 
-    /**
-     * Check if the calling user has enough permissions to initialise the specified workflow.
-     * @param string $workflowName The name of the workflow to check.
-     * @param integer $initialStep The id of the initial state to check.
-     * @return Boolean true if the user can successfully call initialize, false otherwise.
-     */
-    public function canInitialize($workflowName, $initialStep)
-    {
-    }
+
 
     /**
      * Check if the state of the specified workflow instance can be changed to the new specified one.

@@ -365,7 +365,7 @@ class  DefaultConfiguration implements ConfigurationInterface
     /**
      * Возвращает resolver для работы с переменными
      *
-     * @return VariableResolverInterface
+     * @return VariableResolverInterface|DefaultVariableResolver
      */
     public function getVariableResolver()
     {

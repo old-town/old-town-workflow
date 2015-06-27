@@ -30,6 +30,8 @@ class ConditionDescriptor extends AbstractDescriptor
 
 
     /**
+     *  Если true, то результат условия инвертируется на противоположное булево значение
+     *
      * @var bool
      */
     protected $negate = false;
@@ -68,6 +70,8 @@ class ConditionDescriptor extends AbstractDescriptor
     }
 
     /**
+     * Если true, то результат условия инвертируется на противоположное булево значение
+     *
      * @return boolean
      */
     public function isNegate()

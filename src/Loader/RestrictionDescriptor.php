@@ -53,6 +53,7 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
     protected function init(DOMElement $restriction)
     {
         $conditionNodes = XmlUtil::getChildElements($restriction, 'conditions');
+
         foreach ($conditionNodes as $condition) {
             $conditionDescriptor = DescriptorFactory::getFactory()->createConditionsDescriptor($condition);
             $conditionDescriptor->setParent($this);
@@ -68,6 +69,9 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
         if (0 ===  $this->conditions->count()) {
             return null;
         }
+
+        $this->conditions->rewind();
+
         return $this->conditions->current();
     }
 
@@ -80,6 +84,7 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
     public function setConditionsDescriptor(ConditionsDescriptor $descriptor)
     {
         if (1 ===  $this->conditions->count()) {
+            $this->conditions->rewind();
             $currentObj = $this->conditions->current();
             $this->conditions->detach($currentObj);
             $this->conditions->attach($descriptor);
