@@ -90,6 +90,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\FactoryException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
     public function initialize($workflowName, $initialAction, array $inputs = null)
     {
@@ -126,9 +127,14 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param array $currentSteps
      * @param PropertySetInterface $ps
      *
+     *
      * @return $this
      *
      * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
      */
     protected function populateTransientMap(WorkflowEntryInterface $entry, array &$transientVars, $registersStorage, $actionId = null, array $currentSteps, PropertySetInterface $ps)
     {

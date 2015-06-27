@@ -337,7 +337,7 @@ class StepDescriptor extends AbstractDescriptor
 
         $workflowDescriptor = $this->getParent();
         if (!$workflowDescriptor instanceof WorkflowDescriptor) {
-            $errMsg = sprintf('Родительский элемент для шага должен реализовывать ', WorkflowDescriptor::class);
+            $errMsg = sprintf('Родительский элемент для шага должен реализовывать %s', WorkflowDescriptor::class);
             throw new InvalidWorkflowDescriptorException($errMsg);
         }
         foreach ($commonActions as $actionId) {
@@ -351,7 +351,7 @@ class StepDescriptor extends AbstractDescriptor
                 }
             } catch (\Exception $e) {
                 $actionIdStr = (string)$actionId;
-                $errMsg = sprintf('Некорректный id для common-action: id ', $actionIdStr);
+                $errMsg = sprintf('Некорректный id для common-action: id %s', $actionIdStr);
                 throw  new InvalidWorkflowDescriptorException($errMsg, $e->getCode(), $e);
             }
         }

@@ -26,7 +26,7 @@ class  TextUtils
         }
 
         $value = trim($value);
-        if (0 === strlen($value)) {
+        if (0 === count($value)) {
             return false;
         }
 

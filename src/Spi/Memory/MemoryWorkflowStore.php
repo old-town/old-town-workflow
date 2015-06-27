@@ -76,6 +76,8 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
      * @param integer $entryId id workflow
      * @return PropertySetInterface
      * @throws StoreException
+     * @throws \OldTown\PropertySet\Exception\RuntimeException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getPropertySet($entryId)
     {
@@ -323,6 +325,8 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
      * @param WorkflowExpressionQuery $query
      *
      * @return array
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
     public function query(WorkflowExpressionQuery $query)
     {
@@ -344,6 +348,8 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
      * @param WorkflowExpressionQuery $query
      *
      * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
     protected function queryInternal($entryId, WorkflowExpressionQuery $query)
     {
@@ -589,10 +595,10 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
                 $expressionResult = $this->checkExpression($entryId, $expression);
             }
 
-            if ($nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR && false === $expressionResult) {
+            if (false === $expressionResult && $nestedExpression->getExpressionOperator() === NestedExpression::AND_OPERATOR ) {
                 return $nestedExpression->isNegate();
             }
-            if ($nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR && true === $expressionResult) {
+            if (true === $expressionResult && $nestedExpression->getExpressionOperator() === NestedExpression::OR_OPERATOR) {
                 return !$nestedExpression->isNegate();
             }
         }

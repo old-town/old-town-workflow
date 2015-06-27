@@ -177,7 +177,7 @@ trait ArgumentsTraitTest
 
         $argElement = $argElements->item(0);
 
-        $errMsg = sprintf('Некорректный тип значения аргумента: ожидаемый тип  %s, фактический',
+        $errMsg = sprintf('Некорректный тип значения аргумента: ожидаемый тип  %s, фактический %s',
             $nodeType,
             $argElement->firstChild->nodeType
         );

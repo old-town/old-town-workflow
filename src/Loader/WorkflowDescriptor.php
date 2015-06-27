@@ -162,6 +162,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * @throws InternalWorkflowException
      * @throws InvalidDescriptorException
      * @throws InvalidWriteWorkflowException
+     * @throws  \OldTown\Workflow\Exception\InvalidDtdSchemaException
      * @return void
      */
     public function validate()
@@ -245,6 +246,8 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * @throws InternalWorkflowException
      * @throws InvalidDescriptorException
      * @throws InvalidWriteWorkflowException
+     * @throws  \OldTown\Workflow\Exception\InvalidDtdSchemaException
+     * @throws \OldTown\Workflow\Exception\InvalidWorkflowDescriptorException
      */
     private function validateDtd()
     {
