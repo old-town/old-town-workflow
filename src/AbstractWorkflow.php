@@ -78,7 +78,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $errMsg = 'Ошибка при инициализации подсистемы логирования';
             throw new InternalWorkflowException($errMsg);
         }
-
     }
 
 
