@@ -68,10 +68,17 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
     /**
      *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function __construct()
     {
-        $this->log = LogFactory::getLog();
+        try {
+            $this->log = LogFactory::getLog();
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка при инициализации подсистемы логирования';
+            throw new InternalWorkflowException($errMsg);
+        }
+
     }
 
 
@@ -153,6 +160,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      * @throws \OldTown\Workflow\Exception\InvalidActionException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
     protected function canInitializeInternal($workflowName, $initialAction, array $transientVars = null, PropertySetInterface $ps)
     {
@@ -190,6 +199,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @return bool
      *
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
     protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
     {
@@ -214,6 +225,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @return bool
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
     protected function passesConditions($conditionType, $conditionsStorage = null, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
     {

@@ -7,6 +7,7 @@ namespace OldTown\Workflow\Util;
 
 use OldTown\Log\LogFactory;
 use OldTown\PropertySet\PropertySetInterface;
+use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\RegisterInterface;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
@@ -20,16 +21,17 @@ use OldTown\Workflow\WorkflowContextInterface;
 class  LogRegister implements RegisterInterface
 {
     /**
-     * Returns the object to bind to the variable map for this workflow instance.
+     * Возвращает объект связанный с переменными запущенного workflow
      *
-     * @param WorkflowContextInterface $context The current workflow context
-     * @param WorkflowEntryInterface $entry The workflow entry. Note that this might be null, for example in a pre function
-     * before the workflow has been initialised
-     * @param array $args Map of arguments as set in the workflow descriptor
+     * @param WorkflowContextInterface $context контекст workflow
+     * @param WorkflowEntryInterface $entry Объект для которого отрабатывает workflow. Может быть пустым
+     * @param array $args Аргументы workflow
      * @param PropertySetInterface $ps
      *
      * @throws WorkflowException
-     * @return object  the object to bind to the variable map for this workflow instance
+     * @return object
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function registerVariable(WorkflowContextInterface $context, WorkflowEntryInterface $entry, array $args = [], PropertySetInterface $ps)
     {
@@ -58,7 +60,14 @@ class  LogRegister implements RegisterInterface
             $category .= ".{$workflowId}";
         }
 
-        $log = LogFactory::getLog($category);
+        try {
+            $log = LogFactory::getLog($category);
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка при инициализации подсистемы логирования';
+            throw new InternalWorkflowException($errMsg);
+        }
+
+
 
         return $log;
     }

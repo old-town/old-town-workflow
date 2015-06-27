@@ -16,6 +16,8 @@ class  BasicWorkflow extends AbstractWorkflow
 {
     /**
      * @param string $caller
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function __construct($caller)
     {

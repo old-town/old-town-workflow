@@ -17,13 +17,13 @@ use OldTown\Workflow\Spi\WorkflowEntryInterface;
 interface RegisterInterface
 {
     /**
-     * Returns the object to bind to the variable map for this workflow instance.
-     *
-     * @param WorkflowContextInterface $context The current workflow context
-     * @param WorkflowEntryInterface $entry The workflow entry. Note that this might be null, for example in a pre function
-     * before the workflow has been initialised
-     * @param array $args Map of arguments as set in the workflow descriptor
+     * @param WorkflowContextInterface $context контекст workflow
+     * @param WorkflowEntryInterface $entry Объект для которого отрабатывает workflow. Может быть пустым
+     * @param array $args Аргументы workflow
      * @param PropertySetInterface $ps
+     *
+     * @throws WorkflowException
+     * @return object
      *
      * @throws WorkflowException
      * @return object  the object to bind to the variable map for this workflow instance
