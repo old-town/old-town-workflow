@@ -17,9 +17,11 @@ use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\InvalidRoleException;
 use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Exception\WorkflowException;
+use OldTown\Workflow\Loader\ActionDescriptor;
 use OldTown\Workflow\Loader\ConditionDescriptor;
 use OldTown\Workflow\Loader\ConditionsDescriptor;
 use OldTown\Workflow\Loader\RegisterDescriptor;
+use OldTown\Workflow\Loader\ValidatorDescriptor;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
@@ -28,7 +30,6 @@ use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use Psr\Log\LoggerInterface;
 use Traversable;
 use SplObjectStorage;
-
 
 
 /**
@@ -52,7 +53,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @var array
      */
-    private $stateCache = [];
+    private $stateCache = null;
 
     /**
      * @var TypeResolver
@@ -80,6 +81,203 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         }
     }
 
+    /**
+     * Переход между двумя статусами
+     *
+     * @param WorkflowEntryInterface $entry
+     * @param array $currentSteps
+     * @param WorkflowStoreInterface $store
+     * @param WorkflowDescriptor $wf
+     * @param ActionDescriptor $action
+     * @param array $transientVars
+     * @param array $inputs
+     * @param PropertySetInterface $ps
+     *
+     * @return boolean
+     * @throws WorkflowException
+     */
+    protected function  transitionWorkflow(WorkflowEntryInterface $entry, $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, $transientVars, $inputs, PropertySetInterface $ps)
+    {
+        $this->stateCache = null;
+
+        $step = $this->getCurrentStep($wf, $action->getId(), $currentSteps, $transientVars, $ps);
+
+        $validators = $action->getValidators();
+        if ($validators->count() > 0) {
+            $this->verifyInputs($entry, $validators, $transientVars, $ps);
+        }
+    }
+
+    /**
+     * @param WorkflowEntryInterface $entry
+     * @param $validatorsStorage
+     * @param array $transientVars
+     * @param PropertySetInterface $ps
+     * @throws WorkflowException
+     */
+    protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, array  $transientVars = [], PropertySetInterface $ps)
+    {
+
+        if ($validatorsStorage instanceof Traversable) {
+            $validators = [];
+            foreach ($validatorsStorage as $k => $v) {
+                $validators[$k] = $v;
+            }
+        } elseif (is_array($validatorsStorage)) {
+            $validators = $validatorsStorage;
+        } else {
+            $errMsg = 'Validators должен быть массивом, либо реализовывать интерфейс Traversable';
+            throw new InvalidArgumentException($errMsg);
+        }
+
+        /** @var ValidatorDescriptor[]  $validators */
+        foreach ($validators as $input) {
+
+            if (null !== $input) {
+                $type = $input->getType();
+                $argsOriginal = $input->getArgs();
+
+                $args = [];
+
+                foreach ($argsOriginal as $k => $v) {
+                    $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($v, $transientVars, $ps);
+                    $args[$k] = $translateValue;
+                }
+
+
+                $validator = $this->getResolver()->getValidator($type, $args);
+
+                if (null === $validator) {
+                    $this->context->setRollbackOnly();
+                    $errMsg = 'Ошибка при загрузке валидатора';
+                    throw new WorkflowException($errMsg);
+                }
+
+                try {
+                    $validator->validate($transientVars, $args, $ps);
+                } catch (InvalidInputException $e) {
+                    throw $e;
+                } catch (\Exception $e) {
+                    $this->context->setRollbackOnly();
+
+                    if ($e instanceof WorkflowException) {
+                        throw $e;
+                    }
+
+                    $errMsg  = 'Неизвестная ошибка при работе валидатора';
+                    throw new WorkflowException($errMsg, $e->getCode(), $e);
+                }
+            }
+
+        }
+
+    }
+
+
+    /**
+     * Возвращает текущий шаг
+     *
+     * @param WorkflowDescriptor $wfDesc
+     * @param integer $actionId
+     * @param StepInterface[] $currentSteps
+     * @param array $transientVars
+     * @param PropertySetInterface $ps
+     *
+     * @return StepInterface
+     * @throws WorkflowException
+     */
+    protected function  getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, array $currentSteps = [], array $transientVars = [], PropertySetInterface $ps)
+    {
+        if (1 === count($currentSteps)) {
+            reset($currentSteps);
+            return current($currentSteps);
+        }
+
+
+        foreach ($currentSteps as $step) {
+            $stepId = $step->getId();
+            $action = $wfDesc->getStep($stepId)->getAction($actionId);
+
+            if ($this->isActionAvailable($action, $transientVars, $ps, $stepId)) {
+                return $step;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param ActionDescriptor|null $action
+     * @param $transientVars
+     * @param PropertySetInterface $ps
+     * @param $stepId
+     *
+     * @return boolean
+     *
+     * @throws WorkflowException
+     */
+    protected function isActionAvailable(ActionDescriptor $action = null, $transientVars, PropertySetInterface $ps, $stepId)
+    {
+        if (null === $action) {
+            return false;
+        }
+
+        $result = null;
+        $actionHash = spl_object_hash($action);
+        if (null !== $this->stateCache) {
+            $result = array_key_exists($actionHash, $this->stateCache) ? $this->stateCache[$actionHash] : $result;
+        } else {
+            $this->stateCache = [];
+        }
+
+        $wf = $this->getWorkflowDescriptorForAction($action);
+
+
+        if (null === $result) {
+            $restriction = $action->getRestriction();
+            $conditions = null;
+
+            if (null !== $restriction) {
+                $conditions = $restriction->getConditionsDescriptor();
+            }
+
+            $result = $this->passesConditionsByDescriptor($wf->getGlobalConditions(), $transientVars, $ps, $stepId)
+                && $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, $stepId);
+
+            $this->stateCache[$actionHash] = $result;
+        }
+
+
+        $result = (boolean)$result;
+
+        return $result;
+    }
+
+    /**
+     * По дейсвтию получаем дексрипторв workflow
+     *
+     * @param ActionDescriptor $action
+     * @return WorkflowDescriptor
+     */
+    private function  getWorkflowDescriptorForAction(ActionDescriptor $action)
+    {
+        $objWfd = $action;
+
+        $count = 0;
+        while (!$objWfd instanceof WorkflowDescriptor || null === $objWfd) {
+            $objWfd = $objWfd->getParent();
+
+            $count++;
+            if ($count > 10) {
+                $errMsg = 'Ошибка при получение WorkflowDescriptor';
+                throw new InternalWorkflowException($errMsg);
+            }
+        }
+
+        $wf = $objWfd;
+
+        return $wf;
+    }
 
     /**
      * Инициализация workflow. Workflow нужно иницаилизровать прежде, чем выполнять какие либо действия.
@@ -120,7 +318,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $transientVars = $inputs;
         }
 
-
         $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
 
         if (!$this->canInitializeInternal($workflowName, $initialAction, $transientVars, $ps)) {
@@ -128,13 +325,29 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $errMsg = 'Вы не можете инициироват данный рабочий процесс';
             throw new InvalidRoleException($errMsg);
         }
+
+        $action = $wf->getInitialAction($initialAction);
+
+        try {
+            $this->transitionWorkflow($entry, [], $store, $wf, $action, $transientVars, $inputs, $ps);
+        } catch (WorkflowException $e) {
+            $this->context->setRollbackOnly();
+            throw $e;
+        }
+
+        $entryId = $entry->getId();
+
+        // now clone the memory PS to the real PS
+        //PropertySetManager.clone(ps, store.getPropertySet(entryId));
+        return $entryId;
+
     }
 
     /**
      * Проверяет имеет ли пользователь достаточно прав, что бы иниициировать вызываемый процесс
      *
-     * @param string     $workflowName  имя workflow
-     * @param integer    $initialAction id начального состояния
+     * @param string $workflowName имя workflow
+     * @param integer $initialAction id начального состояния
      * @param array|null $inputs
      *
      * @return bool
@@ -148,9 +361,9 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      * Проверяет имеет ли пользователь достаточно прав, что бы иниициировать вызываемый процесс
      *
-     * @param string               $workflowName  имя workflow
-     * @param integer              $initialAction id начального состояния
-     * @param array|null           $transientVars
+     * @param string $workflowName имя workflow
+     * @param integer $initialAction id начального состояния
+     * @param array|null $transientVars
      *
      * @param PropertySetInterface $ps
      *
@@ -191,7 +404,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
     /**
      * @param ConditionsDescriptor $descriptor
-     * @param array                $transientVars
+     * @param array $transientVars
      * @param PropertySetInterface $ps
      * @param                      $currentStepId
      *
@@ -215,11 +428,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
     /**
-     * @param string               $conditionType
-     * @param array                $conditionsStorage
-     * @param array                $transientVars
+     * @param string $conditionType
+     * @param array $conditionsStorage
+     * @param array $transientVars
      * @param PropertySetInterface $ps
-     * @param integer              $currentStepId
+     * @param integer $currentStepId
      *
      * @return bool
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
@@ -278,10 +491,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
     /**
-     * @param ConditionDescriptor  $conditionDesc
-     * @param array                $transientVars
+     * @param ConditionDescriptor $conditionDesc
+     * @param array $transientVars
      * @param PropertySetInterface $ps
-     * @param integer              $currentStepId
+     * @param integer $currentStepId
      *
      * @return boolean
      *
@@ -367,7 +580,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $errMsg = 'Registers должен быть массивом, либо реализовывать интерфейс Traversable';
             throw new InvalidArgumentException($errMsg);
         }
-        /** @var RegisterDescriptor[]  $registers*/
+        /** @var RegisterDescriptor[] $registers */
 
         $transientVars['context'] = $this->context;
         $transientVars['entry'] = $entry;
@@ -429,6 +642,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         return $this->typeResolver;
     }
+
     /**
      * Возвращает хранилище состояния workflow
      *
@@ -580,7 +794,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function getWorkflowName($id)
     {
     }
-
 
 
     /**
