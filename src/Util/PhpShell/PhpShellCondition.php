@@ -28,7 +28,6 @@ class  PhpShellCondition implements ConditionInterface
      */
     public function passesCondition(array $transientVars = [], array $args = [], PropertySetInterface $ps)
     {
-
         $script = array_key_exists(WorkflowInterface::BSH_SCRIPT, $args) ? $args[WorkflowInterface::BSH_SCRIPT] : '';
 
         /**@var WorkflowContextInterface $context */
@@ -63,9 +62,6 @@ class  PhpShellCondition implements ConditionInterface
         } catch (\Exception $e) {
             $errMsg = 'Ошибка выполнения скрипта-условия';
             throw new WorkflowException($errMsg, $e->getCode(), $e);
-
         }
     }
-
-
 }

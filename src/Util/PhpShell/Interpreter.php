@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Util\PhpShell;
 
-
 use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\RuntimeException;
 
@@ -286,7 +285,6 @@ class  Interpreter
         }
 
         $this->allowedCalls = array_combine($this->defaultAllowedCalls, $this->defaultAllowedCalls);
-
     }
 
     /**
@@ -323,7 +321,6 @@ class  Interpreter
         $allowedCalls = $this->getAllowedCalls();
 
         foreach ($tokens as $token) {
-
             if (is_array($token)) {
                 $tokenId = $token[0];
 
@@ -340,8 +337,6 @@ class  Interpreter
                     break;
                 }
             }
-
-
         }
 
         $this->flagScriptValid = 0 === count($this->parseErrors);
@@ -364,7 +359,7 @@ class  Interpreter
 
 
         $source = $this->source;
-        $executor = function(array $args = []) use ($source) {
+        $executor = function (array $args = []) use ($source) {
             extract($args);
             ob_start();
             $result = @eval($source);
@@ -382,5 +377,4 @@ class  Interpreter
 
         return $result;
     }
-
 }
