@@ -20,6 +20,7 @@ use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Loader\ActionDescriptor;
 use OldTown\Workflow\Loader\ConditionDescriptor;
 use OldTown\Workflow\Loader\ConditionsDescriptor;
+use OldTown\Workflow\Loader\FunctionDescriptor;
 use OldTown\Workflow\Loader\RegisterDescriptor;
 use OldTown\Workflow\Loader\ValidatorDescriptor;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
@@ -101,12 +102,62 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $this->stateCache = null;
 
         $step = $this->getCurrentStep($wf, $action->getId(), $currentSteps, $transientVars, $ps);
+        $stepId = $step->getId();
 
         $validators = $action->getValidators();
         if ($validators->count() > 0) {
             $this->verifyInputs($entry, $validators, $transientVars, $ps);
         }
+
+
+        if (null !== $step) {
+            $stepPostFunctions = $wf->getStep($stepId)->getPostFunctions();
+
+
+            foreach ($stepPostFunctions as $function) {
+                $this->executeFunction($function, $transientVars, $ps);
+            }
+
+        }
     }
+
+
+
+    /**
+     * @param FunctionDescriptor $function
+     * @param array $transientVars
+     * @param PropertySetInterface $ps
+     */
+    protected function executeFunction(FunctionDescriptor $function, array  $transientVars = [], PropertySetInterface $ps)
+    {
+        if (null !== $function) {
+            $type = $function->getType();
+
+            $argsOriginal = $function->getArgs();
+            $args = [];
+
+            foreach ($argsOriginal as $k => $v) {
+                $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($v, $transientVars, $ps);
+                $args[$k] = $translateValue;
+            }
+
+            $provider = $this->getResolver()->getFunction($type, $args);
+
+            if (null === $provider) {
+                $this->context->setRollbackOnly();
+                $errMsg = 'Не загружен провайдер для функции';
+                throw new WorkflowException($errMsg);
+            }
+
+            try {
+                $provider->execute($transientVars, $args, $ps);
+            } catch (WorkflowException $e) {
+                $this->context->setRollbackOnly();
+                throw $e;
+            }
+        }
+    }
+
 
     /**
      * @param WorkflowEntryInterface $entry
@@ -130,7 +181,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             throw new InvalidArgumentException($errMsg);
         }
 
-        /** @var ValidatorDescriptor[]  $validators */
+        /** @var ValidatorDescriptor[] $validators */
         foreach ($validators as $input) {
 
             if (null !== $input) {
@@ -164,7 +215,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                         throw $e;
                     }
 
-                    $errMsg  = 'Неизвестная ошибка при работе валидатора';
+                    $errMsg = 'Неизвестная ошибка при работе валидатора';
                     throw new WorkflowException($errMsg, $e->getCode(), $e);
                 }
             }

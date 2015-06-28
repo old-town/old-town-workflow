@@ -94,7 +94,7 @@ class TypeResolver
 
         ];
         $this->validators = [
-
+            'phpshell' => PhpShellCondition::class
         ];
         $this->conditions = [
             'phpshell' => PhpShellCondition::class

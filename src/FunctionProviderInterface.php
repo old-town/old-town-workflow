@@ -6,7 +6,6 @@
 namespace OldTown\Workflow;
 
 use OldTown\PropertySet\PropertySetInterface;
-use OldTown\Workflow\Exception\WorkflowException;
 
 /**
  * Interface FunctionProviderRemoteInterface
@@ -20,9 +19,7 @@ interface FunctionProviderInterface
      * @param array $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
-     *
-     * @throws WorkflowException
-     * @return void
+     * @return
      */
-    public function execute($transientVars, $args, PropertySetInterface $ps);
+    public function execute(array $transientVars = [], array $args = [], PropertySetInterface $ps);
 }
