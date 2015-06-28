@@ -6,6 +6,8 @@
 namespace OldTown\Workflow;
 
 use OldTown\Workflow\Exception\WorkflowException;
+use \OldTown\Workflow\Util\PhpShell\PhpShellCondition;
+
 
 /**
  * Interface TypeResolver
@@ -95,7 +97,7 @@ class TypeResolver
 
         ];
         $this->conditions = [
-
+            'phpshell' => PhpShellCondition::class
         ];
         $this->functions = [
 

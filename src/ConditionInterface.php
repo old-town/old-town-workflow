@@ -20,9 +20,9 @@ interface ConditionInterface
      * @param array $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
+     * @return bool
      *
      * @throws WorkflowException
-     * @return boolean
      */
-    public function passesCondition($transientVars, $args, PropertySetInterface $ps);
+    public function passesCondition(array $transientVars = [], array $args = [], PropertySetInterface $ps);
 }
