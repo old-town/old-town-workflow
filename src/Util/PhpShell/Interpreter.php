@@ -51,7 +51,7 @@ class  Interpreter
      *
      * @var array
      */
-    private $defaultAllowedCalls = [
+    private static $defaultAllowedCalls = [
         'explode',
         'implode',
         'date',
@@ -92,7 +92,7 @@ class  Interpreter
      *
      * @var array
      */
-    protected $allowLexeme = [
+    protected static $allowLexeme = [
         'T_POW',
         'T_ELLIPSIS',
         'T_POW_EQUAL',
@@ -236,7 +236,7 @@ class  Interpreter
         if ($this->allowLexemeMap) {
             return $this->allowLexemeMap;
         }
-        $this->allowLexemeMap = array_flip($this->allowLexeme);
+        $this->allowLexemeMap = array_flip(static::$allowLexeme);
 
 
         return $this->allowLexemeMap;
@@ -259,6 +259,8 @@ class  Interpreter
 
     /**
      * @return mixed
+     *
+     * @throws \OldTown\Workflow\Exception\RuntimeException
      */
     public function getAllowedCalls()
     {
@@ -284,11 +286,15 @@ class  Interpreter
             throw new RuntimeException($errMsg);
         }
 
-        $this->allowedCalls = array_combine($this->defaultAllowedCalls, $this->defaultAllowedCalls);
+        $this->allowedCalls = array_combine(static::$defaultAllowedCalls, $this->defaultAllowedCalls);
     }
 
     /**
      * @param $source
+     *
+     * @throws \OldTown\Workflow\Exception\RuntimeException
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
     public function __construct($source)
     {
@@ -307,6 +313,8 @@ class  Interpreter
     /**
      *
      * @return boolean
+     *
+     * @throws \OldTown\Workflow\Exception\RuntimeException
      */
     protected function getFlagScriptValid()
     {
@@ -347,6 +355,8 @@ class  Interpreter
     /**
      *
      * @return mixed
+     *
+     * @throws \OldTown\Workflow\Exception\RuntimeException
      */
     public function evalScript()
     {

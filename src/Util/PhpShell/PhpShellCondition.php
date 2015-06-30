@@ -25,6 +25,8 @@ class  PhpShellCondition implements ConditionInterface
      * @param array $args
      * @param PropertySetInterface $ps
      * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
     public function passesCondition(array $transientVars = [], array $args = [], PropertySetInterface $ps)
     {

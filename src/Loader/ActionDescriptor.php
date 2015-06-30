@@ -358,7 +358,7 @@ class ActionDescriptor extends AbstractDescriptor
     }
 
     /**
-     * @return ConditionalResultDescriptor[]|SplObjectStorage
+     * @return SplObjectStorage|ConditionalResultDescriptor[]
      */
     public function getConditionalResults()
     {

@@ -473,7 +473,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      *
      * @param integer $id
      * @return StepDescriptor|null
-     * @throws ArgumentNotNumericException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getStep($id)
     {

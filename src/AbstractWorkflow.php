@@ -13,6 +13,7 @@ use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidActionException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
+use OldTown\Workflow\Exception\InvalidEntryStateException;
 use OldTown\Workflow\Exception\InvalidInputException;
 use OldTown\Workflow\Exception\InvalidRoleException;
 use OldTown\Workflow\Exception\StoreException;
@@ -22,6 +23,7 @@ use OldTown\Workflow\Loader\ConditionDescriptor;
 use OldTown\Workflow\Loader\ConditionsDescriptor;
 use OldTown\Workflow\Loader\FunctionDescriptor;
 use OldTown\Workflow\Loader\RegisterDescriptor;
+use OldTown\Workflow\Loader\ResultDescriptor;
 use OldTown\Workflow\Loader\ValidatorDescriptor;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
@@ -31,6 +33,7 @@ use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use Psr\Log\LoggerInterface;
 use Traversable;
 use SplObjectStorage;
+use DateTime;
 
 
 /**
@@ -86,7 +89,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * Переход между двумя статусами
      *
      * @param WorkflowEntryInterface $entry
-     * @param array $currentSteps
+     * @param StepInterface[] $currentSteps
      * @param WorkflowStoreInterface $store
      * @param WorkflowDescriptor $wf
      * @param ActionDescriptor $action
@@ -95,9 +98,15 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param PropertySetInterface $ps
      *
      * @return boolean
-     * @throws WorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InvalidEntryStateException
+     * @throws \OldTown\Workflow\Exception\InvalidInputException
      */
-    protected function  transitionWorkflow(WorkflowEntryInterface $entry, $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, $transientVars, $inputs, PropertySetInterface $ps)
+    protected function  transitionWorkflow(WorkflowEntryInterface $entry, $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, &$transientVars, $inputs, PropertySetInterface $ps)
     {
         $this->stateCache = null;
 
@@ -112,23 +121,653 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         if (null !== $step) {
             $stepPostFunctions = $wf->getStep($stepId)->getPostFunctions();
-
-
             foreach ($stepPostFunctions as $function) {
                 $this->executeFunction($function, $transientVars, $ps);
             }
+        }
+
+        $conditionalResults = $action->getConditionalResults();
+        $extraPreFunctions = null;
+        $extraPostFunctions = null;
+
+        $theResults = [];
+        $theResults[0] = new ResultDescriptor();
+
+        $currentStepId = null !== $step ? $stepId  : -1;
+        foreach ($conditionalResults as $conditionalResult) {
+
+            if ($this->passesConditions(null, $conditionalResult->getConditions(), $transientVars, $ps, $currentStepId)) {
+                $theResults[0] = $conditionalResult;
+
+                $validatorsStorage = $conditionalResult->getValidators();
+                if ($validatorsStorage->count() > 0) {
+                    $this->verifyInputs($entry, $validatorsStorage, $transientVars, $ps);
+                }
+
+                $extraPreFunctions = $conditionalResult->getPreFunctions();
+                $extraPostFunctions = $conditionalResult->getPostFunctions();
+
+                break;
+            }
+        }
+
+
+        if (null ===  $theResults[0]) {
+            $theResults[0] = $action->getUnconditionalResult();
+            $this->verifyInputs($entry, $theResults[0]->getValidators(), $transientVars, $ps);
+            $extraPreFunctions = $theResults[0]->getPreFunctions();
+            $extraPostFunctions = $theResults[0]->getPostFunctions();
+        }
+
+        $logMsg = sprintf('theResult=%s %s', $theResults[0]->getStep(), $theResults[0]->getStatus());
+        $this->getLog()->debug($logMsg);
+
+
+        if ($extraPreFunctions && $extraPreFunctions->count() > 0) {
+            foreach ($extraPreFunctions as $function) {
+                $this->executeFunction($function, $transientVars, $ps);
+            }
+        }
+
+        $split = $theResults[0]->getSplit();
+        $join = $theResults[0]->getJoin();
+        if (null !== $split && 0 !== $split) {
+            $splitDesc = $wf->getSplit($split);
+            $results = $splitDesc->getResults();
+            $splitPreFunctions = [];
+            $splitPostFunctions = [];
+
+            foreach ($results as $resultDescriptor) {
+                if ($resultDescriptor->getValidators()->count() > 0) {
+                    $this->verifyInputs($entry, $resultDescriptor->getValidators(), $transientVars, $ps);
+                }
+
+                foreach ($resultDescriptor->getPreFunctions() as $function) {
+                    $splitPreFunctions[] = $function;
+                }
+                foreach ($resultDescriptor->getPostFunctions() as $function) {
+                    $splitPostFunctions[] = $function;
+                }
+            }
+
+            foreach ($splitPreFunctions as $function) {
+                $this->executeFunction($function, $transientVars, $ps);
+            }
+
+            if (!$action->isFinish()) {
+                $moveFirst = true;
+
+                $theResults = [];
+                foreach ($results as $result) {
+                    $theResults[] = $result;
+                }
+
+                foreach ($results as $resultDescriptor) {
+                    $moveToHistoryStep = null;
+
+                    if ($moveFirst) {
+                        $moveToHistoryStep = $step;
+                    }
+
+                    $previousIds = [];
+
+                    if (null !== $step) {
+                        $previousIds[] = $stepId;
+                    }
+
+                    $this->createNewCurrentStep($resultDescriptor, $entry, $store, $action->getId(), $moveToHistoryStep, $previousIds, $transientVars, $ps);
+                    $moveFirst = false;
+                }
+
+            }
+
+
+            foreach ($splitPostFunctions as $function) {
+                $this->executeFunction($function, $transientVars, $ps);
+            }
+
+        } elseif (null !== $join && 0 !== $join) {
+            $joinDesc = $wf->getJoin($join);
+            $oldStatus = $theResults[0]->getOldStatus();
+            $caller = $this->context->getCaller();
+            $step = $store->markFinished($step, $action->getId(), new DateTime(),$oldStatus , $caller);
+
+            $store->moveToHistory($step);
+
+            /** @var StepInterface[] $joinSteps */
+            $joinSteps = [];
+            $joinSteps[] = $step;
+
+            foreach ($currentSteps as $currentStep) {
+                if ($currentStep->getId() !== $step->getId()) {
+                    $stepDesc = $wf->getStep($currentStep->getStepId());
+
+                    if  ($stepDesc->resultsInJoin($join)) {
+                        $joinSteps[] = $currentSteps;
+                    }
+                }
+            }
+
+            $historySteps = $store->findHistorySteps($entry->getId());
+
+            foreach ($historySteps as $historyStep) {
+                if ($historyStep->getId() !== $step->getId()) {
+                    $stepDesc = $wf->getStep($historyStep->getStepId());
+
+                    if ($stepDesc->resultsInJoin($join)) {
+                        $joinSteps[] = $currentSteps;
+                    }
+                }
+            }
+
+            $jn = new JoinNodes($joinSteps);
+            $transientVars['jn'] = $jn;
+
+
+            if ($this->passesConditions(null, $joinDesc->getConditions(), $transientVars, $ps, 0)) {
+                $joinResult = $joinDesc->getResult();
+
+                $joinResultValidators = $joinResult->getValidators();
+                if ($joinResultValidators->count() > 0) {
+                    $this->verifyInputs($entry, $joinResultValidators, $transientVars, $ps);
+                }
+
+                foreach ($joinResult->getPreFunctions() as $function) {
+                    $this->executeFunction($function, $transientVars, $ps);
+                }
+
+                $previousIds = [];
+                $i = 1;
+
+                foreach ($joinSteps as  $currentStep) {
+                    if ($currentStep->getId() !== $step->getId() && !$historySteps->contains($currentStep)) {
+                        $store->moveToHistory($step);
+                    }
+
+                    $previousIds[$i] = $currentStep->getId();
+                }
+
+                if (!$action->isFinish()) {
+                    $previousIds[0] = $step->getId();
+                    $theResults[0] = $joinDesc->getResult();
+
+                    $this->createNewCurrentStep($joinDesc->getResult(), $entry, $store, $action->getId(), null, $previousIds, $transientVars, $ps);
+                }
+
+                foreach ($joinResult->getPostFunctions() as $function) {
+                    $this->executeFunction($function, $transientVars, $ps);
+                }
+            }
+
+
+        } else {
+            $previousIds = [];
+
+            if (null !== $step) {
+                $previousIds[] = $stepId;
+            }
+
+            if (!$action->isFinish()) {
+                $this->createNewCurrentStep($theResults[0], $entry, $store, $action->getId(), $step, $previousIds, $transientVars, $ps);
+            }
+        }
+
+        if ($extraPostFunctions && $extraPostFunctions->count() > 0) {
+            foreach ($extraPostFunctions as $function) {
+                $this->executeFunction($function, $transientVars, $ps);
+            }
+        }
+
+        if (WorkflowEntryInterface::COMPLETED !== $entry->getState() && null !== $wf->getInitialAction($action->getId())) {
+            $this->changeEntryState($entry->getId(), WorkflowEntryInterface::ACTIVATED);
+        }
+
+        if (!$action->isFinish()) {
+            $this->completeEntry($action, $entry->getId(), $this->getCurrentSteps($entry->getId()), WorkflowEntryInterface::COMPLETED);
+            return true;
+        }
+
+        $availableAutoActions = $this->getAvailableAutoActions($entry->getId(), $inputs);
+
+        if (count($availableAutoActions) > 0) {
+            $this->doAction($entry->getId(),  $availableAutoActions[0], $inputs);
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param       $id
+     * @param array $inputs
+     *
+     * @return array
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     */
+    protected function getAvailableAutoActions($id, array $inputs = [])
+    {
+        try {
+            $store = $this->getPersistence();
+            $entry = $store->findEntry($id);
+
+            if (null === $entry) {
+                $errMsg = sprintf(
+                    'Нет сущности workflow c id %s',
+                    $id
+                );
+                throw new InvalidArgumentException($errMsg);
+            }
+
+
+            if (WorkflowEntryInterface::ACTIVATED !== $entry->getState()) {
+                $logMsg = sprintf('--> состояние %s', $entry->getState());
+                $this->getLog()->debug($logMsg);
+                return [0];
+            }
+
+            $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+            if (null === $wf) {
+                $errMsg = sprintf(
+                    'Нет workflow c именем %s',
+                    $entry->getWorkflowName()
+                );
+                throw new InvalidArgumentException($errMsg);
+            }
+
+            $l = [];
+            $ps = $store->getPropertySet($id);
+            $transientVars = (null === $inputs) ? [] : $inputs;
+            $currentSteps = $store->findCurrentSteps($id);
+
+            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), 0, $currentSteps, $ps);
+
+            $globalActions = $wf->getGlobalActions();
+
+            foreach ($globalActions as $action) {
+                $transientVars['actionId'] = $action->getId();
+
+                if ($action->getAutoExecute() && $this->isActionAvailable($action, $transientVars, $ps, 0)) {
+                    $l[] = $action->getId();
+                }
+            }
+
+            foreach ($currentSteps as $step) {
+                $availableAutoActionsForStep = $this->getAvailableAutoActionsForStep($wf, $step, $transientVars, $ps);
+                $l = array_merge($l, $availableAutoActionsForStep);
+            }
+
+            $l = array_unique($l);
+
+            return $l;
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка при проверке доступных действий';
+            $this->getLog()->error($errMsg , [$e]);
+        }
+
+        return [];
+    }
+
+
+    /**
+     * @param WorkflowDescriptor   $wf
+     * @param StepInterface        $step
+     * @param array                $transientVars
+     * @param PropertySetInterface $ps
+     *
+     * @return array
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     */
+    protected function getAvailableAutoActionsForStep(WorkflowDescriptor $wf, StepInterface $step, array &$transientVars = [], PropertySetInterface $ps)
+    {
+        $l = [];
+        $s = $wf->getStep($step->getStepId());
+
+        if (null === $s) {
+            $msg = sprintf('getAvailableAutoActionsForStep вызвана с несуществующим id %s', $step->getStepId());
+            $this->getLog()->debug($msg);
+            return $l;
+        }
+
+
+        $actions = $s->getActions();
+        if (null === $actions || 0 === $actions->count()) {
+            return $l;
+        }
+
+        foreach ($actions as $action) {
+            $transientVars['actionId'] = $action->getId();
+
+            if ($action->getAutoExecute() && $this->isActionAvailable($action, $transientVars, $ps, 0)) {
+                $l[] = $action->getId();
+            }
+        }
+
+        return $l;
+    }
+
+    /**
+     * @param ActionDescriptor $action
+     * @param                  $id
+     * @param array            $currentSteps
+     * @param                  $state
+     *
+     * @return void
+     *
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     */
+    protected function completeEntry(ActionDescriptor $action = null, $id, array $currentSteps, $state)
+    {
+        $this->getPersistence()->setEntryState($id, $state);
+
+        $oldStatus = null !== $action ? $action->getUnconditionalResult()->getOldStatus() : 'Finished';
+        $actionIdValue = null !== $action ? $action->getId() : -1;
+        foreach ($currentSteps as $step) {
+            $this->getPersistence()->markFinished($step, $actionIdValue, new DateTime(), $oldStatus, $this->context->getCaller());
+            $this->getPersistence()->moveToHistory($step);
 
         }
     }
+    /**
+     * @param ResultDescriptor       $theResult
+     * @param WorkflowEntryInterface $entry
+     * @param WorkflowStoreInterface $store
+     * @param integer                $actionId
+     * @param StepInterface          $currentStep
+     * @param array                  $previousIds
+     * @param array                  $transientVars
+     * @param PropertySetInterface   $ps
+     *
+     * @return StepInterface
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     */
+    protected function createNewCurrentStep(
+        ResultDescriptor $theResult,
+        WorkflowEntryInterface $entry,
+        WorkflowStoreInterface $store,
+        $actionId,
+        StepInterface $currentStep,
+        array $previousIds = [],
+        array &$transientVars = [],
+        PropertySetInterface $ps
+    ) {
 
+        try {
+            $nextStep = $theResult->getStep();
+
+            if (-1 === $nextStep) {
+                if (null !== $currentStep) {
+                    $nextStep = $currentStep->getStepId();
+                } else {
+                    $errMsg = 'Неверный аргумент. Новый шаг является таким же как текущий. Но текущий шаг не указан';
+                    throw new StoreException($errMsg);
+                }
+            }
+
+            $owner = $theResult->getOwner();
+
+            $logMsg = sprintf(
+                'Результат: stepId=%s, status=%s, owner=%s, actionId=%s, currentStep=%s',
+                $nextStep,
+                $theResult->getStatus(),
+                $owner,
+                $actionId,
+                null !== $currentStep ? $currentStep->getId() : 0
+            );
+            $this->getLog()->debug($logMsg);
+
+            $variableResolver = $this->getConfiguration()->getVariableResolver();
+
+            if (null !== $owner) {
+                $o = $variableResolver->translateVariables($owner, $transientVars, $ps);
+                $owner = null !== $o ? (string)$o : null;
+            }
+
+
+            $oldStatus = $theResult->getOldStatus();
+            $oldStatus = (string)$variableResolver->translateVariables($oldStatus, $transientVars, $ps);
+
+            $status = $theResult->getStatus();
+            $status = (string)$variableResolver->translateVariables($status, $transientVars, $ps);
+
+
+            if (null !== $currentStep) {
+                $store->markFinished($currentStep, $actionId, new DateTime(), $oldStatus, $this->context->getCaller());
+                $store->moveToHistory($currentStep);
+            }
+
+            $startDate = new DateTime();
+            $dueDate = null;
+
+            $theResultDueDate = (string)$theResult->getDueDate();
+            $theResultDueDate = trim($theResultDueDate);
+            if (strlen($theResultDueDate) > 0) {
+                $dueDateObject = $variableResolver->translateVariables($theResultDueDate, $transientVars, $ps);
+
+                if ($dueDateObject instanceof DateTime) {
+                    $dueDate = $dueDateObject;
+                } elseif (is_string($dueDateObject)) {
+                    $dueDate = new DateTime($dueDate);
+                } elseif (is_numeric($dueDateObject)) {
+                    $dueDate = DateTime::createFromFormat('U', $dueDateObject);
+                } else {
+                    $errMsg = 'Ошибка при преобразование DueData';
+                    throw new InternalWorkflowException($errMsg);
+                }
+
+            }
+
+            $newStep = $store->createCurrentStep($entry->getId(), $nextStep, $owner, $startDate, $dueDate, $status, $previousIds);
+            $transientVars['createdStep'] =  $newStep;
+
+            if ( null === $currentStep && 0 === count($previousIds)) {
+                $currentSteps = [];
+                $currentSteps[] = $newStep;
+                $transientVars['currentSteps'] =  $currentSteps;
+            }
+
+            if (!array_key_exists('descriptor', $transientVars)) {
+                $errMsg = 'Ошибка при получение дескриптора workflow из transientVars';
+                throw new InternalWorkflowException($errMsg);
+            }
+
+            /** @var WorkflowDescriptor $descriptor */
+            $descriptor = $transientVars['descriptor'];
+            $step = $descriptor->getStep($nextStep);
+
+            if (null === $step) {
+                $errMsg = sprintf('Шаг #%s не найден', $nextStep);
+                throw new WorkflowException($errMsg);
+            }
+
+            $preFunctions = $step->getPreFunctions();
+
+            foreach ($preFunctions as $function) {
+                $this->executeFunction($function, $transientVars, $ps);
+            }
+
+        } catch (WorkflowException $e) {
+            $this->context->setRollbackOnly();
+            throw $e;
+        }
+    }
+
+    /**
+     * @fixme Реализовать
+     *
+     * Perform an action on the specified workflow instance.
+     * @param integer $id The workflow instance id.
+     * @param integer $actionId The action id to perform (action id's are listed in the workflow descriptor).
+     * @param array $inputs The inputs to the workflow instance.
+     * @throws \OldTown\Workflow\Exception\InvalidInputException if a validator is specified and an input is invalid.
+     * @throws WorkflowException if the action is invalid for the specified workflow
+     * instance's current state.
+     */
+    public function doAction($id, $actionId, array $inputs = [])
+    {
+    }
+
+
+    /**
+     *
+     * Check if the state of the specified workflow instance can be changed to the new specified one.
+     * @param integer $id The workflow instance id.
+     * @param integer $newState The new state id.
+     * @return boolean true if the state of the workflow can be modified, false otherwise.
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     *
+     */
+    public function canModifyEntryState($id, $newState)
+    {
+        $store = $this->getPersistence();
+        $entry = $store->findEntry($id);
+
+        $currentState = $entry->getState();
+
+        $result = false;
+        try {
+            switch ($newState) {
+                case WorkflowEntryInterface::COMPLETED: {
+                    if (WorkflowEntryInterface::ACTIVATED === $currentState) {
+                        $result = true;
+                    }
+                    break;
+                }
+                case WorkflowEntryInterface::CREATED: {
+                    $result = false;
+                }
+                case WorkflowEntryInterface::ACTIVATED: {
+                    if (WorkflowEntryInterface::CREATED === $currentState || WorkflowEntryInterface::SUSPENDED === $currentState) {
+                        $result = true;
+                    }
+                    break;
+                }
+                case WorkflowEntryInterface::SUSPENDED: {
+                    if (WorkflowEntryInterface::ACTIVATED === $currentState) {
+                        $result = true;
+                    }
+                    break;
+                }
+                case WorkflowEntryInterface::KILLED: {
+                    if (WorkflowEntryInterface::CREATED === $currentState || WorkflowEntryInterface::ACTIVATED === $currentState || WorkflowEntryInterface::SUSPENDED === $currentState) {
+                        $result = true;
+                    }
+                    break;
+                }
+                default: {
+                    $result = false;
+                    break;
+                }
+
+            }
+
+            return $result;
+        } catch (StoreException $e) {
+            $errMsg = sprintf(
+                'Ошибка проверки изменения состояния для инстанса #%s',
+                $id
+            );
+            $this->getLog()->error($errMsg, [$e]);
+        }
+
+        return false;
+    }
+
+
+    /**
+     *
+     * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
+     *
+     * @param integer $id id экземпляра workflow
+     * @return array
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     */
+    public function getCurrentSteps($id)
+    {
+        try {
+            $store = $this->getPersistence();
+
+            $result = $store->findCurrentSteps($id);
+
+            return $result;
+        } catch (StoreException $e) {
+            $errMsg = sprintf(
+                'Ошибка при проверке текущего шага для инстанса # %s',
+                $id
+            );
+            $this->getLog()->error($errMsg, [$e]);
+
+
+            return [];
+        }
+    }
+
+    /**
+     *
+     *
+     * Modify the state of the specified workflow instance.
+     * @param integer $id The workflow instance id.
+     * @param integer $newState the new state to change the workflow instance to.
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InvalidEntryStateException
+     */
+    public function changeEntryState($id, $newState)
+    {
+        $store = $this->getPersistence();
+        $entry = $store->findEntry($id);
+
+        if ($newState === $entry->getState()) {
+            return;
+        }
+
+        if ($this->canModifyEntryState($id, $newState)) {
+            if (WorkflowEntryInterface::KILLED === $newState || WorkflowEntryInterface::COMPLETED === $newState) {
+                $currentSteps = $this->getCurrentSteps($id);
+
+                if (count($currentSteps) > 0) {
+                    $this->completeEntry(null, $id, $currentSteps, $newState);
+                }
+            }
+
+            $store->setEntryState($id, $newState);
+        } else {
+            $errMsg = sprintf(
+                'Не возможен переход в экземпляре workflow #%s. Текущее состояние %s, ожидаемое состояние %s',
+                $id,
+                $entry->getState(),
+                $newState
+            );
+
+            throw new InvalidEntryStateException($errMsg);
+        }
+
+        $msg = sprintf(
+            '%s : Новое состояние: %s',
+            $entry->getId(),
+            $entry->getState()
+        );
+        $this->getLog()->debug($msg);
+    }
 
 
     /**
      * @param FunctionDescriptor $function
      * @param array $transientVars
      * @param PropertySetInterface $ps
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function executeFunction(FunctionDescriptor $function, array  $transientVars = [], PropertySetInterface $ps)
+    protected function executeFunction(FunctionDescriptor $function, array &$transientVars = [], PropertySetInterface $ps)
     {
         if (null !== $function) {
             $type = $function->getType();
@@ -164,9 +803,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param $validatorsStorage
      * @param array $transientVars
      * @param PropertySetInterface $ps
-     * @throws WorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, array  $transientVars = [], PropertySetInterface $ps)
+    protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, array  &$transientVars = [], PropertySetInterface $ps)
     {
 
         if ($validatorsStorage instanceof Traversable) {
@@ -235,9 +876,12 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param PropertySetInterface $ps
      *
      * @return StepInterface
-     * @throws WorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    protected function  getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, array $currentSteps = [], array $transientVars = [], PropertySetInterface $ps)
+    protected function  getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, array $currentSteps = [], array &$transientVars = [], PropertySetInterface $ps)
     {
         if (1 === count($currentSteps)) {
             reset($currentSteps);
@@ -265,9 +909,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @return boolean
      *
-     * @throws WorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
-    protected function isActionAvailable(ActionDescriptor $action = null, $transientVars, PropertySetInterface $ps, $stepId)
+    protected function isActionAvailable(ActionDescriptor $action = null, &$transientVars, PropertySetInterface $ps, $stepId)
     {
         if (null === $action) {
             return false;
@@ -309,6 +955,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @param ActionDescriptor $action
      * @return WorkflowDescriptor
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     private function  getWorkflowDescriptorForAction(ActionDescriptor $action)
     {
@@ -426,7 +1074,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function canInitializeInternal($workflowName, $initialAction, array $transientVars = null, PropertySetInterface $ps)
+    protected function canInitializeInternal($workflowName, $initialAction, array &$transientVars = null, PropertySetInterface $ps)
     {
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
 
@@ -465,7 +1113,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
+    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, array &$transientVars = [], PropertySetInterface $ps, $currentStepId)
     {
         if (null === $descriptor) {
             return true;
@@ -490,7 +1138,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesConditions($conditionType, $conditionsStorage = null, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
+    protected function passesConditions($conditionType, $conditionsStorage = null, array &$transientVars = [], PropertySetInterface $ps, $currentStepId)
     {
         if (null === $conditionsStorage) {
             return true;
@@ -552,7 +1200,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesCondition(ConditionDescriptor $conditionDesc, array $transientVars = [], PropertySetInterface $ps, $currentStepId)
+    protected function passesCondition(ConditionDescriptor $conditionDesc, array &$transientVars = [], PropertySetInterface $ps, $currentStepId)
     {
         $type = $conditionDesc->getType();
 
@@ -698,8 +1346,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * Возвращает хранилище состояния workflow
      *
      * @return WorkflowStoreInterface
-     * @throws StoreException
-     * @throws InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     protected function getPersistence()
     {
@@ -714,7 +1362,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @return ConfigurationInterface|DefaultConfiguration Конфигурация которая была установленна
      *
-     * @throws InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function getConfiguration()
     {
@@ -786,15 +1434,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 ########################################################################################################################
 
 
-    /**
-     * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
-     *
-     * @param integer $id id экземпляра workflow
-     * @return array
-     */
-    public function getCurrentSteps($id)
-    {
-    }
 
     /**
      * Возвращает состояние для текущего экземпляра workflow
@@ -847,41 +1486,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
 
-    /**
-     * Check if the state of the specified workflow instance can be changed to the new specified one.
-     * @param integer $id The workflow instance id.
-     * @param integer $newState The new state id.
-     * @return boolean true if the state of the workflow can be modified, false otherwise.
-     */
-    public function canModifyEntryState($id, $newState)
-    {
-    }
 
-    /**
-     * Modify the state of the specified workflow instance.
-     * @param integer $id The workflow instance id.
-     * @param integer $newState the new state to change the workflow instance to.
-     * @throws WorkflowException
-     * If the new state is {@link com.opensymphony.workflow.spi.WorkflowEntry.KILLED}
-     * or {@link com.opensymphony.workflow.spi.WorkflowEntry.COMPLETED}
-     * then all current steps are moved to history steps. If the new state is
-     */
-    public function changeEntryState($id, $newState)
-    {
-    }
 
-    /**
-     * Perform an action on the specified workflow instance.
-     * @param integer $id The workflow instance id.
-     * @param integer $actionId The action id to perform (action id's are listed in the workflow descriptor).
-     * @param array $inputs The inputs to the workflow instance.
-     * @throws InvalidInputException if a validator is specified and an input is invalid.
-     * @throws WorkflowException if the action is invalid for the specified workflow
-     * instance's current state.
-     */
-    public function doAction($id, $actionId, array $inputs = [])
-    {
-    }
 
     /**
      * Executes a special trigger-function using the context of the given workflow instance id.

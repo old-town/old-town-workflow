@@ -25,6 +25,8 @@ class  FunctionProvider implements FunctionProviderInterface
      * @param array $args
      * @param PropertySetInterface $ps
      * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
     public function execute(array $transientVars = [], array $args = [], PropertySetInterface $ps)
     {

@@ -9,6 +9,7 @@ use OldTown\Workflow\Exception\StoreException;
 use OldTown\PropertySet\PropertySetInterface;
 use DateTime;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
+use SplObjectStorage;
 
 /**
  * Интерфейся для подключаемых workflow настроенных в xml файлах
@@ -72,7 +73,7 @@ interface WorkflowStoreInterface
          * Загрузить экземпляр workflow
          *
          * @param integer $entryId
-         * @throws StoreException
+         * @throws \OldTown\Workflow\Exception\StoreException
          * @return WorkflowEntryInterface
          */
         public function findEntry($entryId);
@@ -82,7 +83,7 @@ interface WorkflowStoreInterface
          *
          * @param entryId
          * @throws StoreException
-         * @return StepInterface[]
+         * @return StepInterface[]|SplObjectStorage
          */
         public function findHistorySteps($entryId);
 
