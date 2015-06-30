@@ -16,7 +16,7 @@ use OldTown\Workflow\WorkflowInterface;
  * Class Interpreter
  * @package OldTown\Workflow\Util\PhpShell
  */
-class  FunctionProvider implements FunctionProviderInterface
+class  PhpShellFunctionProvider implements FunctionProviderInterface
 {
     /**
      *

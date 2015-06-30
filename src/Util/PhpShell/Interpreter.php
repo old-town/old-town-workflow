@@ -70,7 +70,8 @@ class  Interpreter
         'print',
         'print_r',
         'true',
-        'false'
+        'false',
+        'null'
     ];
 
     /**
@@ -328,7 +329,7 @@ class  Interpreter
 
         $allowedCalls = $this->getAllowedCalls();
 
-        foreach ($tokens as $token) {
+        foreach ($tokens as $tokenIndex => $token) {
             if (is_array($token)) {
                 $tokenId = $token[0];
 
@@ -341,6 +342,17 @@ class  Interpreter
                 }
                 $tokenValue = $token[1];
                 if (T_STRING === $tokenId && !array_key_exists($tokenValue, $allowedCalls)) {
+                    $previousTokenIndex = $tokenIndex - 1;
+                    if (array_key_exists($previousTokenIndex, $tokens)) {
+                        $previousToken = $tokens[$previousTokenIndex];
+                        if (is_array($previousToken)) {
+                            $previousTokenId = $previousToken[0];
+                            $previousTokenName = token_name($previousTokenId);
+                            if ('T_OBJECT_OPERATOR' === $previousTokenName) {
+                                continue;
+                            }
+                        }
+                    }
                     $this->parseErrors[] = sprintf('Запрещенная функция: %s', $tokenValue);
                     break;
                 }
@@ -372,11 +384,11 @@ class  Interpreter
         $executor = function (array $args = []) use ($source) {
             extract($args);
             ob_start();
-            $result = @eval($source);
+            $result = eval($source);
             $content = ob_get_clean();
 
             $errorGetLast = error_get_last();
-            if (null === $errorGetLast && !$content) {
+            if (null === $errorGetLast && $content) {
                 echo $content;
             }
 

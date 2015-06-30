@@ -7,6 +7,7 @@ namespace OldTown\Workflow;
 
 use OldTown\Workflow\Exception\WorkflowException;
 use \OldTown\Workflow\Util\PhpShell\PhpShellCondition;
+use \OldTown\Workflow\Util\PhpShell\PhpShellFunctionProvider;
 
 
 /**
@@ -94,13 +95,13 @@ class TypeResolver
 
         ];
         $this->validators = [
-            'phpshell' => PhpShellCondition::class
+
         ];
         $this->conditions = [
             'phpshell' => PhpShellCondition::class
         ];
         $this->functions = [
-
+            'phpshell' => PhpShellFunctionProvider::class
         ];
     }
 

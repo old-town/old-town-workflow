@@ -132,7 +132,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $extraPostFunctions = null;
 
         $theResults = [];
-        $theResults[0] = new ResultDescriptor();
+        $theResults[0] = null;
+
 
         $currentStepId = null !== $step ? $step->getStepId()  : -1;
         foreach ($conditionalResults as $conditionalResult) {
@@ -448,7 +449,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      * @param ActionDescriptor $action
      * @param                  $id
-     * @param array            $currentSteps
+     * @param array|Traversable $currentSteps
      * @param                  $state
      *
      * @return void
@@ -456,8 +457,14 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\StoreException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    protected function completeEntry(ActionDescriptor $action = null, $id, array $currentSteps, $state)
+    protected function completeEntry(ActionDescriptor $action = null, $id, $currentSteps, $state)
     {
+        if (!($currentSteps instanceof Traversable || is_array($currentSteps))) {
+            $errMsg = 'CurrentSteps должен быть массивом, либо реализовывать интерфейс Traversable';
+            throw new InvalidArgumentException($errMsg);
+        }
+
+
         $this->getPersistence()->setEntryState($id, $state);
 
         $oldStatus = null !== $action ? $action->getUnconditionalResult()->getOldStatus() : 'Finished';
