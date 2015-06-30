@@ -40,7 +40,7 @@
     "symfony/console": "~2.3",
     "symfony/config": "2.1.13",
     "symfony/stopwatch": "~2.5",
-    "behat/behat": "~3.0.6"
+    "behat/behat": "2.5.4"
   },
   "autoload": {
     "psr-4": {
