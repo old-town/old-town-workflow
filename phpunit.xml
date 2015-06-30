@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <phpunit
-        bootstrap="./test/Bootstrap.php"
+        bootstrap="./test/PhpUnitTest/Bootstrap.php"
         colors="true"
         convertErrorsToExceptions="true"
         convertNoticesToExceptions="true"
@@ -13,7 +13,7 @@
         >
     <testsuites>
         <testsuite name="Workflow Tests">
-            <directory>./test</directory>
+            <directory>./test/PhpUnitTest</directory>
         </testsuite>
     </testsuites>
 

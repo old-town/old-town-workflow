@@ -3,7 +3,7 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
+namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use OldTown\Workflow\Loader\WriteXmlInterface;
 use DOMDocument;
@@ -11,7 +11,7 @@ use DOMDocument;
 /**
  * Class FunctionDescriptorTest
  *
- * @package OldTown\Workflow\Test\Loader
+ * @package OldTown\Workflow\PhpUnitTest\Loader
  */
 trait TestAttributeTrait
 {

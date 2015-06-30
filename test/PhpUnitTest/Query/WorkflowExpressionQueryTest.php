@@ -3,7 +3,7 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Query;
+namespace OldTown\Workflow\PhpUnitTest\Query;
 
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
@@ -12,7 +12,7 @@ use OldTown\Workflow\Query\FieldExpression;
 /**
  * Class WorkflowExpressionQueryTest
  *
- * @package OldTown\Workflow\Test\Query
+ * @package OldTown\Workflow\PhpUnitTest\Query
  */
 class WorkflowExpressionQueryTest extends TestCase
 {

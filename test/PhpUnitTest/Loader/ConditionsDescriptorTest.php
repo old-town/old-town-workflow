@@ -3,14 +3,14 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
+namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\ConditionsDescriptor;
 
 /**
  * Class ConditionsDescriptorTest
- * @package OldTown\Workflow\Test\Loader
+ * @package OldTown\Workflow\PhpUnitTest\Loader
  */
 class ConditionsDescriptorTest extends TestCase implements DescriptorTestInterface
 {

@@ -3,7 +3,7 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\test;
+namespace OldTown\Workflow\PhpUnitTest;
 
 use Zend\Loader\AutoloaderFactory;
 use Zend\Loader\StandardAutoloader;
@@ -65,16 +65,7 @@ class Bootstrap
                 StandardAutoloader::class => [
                     'autoregister_zf' => true,
                     'namespaces' => [
-                        'OldTown\Workflow' => __DIR__ . '/../src/',
-                        __NAMESPACE__ => __DIR__
-                    ]
-                ]
-            ]);
-            AutoloaderFactory::factory([
-                StandardAutoloader::class => [
-                    'autoregister_zf' => true,
-                    'namespaces' => [
-                        'OldTown\Workflow\Test' => __DIR__ . '/../test/',
+                        'OldTown\Workflow' => __DIR__ . '/../../src/',
                         __NAMESPACE__ => __DIR__
                     ]
                 ]

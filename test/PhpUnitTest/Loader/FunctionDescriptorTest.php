@@ -3,17 +3,17 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
+namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
-use OldTown\Workflow\Loader\ValidatorDescriptor;
+use OldTown\Workflow\Loader\FunctionDescriptor;
 
 /**
- * Class ValidatorDescriptorTest
+ * Class FunctionDescriptorTest
  *
- * @package OldTown\Workflow\Test\Loader
+ * @package OldTown\Workflow\PhpUnitTest\Loader
  */
-class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterface
+class FunctionDescriptorTest extends TestCase implements DescriptorTestInterface
 {
     use DescriptorTestTrait, ProviderXmlDataTrait, TestAttributeTrait, ArgumentsTraitTest;
 
@@ -22,7 +22,7 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
      *
      * @var string
      */
-    const DESCRIPTOR_CLASS_NAME = ValidatorDescriptor::class;
+    const DESCRIPTOR_CLASS_NAME = FunctionDescriptor::class;
 
     /**
      * Тестируем атрибуты
@@ -34,8 +34,8 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
             /**
              * Вариант когда присутствуют все атрибуты
              */
-            'fileName'     => 'validator.xml',
-            'xpathPattern' => '/validator',
+            'fileName'     => 'function.xml',
+            'xpathPattern' => '/function',
             'attributes'   => [
                 'type' => [
                     'descriptorMethod' => 'getType',
@@ -66,8 +66,8 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
             /**
              * Вариант когда присутствуют все атрибуты
              */
-            'fileName'     => 'validator-not-exists-type-attribute.xml',
-            'xpathPattern' => '/validator'
+            'fileName'     => 'function-not-exists-type-attribute.xml',
+            'xpathPattern' => '/function'
         ]
     ];
 
@@ -95,32 +95,32 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
         }
         $this->saveAttributeTestConfig = [
             [
-                'class'         => ValidatorDescriptor::class,
+                'class'         => FunctionDescriptor::class,
                 'setter'        => 'setType',
                 'getter'        => 'getType',
-                'xpathElement'  => '/validator',
+                'xpathElement'  => '/function',
                 'attributeName' => 'type',
                 'value'         => 'testType'
             ],
             [
-                'class'         => ValidatorDescriptor::class,
+                'class'         => FunctionDescriptor::class,
                 'setter'        => 'setName',
                 'getter'        => 'getName',
-                'xpathElement'  => '/validator',
+                'xpathElement'  => '/function',
                 'attributeName' => 'name',
                 'value'         => 'testName',
-                'di' => function (ValidatorDescriptor $descriptor) {
+                'di' => function (FunctionDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ],
             [
-                'class'         => ValidatorDescriptor::class,
+                'class'         => FunctionDescriptor::class,
                 'setter'        => 'setId',
                 'getter'        => 'getId',
-                'xpathElement'  => '/validator',
+                'xpathElement'  => '/function',
                 'attributeName' => 'id',
                 'value'         => 'testId',
-                'di' => function (ValidatorDescriptor $descriptor) {
+                'di' => function (FunctionDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ]
@@ -150,7 +150,7 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
      */
     public function setUp()
     {
-        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/validator-descriptor';
+        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/function-descriptor';
     }
 
     /**
@@ -158,11 +158,11 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
      *
      * @return void
      */
-    public function testCreateValidatorDescriptorWithoutElement()
+    public function testCreateFunctionDescriptorWithoutElement()
     {
-        $descriptor = new ValidatorDescriptor();
+        $descriptor = new FunctionDescriptor();
 
-        static::assertInstanceOf(ValidatorDescriptor::class, $descriptor);
+        static::assertInstanceOf('\OldTown\Workflow\Loader\FunctionDescriptor', $descriptor);
     }
 
     /**
@@ -174,9 +174,9 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
      * @param string $xpathPattern
      * @param array  $attributes
      */
-    public function testAttributeValidatorDescriptor($fileName, $xpathPattern, array $attributes = [])
+    public function testAttributeFunctionDescriptor($fileName, $xpathPattern, array $attributes = [])
     {
-        $this->helperTestAttributeDescriptor(ValidatorDescriptor::class, $fileName, $xpathPattern, $attributes);
+        $this->helperTestAttributeDescriptor(FunctionDescriptor::class, $fileName, $xpathPattern, $attributes);
     }
 
     /**
@@ -189,11 +189,11 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
      * @param string $fileName
      * @param string $xpathPattern
      */
-    public function testRequiredAttributeValidatorDescriptor($fileName, $xpathPattern)
+    public function testRequiredAttributeFunctionDescriptor($fileName, $xpathPattern)
     {
         /** @var \DOMElement $testNode */
         $testNode = $this->getTestNode($fileName, $xpathPattern);
-        new ValidatorDescriptor($testNode);
+        new FunctionDescriptor($testNode);
     }
 
 
@@ -219,11 +219,11 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
     /**
      * Настройка зависимостей для тестирования атрибутов
      *
-     * @param ValidatorDescriptor $descriptor
+     * @param FunctionDescriptor $descriptor
      *
      * @return void
      */
-    public function defaultDiDescriptor(ValidatorDescriptor $descriptor)
+    public function defaultDiDescriptor(FunctionDescriptor $descriptor)
     {
         $descriptor->setType('defaultType');
     }
@@ -241,8 +241,8 @@ class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterfac
 
         $this->dataForReadXmlArgTest = [
             [
-                'file' => 'validator-args.xml',
-                'xpathRoot' => '/validator',
+                'file' => 'function-args.xml',
+                'xpathRoot' => '/function',
             ]
         ];
 

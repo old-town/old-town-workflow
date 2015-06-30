@@ -3,7 +3,7 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Spi;
+namespace OldTown\Workflow\PhpUnitTest\Spi;
 
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Spi\SimpleWorkflowEntry;
@@ -11,7 +11,7 @@ use OldTown\Workflow\Spi\SimpleWorkflowEntry;
 
 /**
  * Class SimpleWorkflowEntryTest
- * @package OldTown\Workflow\Test\Spi
+ * @package OldTown\Workflow\PhpUnitTest\Spi
  */
 class SimpleWorkflowEntryTest extends TestCase
 {

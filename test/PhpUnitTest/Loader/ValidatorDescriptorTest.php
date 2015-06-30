@@ -3,17 +3,17 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
+namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
-use OldTown\Workflow\Loader\RegisterDescriptor;
+use OldTown\Workflow\Loader\ValidatorDescriptor;
 
 /**
  * Class ValidatorDescriptorTest
  *
- * @package OldTown\Workflow\Test\Loader
+ * @package OldTown\Workflow\PhpUnitTest\Loader
  */
-class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
+class ValidatorDescriptorTest extends TestCase implements DescriptorTestInterface
 {
     use DescriptorTestTrait, ProviderXmlDataTrait, TestAttributeTrait, ArgumentsTraitTest;
 
@@ -22,14 +22,7 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
      *
      * @var string
      */
-    const DESCRIPTOR_CLASS_NAME = RegisterDescriptor::class;
-
-    /**
-     * Данные для тестирования на чтение аргументов
-     *
-     * @var array|null
-     */
-    protected $dataForReadXmlArgTest;
+    const DESCRIPTOR_CLASS_NAME = ValidatorDescriptor::class;
 
     /**
      * Тестируем атрибуты
@@ -41,23 +34,23 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
             /**
              * Вариант когда присутствуют все атрибуты
              */
-            'fileName' => 'register.xml',
-            'xpathPattern' => '/register',
-            'attributes' => [
+            'fileName'     => 'validator.xml',
+            'xpathPattern' => '/validator',
+            'attributes'   => [
                 'type' => [
                     'descriptorMethod' => 'getType',
                     'xmlAttributeName' => 'type',
-                    'required' => true
+                    'required'         => true
                 ],
-                'id' => [
+                'id'   => [
                     'descriptorMethod' => 'getId',
                     'xmlAttributeName' => 'id',
-                    'required' => false
+                    'required'         => false
                 ],
                 'name' => [
-                    'descriptorMethod' => 'getVariableName',
-                    'xmlAttributeName' => 'variable-name',
-                    'required' => true
+                    'descriptorMethod' => 'getName',
+                    'xmlAttributeName' => 'name',
+                    'required'         => false
                 ]
             ]
         ]
@@ -71,17 +64,10 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
     protected $testRequiredAttributesConfig = [
         [
             /**
-             * Вариант когда отсутствует атрибут type
+             * Вариант когда присутствуют все атрибуты
              */
-            'fileName' => 'register-not-exists-type-attribute.xml',
-            'xpathPattern' => '/register'
-        ],
-        [
-            /**
-             * Вариант когда отсутствует атрибут
-             */
-            'fileName' => 'register-not-exists-variable-name-attribute.xml',
-            'xpathPattern' => '/register'
+            'fileName'     => 'validator-not-exists-type-attribute.xml',
+            'xpathPattern' => '/validator'
         ]
     ];
 
@@ -93,6 +79,13 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
     protected $saveAttributeTestConfig;
 
     /**
+     * Данные для тестирования на чтение аргументов
+     *
+     * @var array|null
+     */
+    protected $dataForReadXmlArgTest;
+
+    /**
      * @return array
      */
     public function saveAttributeTestData()
@@ -102,38 +95,33 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
         }
         $this->saveAttributeTestConfig = [
             [
-                'class' => RegisterDescriptor::class,
-                'setter' => 'setType',
-                'getter' => 'getType',
-                'xpathElement' => '/register',
+                'class'         => ValidatorDescriptor::class,
+                'setter'        => 'setType',
+                'getter'        => 'getType',
+                'xpathElement'  => '/validator',
                 'attributeName' => 'type',
-                'value' => 'testType',
-                'di' => function (RegisterDescriptor $descriptor) {
-                    $descriptor->setVariableName('testVariableName');
-
-                }
+                'value'         => 'testType'
             ],
             [
-                'class' => RegisterDescriptor::class,
-                'setter' => 'setVariableName',
-                'getter' => 'getVariableName',
-                'xpathElement' => '/register',
-                'attributeName' => 'variable-name',
-                'value' => 'testVariableName',
-                'di' => function (RegisterDescriptor $descriptor) {
+                'class'         => ValidatorDescriptor::class,
+                'setter'        => 'setName',
+                'getter'        => 'getName',
+                'xpathElement'  => '/validator',
+                'attributeName' => 'name',
+                'value'         => 'testName',
+                'di' => function (ValidatorDescriptor $descriptor) {
                     $descriptor->setType('testType');
                 }
             ],
             [
-                'class' => RegisterDescriptor::class,
-                'setter' => 'setId',
-                'getter' => 'getId',
-                'xpathElement' => '/register',
+                'class'         => ValidatorDescriptor::class,
+                'setter'        => 'setId',
+                'getter'        => 'getId',
+                'xpathElement'  => '/validator',
                 'attributeName' => 'id',
-                'value' => 'testId',
-                'di' => function (RegisterDescriptor $descriptor) {
+                'value'         => 'testId',
+                'di' => function (ValidatorDescriptor $descriptor) {
                     $descriptor->setType('testType');
-                    $descriptor->setVariableName('testVariableName');
                 }
             ]
         ];
@@ -162,7 +150,7 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
      */
     public function setUp()
     {
-        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/register-descriptor';
+        $this->pathToXmlFile = __DIR__ . '/../data/workflow-descriptor/validator-descriptor';
     }
 
     /**
@@ -172,9 +160,9 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
      */
     public function testCreateValidatorDescriptorWithoutElement()
     {
-        $descriptor = new RegisterDescriptor();
+        $descriptor = new ValidatorDescriptor();
 
-        static::assertInstanceOf(RegisterDescriptor::class, $descriptor);
+        static::assertInstanceOf(ValidatorDescriptor::class, $descriptor);
     }
 
     /**
@@ -184,11 +172,11 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
      *
      * @param string $fileName
      * @param string $xpathPattern
-     * @param array $attributes
+     * @param array  $attributes
      */
     public function testAttributeValidatorDescriptor($fileName, $xpathPattern, array $attributes = [])
     {
-        $this->helperTestAttributeDescriptor(RegisterDescriptor::class, $fileName, $xpathPattern, $attributes);
+        $this->helperTestAttributeDescriptor(ValidatorDescriptor::class, $fileName, $xpathPattern, $attributes);
     }
 
     /**
@@ -205,7 +193,7 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
     {
         /** @var \DOMElement $testNode */
         $testNode = $this->getTestNode($fileName, $xpathPattern);
-        new RegisterDescriptor($testNode);
+        new ValidatorDescriptor($testNode);
     }
 
 
@@ -231,14 +219,13 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
     /**
      * Настройка зависимостей для тестирования атрибутов
      *
-     * @param RegisterDescriptor $descriptor
+     * @param ValidatorDescriptor $descriptor
      *
      * @return void
      */
-    public function defaultDiDescriptor(RegisterDescriptor $descriptor)
+    public function defaultDiDescriptor(ValidatorDescriptor $descriptor)
     {
         $descriptor->setType('defaultType');
-        $descriptor->setVariableName('testVariableName');
     }
 
     /**
@@ -254,8 +241,8 @@ class RegisterDescriptorTest extends TestCase implements DescriptorTestInterface
 
         $this->dataForReadXmlArgTest = [
             [
-                'file' => 'register-args.xml',
-                'xpathRoot' => '/register',
+                'file' => 'validator-args.xml',
+                'xpathRoot' => '/validator',
             ]
         ];
 

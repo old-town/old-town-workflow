@@ -3,7 +3,7 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Query;
+namespace OldTown\Workflow\PhpUnitTest\Query;
 
 use PHPUnit_Framework_TestCase as TestCase;
 use \OldTown\Workflow\Query\FieldExpression;
@@ -12,7 +12,7 @@ use \OldTown\Workflow\Query\FieldExpression;
  * Class FieldExpressionTest
  *
  * @todo занчение \OldTown\Workflow\Query\FieldExpression::getValue - не объект(а mixed) - поправить тесты
- * @package OldTown\Workflow\Test\Query
+ * @package OldTown\Workflow\PhpUnitTest\Query
  */
 class FieldExpressionTest extends TestCase
 {

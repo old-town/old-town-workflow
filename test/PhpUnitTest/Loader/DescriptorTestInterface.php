@@ -3,22 +3,19 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Loader;
+namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 /**
- * Class FunctionDescriptorTest
+ * Interface DescriptorTestInterface
  *
- * @package OldTown\Workflow\Test\Loader
+ * @package OldTown\Workflow\test\Loader
  */
-trait DescriptorTestTrait
+interface DescriptorTestInterface
 {
     /**
      * Возвращает класс тестируемого декскриптора
      *
      * @return string
      */
-    public function getDescriptorClassName()
-    {
-        return constant('static::DESCRIPTOR_CLASS_NAME');
-    }
+    public function getDescriptorClassName();
 }

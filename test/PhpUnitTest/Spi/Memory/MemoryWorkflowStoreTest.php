@@ -3,7 +3,7 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Spi\Memory;
+namespace OldTown\Workflow\PhpUnitTest\Spi\Memory;
 
 use OldTown\Workflow\Spi\SimpleStep;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
@@ -15,7 +15,7 @@ use SplObjectStorage;
 
 /**
  * Class MemoryWorkflowStoreTest
- * @package OldTown\Workflow\Test\Spi\Memory
+ * @package OldTown\Workflow\PhpUnitTest\Spi\Memory
  */
 class MemoryWorkflowStoreTest extends TestCase
 {
