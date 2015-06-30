@@ -51,7 +51,7 @@ class JoinNodes
      */
     public function getStep($stepId)
     {
-        foreach ($this->steps as $step)  {
+        foreach ($this->steps as $step) {
             if ($step->getId() === $stepId) {
                 return $step;
             }
@@ -59,5 +59,4 @@ class JoinNodes
 
         return $this->dummy;
     }
-
 }

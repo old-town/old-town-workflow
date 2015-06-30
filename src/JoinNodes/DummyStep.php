@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\JoinNodes;
 
-
 /**
  * Class DummyStep
  *

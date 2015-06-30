@@ -18,7 +18,6 @@ use OldTown\Workflow\WorkflowInterface;
  */
 class  FunctionProvider implements FunctionProviderInterface
 {
-
     /**
      *
      * @param array $transientVars
@@ -50,7 +49,6 @@ class  FunctionProvider implements FunctionProviderInterface
 
 
             $i->evalScript();
-
         } catch (\Exception $e) {
             $errMsg = 'Ошибка выполнения функции';
             throw new WorkflowException($errMsg, $e->getCode(), $e);
