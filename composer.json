@@ -33,7 +33,7 @@
   },
   "require-dev": {
     "fabpot/php-cs-fixer": "*@dev",
-    "phpunit/phpunit": "5.0.x-dev",
+    "phpunit/phpunit": "4.7.6",
     "zendframework/zend-loader": "*",
     "satooshi/php-coveralls": "0.6.1",
     "symfony/yaml": "2.1.13",
