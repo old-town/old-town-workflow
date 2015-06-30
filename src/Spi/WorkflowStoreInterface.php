@@ -64,7 +64,7 @@ interface WorkflowStoreInterface
          * Возвращает список шагов
          *
          * @param integer $entryId id экземпляра workflow
-         * @throws StoreException
+         * @throws \OldTown\Workflow\Exception\StoreException
          * @return StepInterface[]
          */
         public function findCurrentSteps($entryId);

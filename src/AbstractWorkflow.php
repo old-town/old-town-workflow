@@ -105,6 +105,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\StoreException
      * @throws \OldTown\Workflow\Exception\InvalidEntryStateException
      * @throws \OldTown\Workflow\Exception\InvalidInputException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     * @throws \OldTown\Workflow\Exception\InvalidActionException
      */
     protected function transitionWorkflow(WorkflowEntryInterface $entry, $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, &$transientVars, $inputs, PropertySetInterface $ps)
     {
@@ -277,7 +279,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $i = 1;
 
                 foreach ($joinSteps as  $currentStep) {
-                    if ($currentStep->getId() !== $step->getId() && !$historySteps->contains($currentStep)) {
+                    if (!$historySteps->contains($currentStep) && $currentStep->getId() !== $step->getId() ) {
                         $store->moveToHistory($step);
                     }
 
@@ -591,7 +593,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
     /**
-     * @fixme Реализовать
+     *
      *
      * Perform an action on the specified workflow instance.
      * @param integer $id The workflow instance id.
@@ -600,11 +602,121 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InvalidInputException if a validator is specified and an input is invalid.
      * @throws WorkflowException if the action is invalid for the specified workflow
      * instance's current state.
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     * @throws \OldTown\Workflow\Exception\InvalidActionException
+     * @throws \OldTown\Workflow\Exception\InvalidEntryStateException
      */
     public function doAction($id, $actionId, array $inputs = [])
     {
+        $store = $this->getPersistence();
+        $entry = $store->findEntry($id);
+
+        if (WorkflowEntryInterface::ACTIVATED !== $entry->getState()) {
+            return;
+        }
+
+        $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+        $currentSteps = $store->findCurrentSteps($id);
+        $action = null;
+
+        $ps = $store->getPropertySet($id);
+        $transientVars = [];
+
+        $transientVars = array_merge($transientVars, $inputs);
+
+        $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $actionId, $currentSteps, $ps );
+
+
+        $validAction = false;
+
+        foreach ($wf->getGlobalActions() as $actionDesc) {
+            if ($actionId === $actionDesc->getId()) {
+                $action = $actionDesc;
+
+                if ($this->isActionAvailable($action, $transientVars, $ps, 0)) {
+                    $validAction = true;
+                }
+            }
+        }
+
+
+        foreach ($currentSteps as $step) {
+            $s = $wf->getStep($step->getId());
+
+            foreach ($s->getActions() as $actionDesc) {
+                if ($actionId === $actionDesc->getId()) {
+                    $action = $actionDesc;
+
+                    if ($this->isActionAvailable($action, $transientVars, $ps, 0)) {
+                        $validAction = true;
+                    }
+                }
+            }
+        }
+
+
+        if (!$validAction) {
+            $errMsg = sprintf(
+                'Действие %s не прошло проверку',
+                $actionId
+            );
+            throw new InvalidActionException($errMsg);
+        }
+
+
+        try {
+            if ($this->transitionWorkflow($entry, $currentSteps, $store, $wf, $action, $transientVars, $inputs, $ps)) {
+                $this->checkImplicitFinish($action, $id);
+            }
+        } catch (WorkflowException $e) {
+            $this->context->setRollbackOnly();
+            throw $e;
+        }
     }
 
+    /**
+     * @param ActionDescriptor $action
+     * @param                  $id
+     *
+     * @return void
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     */
+    protected function checkImplicitFinish(ActionDescriptor $action, $id)
+    {
+        $store = $this->getPersistence();
+        $entry = $store->findEntry($id);
+
+        $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+        $currentSteps = $store->findCurrentSteps($id);
+
+        $isCompleted = $wf->getGlobalActions()->count() === 0;
+
+        foreach ($currentSteps as $step) {
+            if ($isCompleted) {
+                break;
+            }
+
+            $stepDes = $wf->getStep($step->getStepId());
+
+            if ($stepDes->getActions()->count() > 0) {
+                $isCompleted = true;
+            }
+        }
+
+        if ($isCompleted) {
+            $this->completeEntry($action, $id, $currentSteps, WorkflowEntryInterface::COMPLETED);
+        }
+    }
 
     /**
      *

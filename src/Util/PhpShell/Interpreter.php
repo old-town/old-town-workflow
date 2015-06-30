@@ -286,7 +286,7 @@ class  Interpreter
             throw new RuntimeException($errMsg);
         }
 
-        $this->allowedCalls = array_combine(static::$defaultAllowedCalls, $this->defaultAllowedCalls);
+        $this->allowedCalls = array_combine(static::$defaultAllowedCalls, static::$defaultAllowedCalls);
     }
 
     /**
