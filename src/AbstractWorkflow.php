@@ -279,7 +279,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $i = 1;
 
                 foreach ($joinSteps as  $currentStep) {
-                    if (!$historySteps->contains($currentStep) && $currentStep->getId() !== $step->getId() ) {
+                    if (!$historySteps->contains($currentStep) && $currentStep->getId() !== $step->getId()) {
                         $store->moveToHistory($step);
                     }
 
@@ -630,7 +630,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         $transientVars = array_merge($transientVars, $inputs);
 
-        $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $actionId, $currentSteps, $ps );
+        $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $actionId, $currentSteps, $ps);
 
 
         $validAction = false;
