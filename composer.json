@@ -39,6 +39,7 @@
     "symfony/yaml": "2.1.13",
     "symfony/console": "~2.3",
     "symfony/config": "2.1.13",
+    "symfony/dependency-injection": "2.1.13",
     "symfony/stopwatch": "~2.5",
     "behat/behat": "2.5.4"
   },
