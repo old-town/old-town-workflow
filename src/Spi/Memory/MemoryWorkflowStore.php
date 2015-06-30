@@ -184,7 +184,7 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
      *
      * @return SimpleStep
      */
-    public function createCurrentStep($entryId, $stepId, $owner, DateTime $startDate, DateTime $dueDate, $status, array $previousIds = [])
+    public function createCurrentStep($entryId, $stepId, $owner, DateTime $startDate, DateTime $dueDate = null, $status, array $previousIds = [])
     {
         $id = static::$globalStepId++;
         $step = new SimpleStep($id, $entryId, $stepId, 0, $owner, $startDate, $dueDate, null, $status, $previousIds, null);

@@ -19,7 +19,7 @@ class SimpleStep implements StepInterface, Serializable
 {
     /**
      *
-     * @var DateTime
+     * @var DateTime|null
      */
     private $dueDate;
 
@@ -75,7 +75,7 @@ class SimpleStep implements StepInterface, Serializable
      */
     private $id;
 
-    public function __construct($id, $entryId, $stepId, $actionId, $owner, DateTime $startDate, DateTime $dueDate, DateTime $finishDate = null, $status, array $previousStepIds = [], $caller)
+    public function __construct($id, $entryId, $stepId, $actionId, $owner, DateTime $startDate, DateTime $dueDate = null, DateTime $finishDate = null, $status, array $previousStepIds = [], $caller)
     {
         $this->setId($id);
         $this->setEntryId($entryId);
@@ -149,7 +149,7 @@ class SimpleStep implements StepInterface, Serializable
      * @param DateTime $dueDate
      * @return $this
      */
-    public function setDueDate(DateTime $dueDate)
+    public function setDueDate(DateTime $dueDate = null)
     {
         $this->dueDate = $dueDate;
 
@@ -159,7 +159,7 @@ class SimpleStep implements StepInterface, Serializable
     /**
      * Возвращает период
      *
-     * @return DateTime
+     * @return DateTime|null
      */
     public function getDueDate()
     {

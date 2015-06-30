@@ -113,7 +113,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $this->stateCache = null;
 
         $step = $this->getCurrentStep($wf, $action->getId(), $currentSteps, $transientVars, $ps);
-        $stepId = $step->getId();
 
         $validators = $action->getValidators();
         if ($validators->count() > 0) {
@@ -122,7 +121,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
 
         if (null !== $step) {
-            $stepPostFunctions = $wf->getStep($stepId)->getPostFunctions();
+            $stepPostFunctions = $wf->getStep($step->getStepId())->getPostFunctions();
             foreach ($stepPostFunctions as $function) {
                 $this->executeFunction($function, $transientVars, $ps);
             }
@@ -135,7 +134,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $theResults = [];
         $theResults[0] = new ResultDescriptor();
 
-        $currentStepId = null !== $step ? $stepId  : -1;
+        $currentStepId = null !== $step ? $step->getStepId()  : -1;
         foreach ($conditionalResults as $conditionalResult) {
             if ($this->passesConditions(null, $conditionalResult->getConditions(), $transientVars, $ps, $currentStepId)) {
                 $theResults[0] = $conditionalResult;
@@ -213,7 +212,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                     $previousIds = [];
 
                     if (null !== $step) {
-                        $previousIds[] = $stepId;
+                        $previousIds[] = $step->getStepId();
                     }
 
                     $this->createNewCurrentStep($resultDescriptor, $entry, $store, $action->getId(), $moveToHistoryStep, $previousIds, $transientVars, $ps);
@@ -301,7 +300,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $previousIds = [];
 
             if (null !== $step) {
-                $previousIds[] = $stepId;
+                $previousIds[] = $step->getStepId();
             }
 
             if (!$action->isFinish()) {
@@ -489,7 +488,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         WorkflowEntryInterface $entry,
         WorkflowStoreInterface $store,
         $actionId,
-        StepInterface $currentStep,
+        StepInterface $currentStep = null,
         array $previousIds = [],
         array &$transientVars = [],
         PropertySetInterface $ps

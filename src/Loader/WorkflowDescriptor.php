@@ -477,7 +477,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      */
     public function getStep($id)
     {
-        if (is_numeric($id)) {
+        if (!is_numeric($id)) {
             $errMsg = 'Аргумент должен быть числом';
             throw new ArgumentNotNumericException($errMsg);
         }
