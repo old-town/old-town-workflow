@@ -7,6 +7,7 @@ namespace OldTown\Workflow;
 
 use OldTown\Log\LogFactory;
 use OldTown\PropertySet\PropertySetInterface;
+use OldTown\PropertySet\PropertySetManager;
 use OldTown\Workflow\Config\ConfigurationInterface;
 use OldTown\Workflow\Config\DefaultConfiguration;
 use OldTown\Workflow\Exception\FactoryException;
@@ -27,6 +28,7 @@ use OldTown\Workflow\Loader\ResultDescriptor;
 use OldTown\Workflow\Loader\ValidatorDescriptor;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
+use OldTown\Workflow\Spi\SimpleWorkflowEntry;
 use OldTown\Workflow\Spi\StepInterface;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
@@ -57,7 +59,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @var array
      */
-    private $stateCache = null;
+    private $stateCache;
 
     /**
      * @var TypeResolver
@@ -391,7 +393,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             foreach ($currentSteps as $step) {
                 $availableAutoActionsForStep = $this->getAvailableAutoActionsForStep($wf, $step, $transientVars, $ps);
-                $l = array_merge($l, $availableAutoActionsForStep);
+                foreach ($availableAutoActionsForStep as $v) {
+                    $l[] = $v;
+                }
+                //$l = array_merge($l, $availableAutoActionsForStep);
             }
 
             $l = array_unique($l);
@@ -418,7 +423,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    protected function getAvailableAutoActionsForStep(WorkflowDescriptor $wf, StepInterface $step, array &$transientVars = [], PropertySetInterface $ps)
+    protected function getAvailableAutoActionsForStep(WorkflowDescriptor $wf, StepInterface $step, array &$transientVars, PropertySetInterface $ps)
     {
         $l = [];
         $s = $wf->getStep($step->getStepId());
@@ -497,7 +502,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $actionId,
         StepInterface $currentStep = null,
         array $previousIds = [],
-        array &$transientVars = [],
+        array &$transientVars,
         PropertySetInterface $ps
     ) {
         try {
@@ -750,6 +755,9 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                     }
                     break;
                 }
+
+                //@TODO Разобраться с бизнес логикой. Может быть нужно добавить break
+                /** @noinspection PhpMissingBreakStatementInspection */
                 case WorkflowEntryInterface::CREATED: {
                     $result = false;
                 }
@@ -876,7 +884,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function executeFunction(FunctionDescriptor $function, array &$transientVars = [], PropertySetInterface $ps)
+    protected function executeFunction(FunctionDescriptor $function, array &$transientVars, PropertySetInterface $ps)
     {
         if (null !== $function) {
             $type = $function->getType();
@@ -916,7 +924,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, array  &$transientVars = [], PropertySetInterface $ps)
+    protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, array  &$transientVars, PropertySetInterface $ps)
     {
         if ($validatorsStorage instanceof Traversable) {
             $validators = [];
@@ -926,7 +934,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         } elseif (is_array($validatorsStorage)) {
             $validators = $validatorsStorage;
         } else {
-            $errMsg = 'Validators должен быть массивом, либо реализовывать интерфейс Traversable';
+            $errMsg = sprintf(
+                'Validators должен быть массивом, либо реализовывать интерфейс Traversable. EntryId: %s',
+                $entry->getId()
+            );
             throw new InvalidArgumentException($errMsg);
         }
 
@@ -986,7 +997,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    protected function getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, array $currentSteps = [], array &$transientVars = [], PropertySetInterface $ps)
+    protected function getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, array $currentSteps = [], array &$transientVars, PropertySetInterface $ps)
     {
         if (1 === count($currentSteps)) {
             reset($currentSteps);
@@ -1154,10 +1165,50 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param array|null $inputs
      *
      * @return bool
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function canInitialize($workflowName, $initialAction, array $inputs = null)
     {
-        // TODO: Implement canInitialize() method.
+        $mockWorkflowName = $workflowName;
+        $mockEntry = new SimpleWorkflowEntry(0, $mockWorkflowName, WorkflowEntryInterface::CREATED);
+
+        try {
+            $ps = PropertySetManager::getInstance('memory', null);
+        } catch (\Exception $e) {
+            $errMsg = sprintf('Ошибка при создание PropertySer: %s', $e->getMessage());
+            throw new InternalWorkflowException($errMsg);
+        }
+
+        $transientVars = [];
+
+        if (null !== $inputs) {
+            $transientVars = array_merge($transientVars, $inputs);
+        }
+
+        try {
+            $this->populateTransientMap($mockEntry, $transientVars, [], $initialAction, [], $ps);
+
+            $result = $this->canInitializeInternal($workflowName, $initialAction, $transientVars, $ps);
+
+            return $result;
+        } catch (InvalidActionException $e) {
+            $this->getLog()->error($e->getMessage(), [$e]);
+
+            return false;
+        } catch (WorkflowException $e) {
+            $errMsg = sprintf(
+                'Ошибка при проверки canInitialize: %s',
+                $e->getMessage()
+            );
+            $this->getLog()->error($errMsg, [$e]);
+
+            return false;
+        }
+
     }
 
 
@@ -1178,7 +1229,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function canInitializeInternal($workflowName, $initialAction, array &$transientVars = null, PropertySetInterface $ps)
+    protected function canInitializeInternal($workflowName, $initialAction, array &$transientVars, PropertySetInterface $ps)
     {
         $wf = $this->getConfiguration()->getWorkflow($workflowName);
 
@@ -1217,7 +1268,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, array &$transientVars = [], PropertySetInterface $ps, $currentStepId)
+    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, array &$transientVars, PropertySetInterface $ps, $currentStepId)
     {
         if (null === $descriptor) {
             return true;
@@ -1242,7 +1293,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesConditions($conditionType, $conditionsStorage = null, array &$transientVars = [], PropertySetInterface $ps, $currentStepId)
+    protected function passesConditions($conditionType, $conditionsStorage = null, array &$transientVars, PropertySetInterface $ps, $currentStepId)
     {
         if (null === $conditionsStorage) {
             return true;
@@ -1304,7 +1355,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesCondition(ConditionDescriptor $conditionDesc, array &$transientVars = [], PropertySetInterface $ps, $currentStepId)
+    protected function passesCondition(ConditionDescriptor $conditionDesc, array &$transientVars, PropertySetInterface $ps, $currentStepId)
     {
         $type = $conditionDesc->getType();
 
@@ -1533,20 +1584,217 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
         }
     }
-########################################################################################################################
-#Методы заглушки, при портирование заменять на реализацию ##############################################################
-########################################################################################################################
 
 
+    /**
+     * Executes a special trigger-function using the context of the given workflow instance id.
+     * Note that this method is exposed for Quartz trigger jobs, user code should never call it.
+     * @param integer $id The workflow instance id
+     * @param integer $triggerId The id of the special trigger-function
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     */
+    public function executeTriggerFunction($id, $triggerId)
+    {
+        $store = $this->getPersistence();
+        $entry = $store->findEntry($id);
+
+        if (null === $entry) {
+            $errMsg = sprintf(
+                'Ошибка при выполнение тригера # %s для несуществующего экземпляра workflow id# %s',
+                $triggerId,
+                $id
+            );
+            $this->getLog()->warning($errMsg);
+            return;
+        }
+
+        $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+        $ps = $store->getPropertySet($id);
+        $transientVars = [];
+
+        $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), null, $store->findCurrentSteps($id), $ps);
+
+        $this->executeFunction($wf->getTriggerFunction($triggerId), $transientVars, $ps);
+    }
+
+    /**
+     * @param $id
+     * @param $inputs
+     *
+     * @return array
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\FactoryException
+     */
+    public function getAvailableActions($id, $inputs)
+    {
+        try {
+            $store = $this->getPersistence();
+            $entry = $store->findEntry($id);
+
+            if (null === $entry) {
+                $errMsg = sprintf(
+                    'Не существует экземпляра workflow c id %s',
+                    $id
+                );
+                throw new InvalidArgumentException($errMsg);
+            }
+
+            if (WorkflowEntryInterface::ACTIVATED === $entry->getState()) {
+                return [];
+            }
+
+            $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+            if (null === $wf) {
+                $errMsg = sprintf(
+                    'Не существует workflow c именем %s',
+                    $entry->getWorkflowName()
+                );
+                throw new InvalidArgumentException($errMsg);
+            }
+
+            $l = [];
+            $ps = $store->getPropertySet($id);
+
+            $transientVars = is_array($inputs) || $inputs instanceof Traversable  ? $inputs : [];
+            $currentSteps = $store->findCurrentSteps($id);
+
+            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), 0, $currentSteps, $ps);
+
+            $globalActions = $wf->getGlobalActions();
+
+            foreach ($globalActions as $action) {
+                $restriction = $action->getRestriction();
+                $conditions = null;
+
+                $transientVars['actionId'] = $action->getId();
+
+                if (null !== $restriction) {
+                    $conditions = $restriction->getConditionsDescriptor();
+                }
+
+                $flag = $this->passesConditions($wf->getGlobalActions(), $transientVars, $ps, 0) && $this->passesConditions($conditions, $transientVars, $ps, 0);
+                if ($flag) {
+                    $l[] = $action->getId();
+                }
+            }
+
+
+            foreach ($currentSteps as $step) {
+                $data = $this->getAvailableActionsForStep($wf, $step, $transientVars, $ps);
+                foreach ($data as $v) {
+                    $l[] = $v;
+                }
+            }
+            $actions = array_unique($l);
+
+            return $actions;
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка проверки доступных действий';
+            $this->getLog()->error($errMsg, [$e]);
+
+        }
+
+        return [];
+    }
+
+    /**
+     * @param WorkflowDescriptor   $wf
+     * @param StepInterface        $step
+     * @param array                $transientVars
+     * @param PropertySetInterface $ps
+     *
+     * @return array
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     */
+    protected function getAvailableActionsForStep(WorkflowDescriptor $wf, StepInterface $step, array &$transientVars, PropertySetInterface $ps)
+    {
+        $l = [];
+        $s = $wf->getStep($step->getStepId());
+
+        if (null === $s) {
+            $errMsg = sprintf(
+                'getAvailableActionsForStep вызван с не существующим id шага %s',
+                $step->getStepId()
+            );
+
+            $this->getLog()->warning($errMsg);
+
+            return $l;
+        }
+
+        $actions  = $s->getActions();
+
+        if (null === $actions || 0  === $actions->count()) {
+            return $l;
+        }
+
+        foreach ($actions as $action) {
+            $restriction = $action->getRestriction();
+            $conditions = null;
+
+            $transientVars['actionId'] = $action->getId();
+
+
+            if (null !== $restriction) {
+                $conditions = $restriction->getConditionsDescriptor();
+            }
+
+            $f = $this->passesConditions($wf->getGlobalConditions(), $transientVars, $ps, $s->getId())
+                 && $this->passesConditions($conditions, $transientVars, $ps, $s->getId());
+            if ($f) {
+                $l[] = $action->getId();
+            }
+        }
+
+        return $l;
+    }
+
+    /**
+     * @param ConfigurationInterface $configuration
+     *
+     * @return $this
+     */
+    public function setConfiguration(ConfigurationInterface $configuration)
+    {
+        $this->configuration = $configuration;
+
+        return $this;
+    }
 
     /**
      * Возвращает состояние для текущего экземпляра workflow
      *
      * @param integer $id id экземпляра workflow
      * @return integer id текущего состояния
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function getEntryState($id)
     {
+        try {
+            $store = $this->getPersistence();
+
+            $result = $store->findEntry($id)->getState();
+
+            return $result;
+        } catch (StoreException $e) {
+            $errMsg = sprintf(
+                'Ошибка при получение состояния экземпляра workflow c id# %s',
+                $id
+            );
+            $this->getLog($errMsg, [$e]);
+        }
+
+        return WorkflowEntryInterface::UNKNOWN;
     }
 
     /**
@@ -1554,28 +1802,154 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @param integer $id The workflow instance id.
      * @return StepInterface[] a List of Steps
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function getHistorySteps($id)
     {
+        try {
+            $store = $this->getPersistence();
+
+            $result = $store->findHistorySteps($id);
+
+            return $result;
+        } catch (StoreException $e) {
+            $errMsg = sprintf(
+                'Ошибка при получение истории шагов для экземпляра workflow c id# %s',
+                $id
+            );
+            $this->getLog($errMsg, [$e]);
+        }
+
+        return [];
     }
+
+    /**
+     * Настройки хранилища
+     *
+     * @return array
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     */
+    public function getPersistenceProperties()
+    {
+        $p = $this->getConfiguration()->getPersistenceArgs();
+
+        return $p;
+    }
+
 
     /**
      * Get the PropertySet for the specified workflow instance id.
      * @param integer $id The workflow instance id.
      * @return PropertySetInterface
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function getPropertySet($id)
     {
+        $ps = null;
+
+        try {
+            $ps = $this->getPersistence()->getPropertySet($id);
+        } catch (StoreException $e) {
+            $errMsg = sprintf(
+                'Ошибка при получение PropertySet для экземпляра workflow c id# %s',
+                $id
+            );
+            $this->getLog($errMsg, [$e]);
+        }
+
+        return $ps;
     }
+
+    /**
+     * @return \String[]
+     */
+    public function getWorkflowNames()
+    {
+        try {
+            $result =  $this->getConfiguration()->getWorkflowNames();
+            return $result;
+        } catch (FactoryException $e) {
+            $errMsg = 'Ошибка при получение имен workflow';
+            $this->getLog($errMsg, [$e]);
+        }
+
+        return [];
+    }
+
+    /**
+     * @param TypeResolver $typeResolver
+     *
+     * @return $this
+     */
+    public function setTypeResolver(TypeResolver $typeResolver)
+    {
+        $this->typeResolver = $typeResolver;
+
+        return $this;
+    }
+
 
     /**
      * Get a collection (Strings) of currently defined permissions for the specified workflow instance.
      * @param integer $id id the workflow instance id.
      * @param array $inputs inputs The inputs to the workflow instance.
      * @return array  A List of permissions specified currently (a permission is a string name).
+     *
      */
     public function getSecurityPermissions($id, array $inputs = [])
     {
+
+        try {
+            $store = $this->getPersistence();
+            $entry = $store->findEntry($id);
+            $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+            $ps = $store->getPropertySet($id);
+
+            $transientVars = is_array($inputs) || $inputs instanceof Traversable ? $inputs : [];
+            $currentSteps = $store->findCurrentSteps($id);
+
+            try {
+                $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), null, $currentSteps, $ps);
+            } catch (\Exception $e) {
+                $errMsg = sprintf(
+                    'Внутреннея ошибка: %s',
+                    $e->getMessage()
+                );
+                throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
+            }
+
+
+            $s = [];
+
+            foreach ($currentSteps as $step) {
+                $stepId = $step->getStepId();
+
+                $xmlStep = $wf->getStep($stepId);
+
+                $securities = $xmlStep->getPermissions();
+
+                foreach ($securities as $security) {
+                    $ConditionsDescriptor = $security->getRestriction()->getConditionsDescriptor();
+                    if (null !== $security->getRestriction() && $this->passesConditions($ConditionsDescriptor, $transientVars, $ps, $xmlStep->getId())) {
+                        $s[$security->getName()] = $security->getName();
+                    }
+                }
+            }
+
+            return $s;
+
+        } catch (\Exception $e) {
+            $errMsg = sprintf(
+                'Ошибка при получение информации о правах доступа для экземпляра workflow c id# %s',
+                $id
+            );
+            $this->getLog($errMsg, [$e]);
+        }
+
+        return [];
     }
 
 
@@ -1587,31 +1961,73 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getWorkflowName($id)
     {
+        try {
+            $store = $this->getPersistence();
+            $entry = $store->findEntry($id);
+
+            if (null !== $entry) {
+                return $entry->getWorkflowName();
+            }
+
+        } catch (FactoryException $e) {
+            $errMsg = sprintf(
+                'Ошибка при получение имен workflow для инстанса с id # %s',
+                $id
+            );
+            $this->getLog($errMsg, [$e]);
+        }
+
+        return null;
     }
-
-
-
-
 
     /**
-     * Executes a special trigger-function using the context of the given workflow instance id.
-     * Note that this method is exposed for Quartz trigger jobs, user code should never call it.
-     * @param integer $id The workflow instance id
-     * @param integer $triggerId The id of the special trigger-function
-     * @thrown WorkflowException
+     * Удаляет workflow
+     *
+     * @param string $workflowName
+     *
+     * @return bool
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    public function executeTriggerFunction($id, $triggerId)
+    public function removeWorkflowDescriptor($workflowName)
     {
+        $result = $this->getConfiguration()->removeWorkflow($workflowName);
+
+        return $result;
     }
+
+    /**
+     * @param                    $workflowName
+     * @param WorkflowDescriptor $descriptor
+     * @param                    $replace
+     *
+     * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     */
+    public function saveWorkflowDescriptor($workflowName, WorkflowDescriptor $descriptor, $replace)
+    {
+        $success = $this->getConfiguration()->saveWorkflow($workflowName, $descriptor, $replace);
+
+        return $success;
+    }
+
 
     /**
      * Query the workflow store for matching instances
      *
      * @param WorkflowExpressionQuery $query
-     * @throws WorkflowException
+     *
      * @return array
+     *
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\StoreException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+
      */
     public function query(WorkflowExpressionQuery $query)
     {
+        $result = $this->getPersistence()->query($query);
+
+        return $result;
     }
 }
