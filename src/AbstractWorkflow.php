@@ -1208,7 +1208,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             return false;
         }
-
     }
 
 
@@ -1701,7 +1700,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         } catch (\Exception $e) {
             $errMsg = 'Ошибка проверки доступных действий';
             $this->getLog()->error($errMsg, [$e]);
-
         }
 
         return [];
@@ -1900,7 +1898,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getSecurityPermissions($id, array $inputs = [])
     {
-
         try {
             $store = $this->getPersistence();
             $entry = $store->findEntry($id);
@@ -1940,7 +1937,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
 
             return $s;
-
         } catch (\Exception $e) {
             $errMsg = sprintf(
                 'Ошибка при получение информации о правах доступа для экземпляра workflow c id# %s',
@@ -1968,7 +1964,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             if (null !== $entry) {
                 return $entry->getWorkflowName();
             }
-
         } catch (FactoryException $e) {
             $errMsg = sprintf(
                 'Ошибка при получение имен workflow для инстанса с id # %s',
