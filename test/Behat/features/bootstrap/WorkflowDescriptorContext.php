@@ -18,7 +18,7 @@ use Behat\Behat\Context\BehatContext;
 /**
  * Features context.
  */
-class FeatureContext extends BehatContext
+class WorkflowDescriptorContext extends BehatContext
 {
     /**
      * Initializes context.

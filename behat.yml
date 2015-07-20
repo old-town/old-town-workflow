@@ -1,4 +1,8 @@
 default:
+    suites:
+        default:
+            contexts:
+                - WorkflowDescriptorContext
     paths:
         features: test/Behat/features
         bootstrap: test/Behat/features/bootstrap
