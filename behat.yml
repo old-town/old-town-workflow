@@ -1,8 +1,9 @@
 default:
+    autoload:
+        '': test/Behat/bootstrap/
     suites:
         default:
+            paths: [test/Behat/features]
             contexts:
-                - WorkflowDescriptorContext
-    paths:
-        features: test/Behat/features
-        bootstrap: test/Behat/features/bootstrap
+              - WorkflowDescriptorContext
+
