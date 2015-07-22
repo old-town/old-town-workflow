@@ -34,7 +34,6 @@ class Bootstrap
             static::initAutoloader();
             static::$flagInit = true;
         }
-
     }
 
 
