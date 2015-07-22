@@ -3,6 +3,7 @@
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use \OldTown\Workflow\Loader\AbstractDescriptor;
+use \Behat\Behat\Hook\Scope\AfterStepScope;
 
 /**
  * Defines application features from the specific context.
@@ -10,7 +11,6 @@ use \OldTown\Workflow\Loader\AbstractDescriptor;
 class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 {
     /**
-     * Неймспейс в котором расположенны дескрипторы workflow
      *
      * @var string
      */
@@ -42,10 +42,10 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * @Given Add RegisterDeskriptor the previous descriptor
+     * @Given Add RegisterDescriptor the previous descriptor
      * @throws \RuntimeException
      */
-    public function addRegisterdeskriptorThePreviousDescriptor()
+    public function addRegisterDescriptorThePreviousDescriptor()
     {
         $descriptor = $this->createDescriptorByName('RegisterDescriptor');
 
@@ -81,7 +81,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * Возвращает неймспейс в котором расположенны дескрипторы workflow
+     *
      *
      * @return string
      */
@@ -90,4 +90,12 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         return $this->workflowDescriptorNamespace;
     }
 
+    /** @AfterStep
+     * @param  $event
+     */
+    public function after(AfterStepScope $event)
+    {
+
+        die('dede');
+    }
 }

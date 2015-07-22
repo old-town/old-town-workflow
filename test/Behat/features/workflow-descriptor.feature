@@ -3,4 +3,4 @@ Feature:Workflow Descriptor
 
 Scenario: Create empty workflow
   Given Create WorkflowDescriptor
-    And Add RegisterDeskriptor the previous descriptor
+    And Add RegisterDescriptor the previous descriptor
