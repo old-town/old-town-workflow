@@ -40,7 +40,7 @@
     "fabpot/php-cs-fixer": "*@dev",
     "phpunit/phpunit": "*@dev",
     "zendframework/zend-loader": "*",
-    "satooshi/php-coveralls": "v1.0.0-alpha1",
+    "satooshi/php-coveralls": "dev-master",
     "behat/behat": "*@dev"
   },
   "autoload": {
