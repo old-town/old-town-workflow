@@ -20,4 +20,13 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     public function __construct()
     {
     }
+
+    /**
+     * @Given /Create workflow descriptor: -  "([^"]+)"/
+     *
+     */
+    public function createWorkflowDescriptorByName()
+    {
+
+    }
 }
