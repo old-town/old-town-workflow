@@ -2,8 +2,9 @@
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
-use \OldTown\Workflow\Loader\AbstractDescriptor;
-use \Behat\Behat\Hook\Scope\AfterStepScope;
+use OldTown\Workflow\Loader\AbstractDescriptor;
+use OldTown\Workflow\Loader\WriteXmlInterface;
+use Behat\Gherkin\Node\PyStringNode;
 
 /**
  * Defines application features from the specific context.
@@ -17,50 +18,49 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     protected $workflowDescriptorNamespace = 'OldTown\Workflow\Loader';
 
     /**
-     * Initializes context.
+     * @Given Create :nameDescriptor based on xml:
      *
-     * Every scenario gets its own context instance.
-     * You can also pass arbitrary arguments to the
-     * context constructor through behat.yml.
+     * @param string             $nameDescriptor
+     * @param PyStringNode $xml
+     *
+     * @throws RuntimeException
      */
-    public function __construct()
+    public function createDescriptorByNameBasedOnXml($nameDescriptor, PyStringNode $xml)
     {
+        try {
+            $xmlDoc = new \DOMDocument();
+            $xmlDoc->loadXML($xml->getRaw());
+
+            $descriptor = $this->factoryDescriptor($nameDescriptor, $xmlDoc->firstChild);
+
+
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+
+    /**
+     * Наймспейс в котором находятся дескрипторы Workflow
+     *
+     * @return string
+     */
+    public function getWorkflowDescriptorNamespace()
+    {
+        return $this->workflowDescriptorNamespace;
     }
 
     /**
-     * @Given Create WorkflowDescriptor
+     * Фабрика по созданию дескрипторов
      *
+     * @param string     $name
+     *
+     * @param DOMElement $element
      *
      * @return AbstractDescriptor
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
-    public function createWorkflowDescriptorByName()
-    {
-        $descriptor = $this->createDescriptorByName('WorkflowDescriptor');
-
-        return $descriptor;
-    }
-
-    /**
-     * @Given Add RegisterDescriptor the previous descriptor
-     * @throws \RuntimeException
-     */
-    public function addRegisterDescriptorThePreviousDescriptor()
-    {
-        $descriptor = $this->createDescriptorByName('RegisterDescriptor');
-
-        return $descriptor;
-    }
-
-    /**
-     *
-     *
-     * @param $name
-     *
-     * @return AbstractDescriptor
-     * @throws \RuntimeException
-     */
-    protected function createDescriptorByName($name)
+    protected function factoryDescriptor($name, DOMElement $element = null)
     {
         $ns = $this->getWorkflowDescriptorNamespace();
         $class = "{$ns}\\{$name}";
@@ -70,7 +70,14 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             throw new \RuntimeException($errMsg);
         }
 
-        $descriptor = new $class;
+        $r = new \ReflectionClass($class);
+        if (null === $element) {
+            $descriptor = $r->newInstance();
+        } else {
+            $descriptor = $r->newInstanceArgs([
+                $element
+            ]);
+        }
 
         if (!$descriptor instanceof AbstractDescriptor) {
             $errMsg = 'Descriptor not instance of AbstractDescriptor';
@@ -80,22 +87,4 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         return $descriptor;
     }
 
-    /**
-     *
-     *
-     * @return string
-     */
-    public function getWorkflowDescriptorNamespace()
-    {
-        return $this->workflowDescriptorNamespace;
-    }
-
-    /** @AfterStep
-     * @param  $event
-     */
-    public function after(AfterStepScope $event)
-    {
-
-        die('dede');
-    }
 }
