@@ -83,7 +83,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             );
 
             PHPUnit_Framework_Assert::assertEquals($expectedResult, $actualValue, $errMsg);
-
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -150,7 +149,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      */
     public function afterScenario()
     {
-        $this->currentScenario = null;;
+        $this->currentScenario = null;
     }
 
     /**
@@ -199,5 +198,4 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
         return $descriptor;
     }
-
 }
