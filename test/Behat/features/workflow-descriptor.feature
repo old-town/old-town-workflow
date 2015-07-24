@@ -1,8 +1,8 @@
 Feature:Workflow Descriptor
   test
 
-
-Scenario: Create empty workflow
+@workflowDescriptor
+Scenario: Create RegisterDescriptor the type of "class"
   Given Create "RegisterDescriptor" based on xml:
     """
         <register type="class" variable-name="log">
@@ -10,3 +10,6 @@ Scenario: Create empty workflow
             <arg name="addInstanceId">true</arg>
         </register>
     """
+  Then Call a method descriptor "getVariableName", I get the value of "log"
+    And Call a method descriptor "getType", I get the value of "class"
+
