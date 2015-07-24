@@ -9,6 +9,8 @@ use Behat\Gherkin\Node\ScenarioInterface;
 use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Tester\Result\ExecutedStepResult;
 use Behat\Gherkin\Node\TableNode;
+use OldTown\Workflow\Loader\WriteXmlInterface;
+
 
 /**
  * Defines application features from the specific context.
@@ -34,7 +36,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     protected $currentScenario;
 
     /**
-     * @Given Create :nameDescriptor based on xml:
+     * @Given Create descriptor :nameDescriptor based on xml:
      *
      * @param string       $nameDescriptor
      * @param PyStringNode $xml
@@ -62,6 +64,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             libxml_use_internal_errors($useXmlErrors);
             return $descriptor;
         } catch (\Exception $e) {
+            libxml_clear_errors();
             libxml_use_internal_errors($useXmlErrors);
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -87,8 +90,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
 
             $actualValue = $r->getMethod($nameMethod)->invoke($descriptor);
-
-
 
             $errMsg = sprintf(
                 "Bug with attribute of \"variable-name\". Expected value: %s. Actual value: %s",
@@ -131,8 +132,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
             $actualValue = $r->getMethod($nameMethod)->invokeArgs($descriptor, $args);
 
-
-
             $errMsg = sprintf(
                 "Bug with attribute of \"variable-name\". Expected value: %s. Actual value: %s",
                 $expectedResult,
@@ -140,6 +139,47 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             );
 
             PHPUnit_Framework_Assert::assertEquals($expectedResult, $actualValue, $errMsg);
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @Then I save to descriptor xml. Compare with xml:
+     * @param PyStringNode $expectedXml
+     */
+    public function iSaveToDescriptorXmlCompareWithXml(PyStringNode $expectedXml)
+    {
+
+        try {
+
+
+            $dom = new \DOMDocument();
+            $dom->encoding = 'UTF-8';
+            $dom->xmlVersion = '1.0';
+            $dom->formatOutput = true;
+
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!$descriptor instanceof WriteXmlInterface) {
+                $errMsg = 'Descriptor not implement WriteXmlInterface';
+                throw new \RuntimeException($errMsg);
+            }
+
+            $result = $descriptor->writeXml($dom);
+
+            if ($result instanceof \DOMDocument) {
+                $actualXml = $result->saveXML();
+            } elseif ($result instanceof \DOMElement) {
+                $actualXml = $result->ownerDocument->saveXML($result);
+            } else {
+                $errMsg = 'Incorrect result writeXml';
+                throw new \RuntimeException($errMsg);
+            }
+            $expectedXml = $expectedXml->getRaw();
+
+
+            PHPUnit_Framework_Assert::assertXmlStringEqualsXmlString($expectedXml, $actualXml);
+
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
