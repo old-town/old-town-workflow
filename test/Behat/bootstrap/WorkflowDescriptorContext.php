@@ -36,6 +36,22 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     protected $currentScenario;
 
     /**
+     * @Given Create descriptor :nameDescriptor
+     * @param $nameDescriptor
+     * @return AbstractDescriptor
+     */
+    public function createDescriptor($nameDescriptor)
+    {
+        try {
+            $descriptor = $this->factoryDescriptor($nameDescriptor);
+            return $descriptor;
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+
+    /**
      * @Given Create descriptor :nameDescriptor based on xml:
      *
      * @param string       $nameDescriptor
@@ -104,6 +120,38 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
+     * @When Call a method descriptor :nameMethod. The arguments of the method:
+     * @param $nameMethod
+     * @param TableNode $table
+     */
+    public function callAMethodDescriptorTheArgumentsOfTheMethod($nameMethod, TableNode $table)
+    {
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($nameMethod)) {
+                $errMsg = "Method {$nameMethod}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $rows = $table->getHash();
+            if (1 !== count($rows)) {
+                $errMsg = 'Incorrect arguments';
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $args = $rows[0];
+
+            $r->getMethod($nameMethod)->invokeArgs($descriptor, $args);
+
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+
+    /**
      * @Then Call a method descriptor :nameMethod, I get the value of :expectedResult. The arguments of the method:
      *
      * @param string    $nameMethod
@@ -150,10 +198,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      */
     public function iSaveToDescriptorXmlCompareWithXml(PyStringNode $expectedXml)
     {
-
         try {
-
-
             $dom = new \DOMDocument();
             $dom->encoding = 'UTF-8';
             $dom->xmlVersion = '1.0';

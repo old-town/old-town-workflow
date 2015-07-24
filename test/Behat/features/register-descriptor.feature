@@ -51,3 +51,12 @@ Scenario: Create RegisterDescriptor the type of "phpshell"
         <arg name="script"><![CDATA[echo 'test';]]></arg>
       </register>
   """
+
+@workflowDescriptor
+Scenario: Create RegisterDescriptor.
+    Test variable-name attribute
+  Given Create descriptor "RegisterDescriptor"
+  When Call a method descriptor "setVariableName". The arguments of the method:
+    |variableName|
+    |test-variable-name|
+  Then Call a method descriptor "getVariableName", I get the value of "test-variable-name"
