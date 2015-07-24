@@ -37,9 +37,9 @@
   },
   "require-dev": {
     "ext-mbstring": "*",
-    "fabpot/php-cs-fixer": "*@dev",
-    "phpunit/phpunit": "*@dev",
-    "zendframework/zend-loader": "*",
+    "fabpot/php-cs-fixer": "1.9.1",
+    "phpunit/phpunit": "4.7.7",
+    "zendframework/zend-loader": "2.5.1",
     "satooshi/php-coveralls": "dev-master",
     "behat/behat": "~3.0",
     "vipsoft/code-coverage-extension": "~3@dev"
