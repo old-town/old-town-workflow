@@ -8,6 +8,7 @@ use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Gherkin\Node\ScenarioInterface;
 use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Tester\Result\ExecutedStepResult;
+use Behat\Gherkin\Node\TableNode;
 
 /**
  * Defines application features from the specific context.
@@ -39,16 +40,29 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      * @param PyStringNode $xml
      *
      * @return AbstractDescriptor
-     * @throws RuntimeException
+     * @throws \RuntimeException
      */
     public function createDescriptorByNameBasedOnXml($nameDescriptor, PyStringNode $xml)
     {
+        $useXmlErrors = libxml_use_internal_errors();
         try {
+            libxml_use_internal_errors(true);
+            libxml_clear_errors();
+
             $xmlDoc = new \DOMDocument();
             $xmlDoc->loadXML($xml->getRaw());
+
+            $libxmlGetLastError = libxml_get_last_error();
+            if ($libxmlGetLastError instanceof \LibXMLError) {
+                throw new \RuntimeException($libxmlGetLastError->message, $libxmlGetLastError->code);
+            }
+
             $descriptor = $this->factoryDescriptor($nameDescriptor, $xmlDoc->firstChild);
+
+            libxml_use_internal_errors($useXmlErrors);
             return $descriptor;
         } catch (\Exception $e) {
+            libxml_use_internal_errors($useXmlErrors);
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -73,6 +87,49 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
 
             $actualValue = $r->getMethod($nameMethod)->invoke($descriptor);
+
+
+
+            $errMsg = sprintf(
+                "Bug with attribute of \"variable-name\". Expected value: %s. Actual value: %s",
+                $expectedResult,
+                $actualValue
+            );
+
+            PHPUnit_Framework_Assert::assertEquals($expectedResult, $actualValue, $errMsg);
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @Then Call a method descriptor :nameMethod, I get the value of :expectedResult. The arguments of the method:
+     *
+     * @param string    $nameMethod
+     * @param string    $expectedResult
+     * @param TableNode $table
+     *
+     */
+    public function callAMethodDescriptorIGetTheValueOfTheArgumentsOfTheMethod($nameMethod, $expectedResult, TableNode $table)
+    {
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($nameMethod)) {
+                $errMsg = "Method {$nameMethod}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $rows = $table->getHash();
+            if (1 !== count($rows)) {
+                $errMsg = 'Incorrect arguments';
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $args = $rows[0];
+
+            $actualValue = $r->getMethod($nameMethod)->invokeArgs($descriptor, $args);
 
 
 
