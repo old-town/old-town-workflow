@@ -17,8 +17,8 @@ default:
               'src':
                 suffix: .php
       report:
-        format:   html
+        format:   clover
         options:
-          target: .reports/html
+          target: .reports/clover.xml
 
 
