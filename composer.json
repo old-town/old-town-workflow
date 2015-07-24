@@ -41,7 +41,8 @@
     "phpunit/phpunit": "*@dev",
     "zendframework/zend-loader": "*",
     "satooshi/php-coveralls": "dev-master",
-    "behat/behat": "~3.0"
+    "behat/behat": "~3.0",
+    "vipsoft/code-coverage-extension": "~3@dev"
   },
   "autoload": {
     "psr-4": {

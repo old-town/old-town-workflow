@@ -16,12 +16,10 @@ install:
 
 
 script:
-  - ./vendor/bin/phpunit
   - ./vendor/bin/behat --config behat.yml
   - ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file ./.php_cs
 
 after_script:
-  - ls .reports
   - ./vendor/bin/coveralls -v  --config .coveralls.yml
 
 notifications:

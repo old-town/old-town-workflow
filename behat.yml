@@ -1,9 +1,24 @@
 default:
-    autoload:
-        '': test/Behat/bootstrap/
-    suites:
-        default:
-            paths: [test/Behat/features]
-            contexts:
-              - WorkflowDescriptorContext
+  autoload:
+    '': test/Behat/bootstrap/
+  suites:
+    default:
+      paths: [test/Behat/features]
+      contexts:
+        - WorkflowDescriptorContext
+  extensions:
+    VIPSoft\CodeCoverageExtension\Extension:
+      drivers: [local]
+      filter:
+        whitelist:
+          addUncoveredFilesFromWhitelist: true
+          include:
+            directories:
+              'src':
+                suffix: .php
+      report:
+        format:   clover
+        options:
+          target: .reports/clover.xml
+
 
