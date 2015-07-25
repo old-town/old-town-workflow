@@ -144,7 +144,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             $args = $rows[0];
 
             $r->getMethod($nameMethod)->invokeArgs($descriptor, $args);
-
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -169,13 +168,11 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
 
             $r->getMethod($nameMethod)->invoke($descriptor);
-
         } catch (\Exception $e) {
             $actualException = $e;
         }
 
         PHPUnit_Framework_Assert::assertInstanceOf($expectedException, $actualException);
-
     }
 
     /**
@@ -251,7 +248,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
 
             PHPUnit_Framework_Assert::assertXmlStringEqualsXmlString($expectedXml, $actualXml);
-
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -277,7 +273,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
 
             $descriptor->writeXml($dom);
-
         } catch (\Exception $e) {
             $actualException = $e;
         }
