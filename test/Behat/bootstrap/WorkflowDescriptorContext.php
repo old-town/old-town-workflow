@@ -152,6 +152,33 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
 
     /**
+     * @Then Call a method descriptor :nameMethod. I expect to get an exception :expectedException
+     * @param string $nameMethod
+     * @param string $expectedException
+     */
+    public function callAMethodDescriptorIExpectToGetAnException($nameMethod, $expectedException)
+    {
+        $actualException = null;
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($nameMethod)) {
+                $errMsg = "Method {$nameMethod}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $r->getMethod($nameMethod)->invoke($descriptor);
+
+        } catch (\Exception $e) {
+            $actualException = $e;
+        }
+
+        PHPUnit_Framework_Assert::assertInstanceOf($expectedException, $actualException);
+
+    }
+
+    /**
      * @Then Call a method descriptor :nameMethod, I get the value of :expectedResult. The arguments of the method:
      *
      * @param string    $nameMethod
@@ -230,6 +257,33 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         }
     }
 
+    /**
+     * @Then I save to descriptor xml. I expect to get an exception :expectedException
+     * @param string $expectedException
+     */
+    public function iSaveToDescriptorXmlIExpectToGetAnException($expectedException)
+    {
+        $actualException = null;
+        try {
+            $dom = new \DOMDocument();
+            $dom->encoding = 'UTF-8';
+            $dom->xmlVersion = '1.0';
+            $dom->formatOutput = true;
+
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!$descriptor instanceof WriteXmlInterface) {
+                $errMsg = 'Descriptor not implement WriteXmlInterface';
+                throw new \RuntimeException($errMsg);
+            }
+
+            $descriptor->writeXml($dom);
+
+        } catch (\Exception $e) {
+            $actualException = $e;
+        }
+
+        PHPUnit_Framework_Assert::assertInstanceOf($expectedException, $actualException);
+    }
 
 
     /**

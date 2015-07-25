@@ -60,3 +60,27 @@ Scenario: Create RegisterDescriptor.
     |variableName|
     |test-variable-name|
   Then Call a method descriptor "getVariableName", I get the value of "test-variable-name"
+
+@workflowDescriptor
+Scenario: Create RegisterDescriptor.
+  Attempt to write without reference DOMDocument
+  Given Create descriptor "RegisterDescriptor"
+  Then Call a method descriptor "writeXml". I expect to get an exception "\OldTown\Workflow\Exception\InvalidWriteWorkflowException"
+
+@workflowDescriptor
+Scenario: Create RegisterDescriptor.
+  Unknown attribute - variable-name
+  Given Create descriptor "RegisterDescriptor"
+  When Call a method descriptor "setType". The arguments of the method:
+    |type|
+    |class|
+  Then I save to descriptor xml. I expect to get an exception "\OldTown\Workflow\Exception\InvalidDescriptorException"
+
+@workflowDescriptor
+Scenario: Create RegisterDescriptor.
+  Unknown attribute - type
+  Given Create descriptor "RegisterDescriptor"
+  When Call a method descriptor "setVariableName". The arguments of the method:
+    |variableName|
+    |test-variable-name|
+  Then I save to descriptor xml. I expect to get an exception "\OldTown\Workflow\Exception\InvalidDescriptorException"
