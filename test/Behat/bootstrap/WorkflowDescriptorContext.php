@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Test\Behat\Bootstrap;
 
-
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
 use OldTown\Workflow\Loader\AbstractDescriptor;
