@@ -3,10 +3,12 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
+namespace OldTown\Workflow\Test\Behat\Bootstrap;
+
 
 use Zend\Loader\AutoloaderFactory;
 use Zend\Loader\StandardAutoloader;
-
+use RuntimeException;
 
 error_reporting(E_ALL | E_STRICT);
 chdir(__DIR__);
@@ -73,6 +75,7 @@ class Bootstrap
                     'autoregister_zf' => true,
                     'namespaces' => [
                         'OldTown\Workflow' => __DIR__ . '/../../../../src/',
+                        'OldTown\\Workflow\\Test\Behat\\Bootstrap' => __DIR__,
                     ]
                 ]
             ]);
