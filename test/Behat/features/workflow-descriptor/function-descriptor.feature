@@ -55,3 +55,10 @@ Scenario: Create FunctionDescriptor.
   Attempt to write without reference DOMDocument
   Given Create descriptor "FunctionDescriptor"
   Then Call a method descriptor "writeXml". I expect to get an exception "\OldTown\Workflow\Exception\InvalidWriteWorkflowException"
+
+
+@workflowDescriptor
+Scenario: Create RegisterDescriptor.
+Unknown attribute - type
+  Given Create descriptor "FunctionDescriptor"
+  Then I save to descriptor xml. I expect to get an exception "\OldTown\Workflow\Exception\InvalidDescriptorException"
