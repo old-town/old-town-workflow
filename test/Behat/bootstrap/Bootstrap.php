@@ -79,6 +79,7 @@ class Bootstrap
                     ]
                 ]
             ]);
+            var_dump(['OldTown\\Workflow\\Test\Behat\\Bootstrap' => __DIR__]);
         } catch (\Exception $e) {
             $errMsg = 'Ошибка инициации автолоадеров';
             throw new RuntimeException($errMsg, $e->getCode(), $e);
