@@ -1,4 +1,10 @@
 <?php
+/**
+ * @link https://github.com/old-town/old-town-workflow
+ * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
+ */
+namespace OldTown\Workflow\Test\Behat\Bootstrap;
+
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
@@ -10,6 +16,9 @@ use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Tester\Result\ExecutedStepResult;
 use Behat\Gherkin\Node\TableNode;
 use OldTown\Workflow\Loader\WriteXmlInterface;
+use PHPUnit_Framework_Assert;
+use DOMElement;
+use RuntimeException;
 
 
 /**
