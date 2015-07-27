@@ -5,11 +5,11 @@ default:
     workflowDescriptors:
       paths: [test/Behat/features/workflow-descriptor]
       contexts:
-        - \OldTown\Workflow\Test\Behat\Bootstrap\WorkflowDescriptorContext
+        - WorkflowDescriptorContext
     workflowEngine:
       paths: [test/Behat/features/workflow-engine]
       contexts:
-        - \OldTown\Workflow\Test\Behat\Bootstrap\WorkflowDescriptorContext
+        - WorkflowDescriptorContext
   extensions:
     VIPSoft\CodeCoverageExtension\Extension:
       drivers: [local]

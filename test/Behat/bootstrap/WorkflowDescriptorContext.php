@@ -3,7 +3,6 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\Test\Behat\Bootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
@@ -15,9 +14,7 @@ use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Tester\Result\ExecutedStepResult;
 use Behat\Gherkin\Node\TableNode;
 use OldTown\Workflow\Loader\WriteXmlInterface;
-use PHPUnit_Framework_Assert;
-use DOMElement;
-use RuntimeException;
+
 
 
 /**
@@ -47,6 +44,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      * @Given Create descriptor :nameDescriptor
      * @param $nameDescriptor
      * @return AbstractDescriptor
+     *
+     * @throws \RuntimeException
      */
     public function createDescriptor($nameDescriptor)
     {
@@ -131,6 +130,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      * @When Call a method descriptor :nameMethod. The arguments of the method:
      * @param $nameMethod
      * @param TableNode $table
+     *
+     * @throws RuntimeException
      */
     public function callAMethodDescriptorTheArgumentsOfTheMethod($nameMethod, TableNode $table)
     {
@@ -190,6 +191,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      * @param string    $expectedResult
      * @param TableNode $table
      *
+     * @throws \RuntimeException
+     *
      */
     public function callAMethodDescriptorIGetTheValueOfTheArgumentsOfTheMethod($nameMethod, $expectedResult, TableNode $table)
     {
@@ -225,10 +228,14 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * @Then I save to descriptor xml. Compare with xml:
-     * @param PyStringNode $expectedXml
+     * @Then     I save to descriptor xml. Compare with xml:
+     *
+     * @param PyStringNode $expectedXmlNode
+     *
+     * @throws \RuntimeException
+     *
      */
-    public function iSaveToDescriptorXmlCompareWithXml(PyStringNode $expectedXml)
+    public function iSaveToDescriptorXmlCompareWithXml(PyStringNode $expectedXmlNode)
     {
         try {
             $dom = new \DOMDocument();
@@ -252,7 +259,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
                 $errMsg = 'Incorrect result writeXml';
                 throw new \RuntimeException($errMsg);
             }
-            $expectedXml = $expectedXml->getRaw();
+
+            $expectedXml = $expectedXmlNode->getRaw();
 
 
             PHPUnit_Framework_Assert::assertXmlStringEqualsXmlString($expectedXml, $actualXml);
