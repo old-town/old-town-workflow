@@ -146,7 +146,7 @@ class ConditionDescriptor extends AbstractDescriptor
      */
     public function flagUseCustomArgWriter($key, $value)
     {
-        $flag = 'php-eval' === $this->getType();
+        $flag = 'phpshell' === $this->getType();
 
         return $flag;
     }

@@ -115,7 +115,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             $actualValue = $r->getMethod($nameMethod)->invoke($descriptor);
 
             $errMsg = sprintf(
-                "Bug with attribute of \"variable-name\". Expected value: %s. Actual value: %s",
+                "Bug with attribute of \"%s\". Expected value: %s. Actual value: %s",
+                $nameMethod,
                 $expectedResult,
                 $actualValue
             );
@@ -124,6 +125,67 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    /**
+     * @Transform /^\(.+?\).+?$/
+     *
+     * @param $expectedResult
+     *
+     * @return mixed
+     * @throws \RuntimeException
+     */
+    public function intelligentTransformExpectedResult($expectedResult)
+    {
+        $outputArray = [];
+        preg_match_all('/^\((.+?)\)(.+?)$/', $expectedResult, $outputArray);
+
+
+        if (3 !== count($outputArray)) {
+            return $expectedResult;
+        }
+
+        if (!(is_array($outputArray[1]) && 1 === count($outputArray[1]))) {
+            return $expectedResult;
+        }
+
+
+        if (!(is_array($outputArray[2]) && 1 === count($outputArray[2]))) {
+            return $expectedResult;
+        }
+
+        $originalType = $outputArray[1][0];
+        $type = strtolower($originalType);
+
+        $value = $outputArray[2][0];
+
+        $result = $value;
+        switch ($type) {
+            case 'boolean':
+            case 'bool': {
+                $prepareValue = trim($result);
+                $prepareValue = strtolower($prepareValue);
+
+                $falseStrings = [
+                    '' => '',
+                    'false'=> 'false',
+                    '0'=> '0',
+                ];
+
+                $result = !array_key_exists($prepareValue, $falseStrings);
+
+                break;
+            }
+            case 'null': {
+                $result = '(null)null' === $expectedResult ? null : $expectedResult;
+                break;
+            }
+            default: {
+
+            }
+        }
+
+        return $result;
     }
 
     /**
