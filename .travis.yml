@@ -16,7 +16,7 @@ install:
 
 
 script:
-  - ./vendor/bin/behat --config behat.yml
+  - ./vendor/bin/behat --config=behat.yml  --format=progress
   - ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file ./.php_cs
 
 after_script:
