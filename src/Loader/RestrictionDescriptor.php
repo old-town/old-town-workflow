@@ -75,25 +75,6 @@ class RestrictionDescriptor extends AbstractDescriptor implements ValidateDescri
         return $this->conditions->current();
     }
 
-
-    /**
-     * @param ConditionsDescriptor $descriptor
-     *
-     * @return $this
-     */
-    public function setConditionsDescriptor(ConditionsDescriptor $descriptor)
-    {
-        if (1 ===  $this->conditions->count()) {
-            $this->conditions->rewind();
-            $currentObj = $this->conditions->current();
-            $this->conditions->detach($currentObj);
-            $this->conditions->attach($descriptor);
-        } else {
-            $this->conditions->attach($descriptor);
-        }
-        return $this;
-    }
-
     /**
      * Валидация дескриптора
      *

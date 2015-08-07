@@ -186,7 +186,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
             case '\\domdocument':
             case 'domdocument': {
-                if ('(DOMDocument)domDocument ' === $expectedResult) {
+                if ('(DOMDocument)domDocument' === $expectedResult) {
                     $result = new \DOMDocument();
                 }
 
@@ -294,7 +294,13 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
             $args = $rows[0];
 
-            $actualValue = $r->getMethod($nameMethod)->invokeArgs($descriptor, $args);
+            $transformArg = [];
+            foreach ($args as $index => $arg) {
+                $transformArg[$index] = $this->intelligentTransformArgument($arg);
+            }
+
+
+            $actualValue = $r->getMethod($nameMethod)->invokeArgs($descriptor, $transformArg);
 
             $errMsg = sprintf(
                 "Bug with attribute of \"variable-name\". Expected value: %s. Actual value: %s",
@@ -378,11 +384,40 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
+     * @Then I save to descriptor xml. I expect to get an exception message :expectedException
+     *
+     * @param string $expectedException
+     */
+    public function iSaveToDescriptorXmlIExpectToGetAnExceptionMessage($expectedExceptionMessage)
+    {
+        $actualExceptionMessage = null;
+        try {
+            $dom = new \DOMDocument();
+            $dom->encoding = 'UTF-8';
+            $dom->xmlVersion = '1.0';
+            $dom->formatOutput = true;
+
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!$descriptor instanceof WriteXmlInterface) {
+                $errMsg = 'Descriptor not implement WriteXmlInterface';
+                throw new \RuntimeException($errMsg);
+            }
+
+            $descriptor->writeXml($dom);
+        } catch (\Exception $e) {
+            $actualExceptionMessage = $e->getMessage();
+        }
+
+        PHPUnit_Framework_Assert::assertEquals($expectedExceptionMessage, $actualExceptionMessage);
+    }
+
+
+
+    /**
      * @Then I validated descriptor. I expect to get an exception message :expectedExceptionMessage
      *
      * @param $expectedExceptionMessage
      *
-     * @throws PendingException
      */
     public function iValidatedDescriptorIExpectToGetAnExceptionMessage($expectedExceptionMessage)
     {
