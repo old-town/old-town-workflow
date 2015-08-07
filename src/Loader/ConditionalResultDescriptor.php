@@ -81,6 +81,7 @@ class ConditionalResultDescriptor extends ResultDescriptor
         $desc = null;
         $sName = '';
 
+        //action
         $parent = $this->getParent();
         if (!$parent instanceof AbstractDescriptor) {
             $errMsg = sprintf(
@@ -90,7 +91,8 @@ class ConditionalResultDescriptor extends ResultDescriptor
             throw new InvalidWorkflowDescriptorException($errMsg);
         }
 
-        $actionDesc = $this->getParent();
+        //step
+        $actionDesc = $parent->getParent();
         if (null !== $actionDesc) {
             $actionDescParent = $actionDesc->getParent();
             if (!$actionDescParent instanceof WorkflowDescriptor) {

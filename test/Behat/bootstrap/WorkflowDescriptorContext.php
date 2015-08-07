@@ -1,6 +1,6 @@
 <?php
 /**
- * @link https://github.com/old-town/old-town-workflow
+ * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
 
@@ -14,7 +14,6 @@ use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Tester\Result\ExecutedStepResult;
 use Behat\Gherkin\Node\TableNode;
 use OldTown\Workflow\Loader\WriteXmlInterface;
-
 
 
 /**
@@ -42,7 +41,9 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
     /**
      * @Given Create descriptor :nameDescriptor
+     *
      * @param $nameDescriptor
+     *
      * @return AbstractDescriptor
      *
      * @throws \RuntimeException
@@ -51,6 +52,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     {
         try {
             $descriptor = $this->factoryDescriptor($nameDescriptor);
+
             return $descriptor;
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
@@ -85,6 +87,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             $descriptor = $this->factoryDescriptor($nameDescriptor, $xmlDoc->firstChild);
 
             libxml_use_internal_errors($useXmlErrors);
+
             return $descriptor;
         } catch (\Exception $e) {
             libxml_clear_errors();
@@ -127,6 +130,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         }
     }
 
+
     /**
      * @Transform /^\(.+?\).+?$/
      *
@@ -135,7 +139,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      * @return mixed
      * @throws \RuntimeException
      */
-    public function intelligentTransformExpectedResult($expectedResult)
+    public function intelligentTransformArgument($expectedResult)
     {
         $outputArray = [];
         preg_match_all('/^\((.+?)\)(.+?)$/', $expectedResult, $outputArray);
@@ -167,9 +171,9 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
                 $prepareValue = strtolower($prepareValue);
 
                 $falseStrings = [
-                    '' => '',
-                    'false'=> 'false',
-                    '0'=> '0',
+                    ''      => '',
+                    'false' => 'false',
+                    '0'     => '0',
                 ];
 
                 $result = !array_key_exists($prepareValue, $falseStrings);
@@ -178,6 +182,14 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
             case 'null': {
                 $result = '(null)null' === $expectedResult ? null : $expectedResult;
+                break;
+            }
+            case '\\domdocument':
+            case 'domdocument': {
+                if ('(DOMDocument)domDocument ' === $expectedResult) {
+                    $result = new \DOMDocument();
+                }
+
                 break;
             }
             default: {
@@ -190,7 +202,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
     /**
      * @When Call a method descriptor :nameMethod. The arguments of the method:
-     * @param $nameMethod
+     *
+     * @param           $nameMethod
      * @param TableNode $table
      *
      * @throws RuntimeException
@@ -214,7 +227,12 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
             $args = $rows[0];
 
-            $r->getMethod($nameMethod)->invokeArgs($descriptor, $args);
+            $transformArg = [];
+            foreach ($args as $index => $arg) {
+                $transformArg[$index] = $this->intelligentTransformArgument($arg);
+            }
+
+            $r->getMethod($nameMethod)->invokeArgs($descriptor, $transformArg);
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -223,6 +241,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
     /**
      * @Then Call a method descriptor :nameMethod. I expect to get an exception :expectedException
+     *
      * @param string $nameMethod
      * @param string $expectedException
      */
@@ -324,7 +343,6 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
             $expectedXml = $expectedXmlNode->getRaw();
 
-
             PHPUnit_Framework_Assert::assertXmlStringEqualsXmlString($expectedXml, $actualXml);
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
@@ -333,6 +351,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
     /**
      * @Then I save to descriptor xml. I expect to get an exception :expectedException
+     *
      * @param string $expectedException
      */
     public function iSaveToDescriptorXmlIExpectToGetAnException($expectedException)
@@ -351,6 +370,55 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
 
             $descriptor->writeXml($dom);
+        } catch (\Exception $e) {
+            $actualException = $e;
+        }
+
+        PHPUnit_Framework_Assert::assertInstanceOf($expectedException, $actualException);
+    }
+
+    /**
+     * @Then I validated descriptor. I expect to get an exception message :expectedExceptionMessage
+     *
+     * @param $expectedExceptionMessage
+     *
+     * @throws PendingException
+     */
+    public function iValidatedDescriptorIExpectToGetAnExceptionMessage($expectedExceptionMessage)
+    {
+        $actualExceptionMessage = null;
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!method_exists($descriptor, 'validate')) {
+                $errMsg = 'Descriptor does not support validation';
+                throw new \RuntimeException($errMsg);
+            }
+
+            call_user_func([$descriptor, 'validate']);
+        } catch (\Exception $e) {
+            $actualExceptionMessage = $e->getMessage();
+        }
+
+        PHPUnit_Framework_Assert::assertEquals($expectedExceptionMessage, $actualExceptionMessage);
+    }
+
+
+    /**
+     * @Then I validated descriptor. I expect to get an exception :expectedException
+     *
+     * @param string $expectedException
+     */
+    public function iValidatedDescriptorIExpectToGetAnException($expectedException)
+    {
+        $actualException = null;
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!method_exists($descriptor, 'validate')) {
+                $errMsg = 'Descriptor does not support validation';
+                throw new \RuntimeException($errMsg);
+            }
+
+            call_user_func([$descriptor, 'validate']);
         } catch (\Exception $e) {
             $actualException = $e;
         }
@@ -398,13 +466,14 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             $errMsg = 'Descriptor does not exist';
             throw new \RuntimeException($errMsg);
         }
-        return $this->lastCreatedDescriptor ;
-    }
 
+        return $this->lastCreatedDescriptor;
+    }
 
 
     /**
      * @BeforeScenario
+     *
      * @param BeforeScenarioScope $scope
      */
     public function beforeScenario(BeforeScenarioScope $scope)
@@ -466,5 +535,42 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         }
 
         return $descriptor;
+    }
+
+    /**
+     * @Given Get the descriptor using the method of :methodName
+     *
+     * @param $methodName
+     *
+     * @return AbstractDescriptor
+     * @throws RuntimeException
+     */
+    public function getTheDescriptorUsingTheMethodOf($methodName)
+    {
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!method_exists($descriptor, $methodName)) {
+                $errMsg = "Descriptor does not support method {$methodName}";
+                throw new \RuntimeException($errMsg);
+            }
+
+            $descriptors = call_user_func([$descriptor, $methodName]);
+
+            $targetDescriptor = $descriptors;
+            if ((is_array($descriptors) || $descriptors instanceof \Traversable) && 1 === count($descriptors)) {
+                $iterator = is_array($descriptors) ? $descriptors : iterator_to_array($descriptors);
+
+                $targetDescriptor = $iterator[0];
+            }
+
+            if (!$targetDescriptor instanceof AbstractDescriptor) {
+                $errMsg = 'Descriptor not instance of AbstractDescriptor';
+                throw new \RuntimeException($errMsg);
+            }
+
+            return $targetDescriptor;
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 }

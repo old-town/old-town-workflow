@@ -80,19 +80,6 @@ class ConditionsDescriptor extends AbstractDescriptor
     }
 
     /**
-     * @param SplObjectStorage $conditions
-     *
-     * @return $this
-     */
-    public function setConditions(SplObjectStorage $conditions)
-    {
-        $this->conditions = $conditions;
-
-        return $this;
-    }
-
-
-    /**
      * Создает DOMElement - эквивалентный состоянию дескриптора
      *
      * @param DOMDocument $dom
@@ -103,6 +90,7 @@ class ConditionsDescriptor extends AbstractDescriptor
     public function writeXml(DOMDocument $dom = null)
     {
         $countConditions = $this->getConditions()->count();
+
         if ($countConditions > 0) {
             $descriptor = $dom->createElement('conditions');
 
@@ -144,24 +132,24 @@ class ConditionsDescriptor extends AbstractDescriptor
         if ($countConditions === 0) {
             $desc = $this->getParent();
             if ($desc instanceof ConditionalResultDescriptor) {
-                $parentConditionalResult = $desc->getParent();
-                if (is_object($parentConditionalResult)) {
-                    if (method_exists($parentConditionalResult, 'getName')) {
-                        $from = call_user_func([$parentConditionalResult, 'getName']);
-                    } else {
-                        $from = get_class($parentConditionalResult);
-                    }
-                } else {
-                    $from = 'Unknown';
-                }
                 $destination = $desc->getDestination();
+
+                $parentConditionalResult = $desc->getParent();
+                $from = null;
+                if (method_exists($parentConditionalResult, 'getName')) {
+                    $from = call_user_func([$parentConditionalResult, 'getName']);
+                }
+                if (!$from) {
+                    $from = get_class($parentConditionalResult);
+                }
 
 
                 $errMsg = sprintf(
-                    'Результат условия от %s к %s должны иметь по крайней мере одну условие',
+                    'Действие %s ведущее на шаг %s, должно иметь не менее одного условия в блоке result',
                     $from,
                     $destination
                 );
+
                 throw new InvalidWorkflowDescriptorException($errMsg);
             }
         }
