@@ -61,19 +61,6 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
     }
 
     /**
-     * @param RestrictionDescriptor $restriction
-     *
-     * @return $this
-     */
-    public function setRestriction(RestrictionDescriptor $restriction)
-    {
-        $this->restriction = $restriction;
-
-        return $this;
-    }
-
-
-    /**
      * Создает DOMElement - эквивалентный состоянию дескриптора
      *
      * @param DOMDocument $dom
