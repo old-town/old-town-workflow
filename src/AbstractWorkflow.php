@@ -1789,7 +1789,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 'Ошибка при получение состояния экземпляра workflow c id# %s',
                 $id
             );
-            $this->getLog($errMsg, [$e]);
+            $this->getLog()->error($errMsg, [$e]);
         }
 
         return WorkflowEntryInterface::UNKNOWN;
@@ -1815,7 +1815,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 'Ошибка при получение истории шагов для экземпляра workflow c id# %s',
                 $id
             );
-            $this->getLog($errMsg, [$e]);
+            $this->getLog()->error($errMsg, [$e]);
         }
 
         return [];
@@ -1854,7 +1854,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 'Ошибка при получение PropertySet для экземпляра workflow c id# %s',
                 $id
             );
-            $this->getLog($errMsg, [$e]);
+            $this->getLog()->error($errMsg, [$e]);
         }
 
         return $ps;
@@ -1870,7 +1870,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             return $result;
         } catch (FactoryException $e) {
             $errMsg = 'Ошибка при получение имен workflow';
-            $this->getLog($errMsg, [$e]);
+            $this->getLog()->error($errMsg, [$e]);
         }
 
         return [];
@@ -1942,7 +1942,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 'Ошибка при получение информации о правах доступа для экземпляра workflow c id# %s',
                 $id
             );
-            $this->getLog($errMsg, [$e]);
+            $this->getLog()->error($errMsg, [$e]);
         }
 
         return [];
@@ -1969,7 +1969,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 'Ошибка при получение имен workflow для инстанса с id # %s',
                 $id
             );
-            $this->getLog($errMsg, [$e]);
+            $this->getLog()->error($errMsg, [$e]);
         }
 
         return null;
