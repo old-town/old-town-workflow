@@ -59,8 +59,7 @@ Feature:Restriction Descriptor
 
 
   @workflowDescriptor
-  Scenario: Create a descriptor from xml.
-  Validate save in xml descriptor
+  Scenario: Create a descriptor from xml. Test invalid name attribute.
     Given Create descriptor "PermissionDescriptor" based on xml:
       """
         <permission name="test-permission" />
@@ -69,3 +68,26 @@ Feature:Restriction Descriptor
       |name|
       |(null)null|
     When I save to descriptor xml. I expect to get an exception message "Некорректное значение для атрибута name"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml.
+  Validate save in xml descriptor
+    Given Create descriptor "PermissionDescriptor" based on xml:
+      """
+        <permission name="test-permission" />
+      """
+    When I save to descriptor xml. I expect to get an exception message "Некорректное значение для restriction"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Restriction element is empty. Test writeXml method.
+    Given Create descriptor "PermissionDescriptor" based on xml:
+      """
+        <permission name="test-permission">
+          <restrict-to>
+            <conditions type="AND" />
+          </restrict-to>
+        </permission>
+      """
+    When I save to descriptor xml. I expect to get an exception message "Некорректное значение сгенерированного xml для restriction"

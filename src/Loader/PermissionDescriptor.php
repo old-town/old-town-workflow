@@ -49,7 +49,9 @@ class PermissionDescriptor extends AbstractDescriptor implements Traits\NameInte
 
 
         $restrictTo = XMLUtil::getChildElement($permission, 'restrict-to');
-        $this->restriction = new RestrictionDescriptor($restrictTo);
+        if ($restrictTo instanceof DOMElement) {
+            $this->restriction = new RestrictionDescriptor($restrictTo);
+        }
     }
 
     /**
