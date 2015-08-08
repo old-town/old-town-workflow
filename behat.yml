@@ -1,13 +1,13 @@
 default:
   autoload:
-    '': test/Behat/bootstrap/
+    '': %paths.base%/test/Behat/bootstrap/
   suites:
     workflowDescriptors:
-      paths: [test/Behat/features/workflow-descriptor]
+      paths: [%paths.base%/test/Behat/features/workflow-descriptor]
       contexts:
         - WorkflowDescriptorContext
     workflowEngine:
-      paths: [test/Behat/features/workflow-engine]
+      paths: [%paths.base%/test/Behat/features/workflow-engine]
       contexts:
         - WorkflowDescriptorContext
   extensions:
@@ -23,12 +23,12 @@ default:
       report:
         format:   clover
         options:
-          target: .reports/clover.xml
+          target: %paths.base%/.reports/clover.xml
 log-coverage-html:
   extensions:
     VIPSoft\CodeCoverageExtension\Extension:
       report:
         format:   html
         options:
-          target: .reports/coverage-report-html
+          target: %paths.base%/.reports/coverage-report-html
 
