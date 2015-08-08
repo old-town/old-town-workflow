@@ -119,9 +119,11 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      */
     protected function init(DOMElement $result)
     {
-        $this->oldStatus = XmlUtil::getRequiredAttributeValue($result, 'old-status');
+        $oldStatus = XmlUtil::getRequiredAttributeValue($result, 'old-status');
+        $this->setOldStatus($oldStatus);
         if ($result->hasAttribute('status')) {
-            $this->status = XmlUtil::getRequiredAttributeValue($result, 'status');
+            $status = XmlUtil::getRequiredAttributeValue($result, 'status');
+            $this->setStatus($status);
         }
 
         $this->parseId($result, false);
