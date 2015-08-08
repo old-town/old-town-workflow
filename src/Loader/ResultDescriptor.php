@@ -153,7 +153,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
 
         if ($result->hasAttribute('display-name')) {
             $displayName = XmlUtil::getRequiredAttributeValue($result, 'display-name');
-            $this->setOwner($displayName);
+            $this->setDisplayName($displayName);
         }
 
         // set up validators -- OPTIONAL
@@ -520,15 +520,27 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
             }
         }
 
-        $postFunctionsElement = $this->printPostFunctions($dom);
-        if (null !== $postFunctionsElement) {
-            $descriptor->appendChild($postFunctionsElement);
+        $validators = $this->getValidators();
+        if ($validators->count() > 0) {
+            $validatorsDescriptor = $dom->createElement('validators');
+            $descriptor->appendChild($validatorsDescriptor);
+
+            foreach ($validators as $validator) {
+                $validatorElement = $validator->writeXml($dom);
+                $validatorsDescriptor->appendChild($validatorElement);
+            }
         }
 
         $preFunctionsElement = $this->printPreFunctions($dom);
         if (null !== $preFunctionsElement) {
             $descriptor->appendChild($preFunctionsElement);
         }
+
+        $postFunctionsElement = $this->printPostFunctions($dom);
+        if (null !== $postFunctionsElement) {
+            $descriptor->appendChild($postFunctionsElement);
+        }
+
         return $descriptor;
     }
 
