@@ -21,9 +21,9 @@ default:
               'src':
                 suffix: .php
       report:
-        format:   clover
+        format:   php
         options:
-          target: %paths.base%/.reports/clover.xml
+          target: %paths.base%/.reports/coverage/coverage-behat.cov
 log-coverage-html:
   extensions:
     VIPSoft\CodeCoverageExtension\Extension:

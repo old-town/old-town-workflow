@@ -39,6 +39,7 @@
     "ext-mbstring": "*",
     "fabpot/php-cs-fixer": "1.9.1",
     "phpunit/phpunit": "4.7.7",
+    "phpunit/phpcov": "2.0.1",
     "zendframework/zend-loader": "2.5.1",
     "satooshi/php-coveralls": "dev-master",
     "behat/behat": "~3.0",

@@ -16,10 +16,12 @@ install:
 
 
 script:
+  - ./vendor/bin/phpunit
   - ./vendor/bin/behat --config=behat.yml  --format=progress
   - ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file ./.php_cs
 
 after_script:
+  - ./vendor/bin/phpcov merge --clover .reports/clover.xml .reports/coverage
   - ./vendor/bin/coveralls -v  --config .coveralls.yml
 
 notifications:
