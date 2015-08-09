@@ -15,7 +15,6 @@ use \OldTown\Workflow\Loader\ResultDescriptor;
  */
 class ValidatorDescriptorTest extends TestCase
 {
-
     /**
      * Создание дескриптора функции без Dom элемента
      *
@@ -28,7 +27,4 @@ class ValidatorDescriptorTest extends TestCase
 
         $descriptor->validate();
     }
-
-
-
 }
