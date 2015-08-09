@@ -101,7 +101,9 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      */
     public function __construct(DOMElement $element = null)
     {
-        $this->validators = new SplObjectStorage();
+        $validators = new SplObjectStorage();
+        $this->setValidators($validators);
+
         $this->preFunctions = new SplObjectStorage();
         $this->postFunctions = new SplObjectStorage();
 
@@ -352,6 +354,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
             $parentName = $parent->getName();
             if ($displayName === $parentName) {
                 $this->displayName = null;
+                return $this;
             }
         }
         $this->displayName = $displayName;
@@ -372,7 +375,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      *
      * @return $this
      */
-    public function setValidators($validators)
+    public function setValidators(SplObjectStorage $validators)
     {
         $this->validators = $validators;
 

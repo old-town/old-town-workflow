@@ -91,3 +91,37 @@ Feature:Result Descriptor
     """
         <unconditional-result old-status="Finished" join="1"/>
     """
+
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Test set display-name attribute. A parent descriptor specified attribute "name"
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+        <action id="12" name="test-name">
+            <results>
+                <unconditional-result old-status="Finished" status="Queued"  step="1"/>
+            </results>
+        </action>
+    """
+      And Get the descriptor using the method of "getUnconditionalResult"
+    When Call a method descriptor "setDisplayName". The arguments of the method:
+      |displayName|
+      |test-name|
+    Then Call a method descriptor "getDisplayName", I get the value of "(null)null"
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Test set display-name attribute. A parent tag is not set attribute "name"
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+        <action id="12">
+            <results>
+                <unconditional-result old-status="Finished" status="Queued"  step="1"/>
+            </results>
+        </action>
+    """
+    And Get the descriptor using the method of "getUnconditionalResult"
+    When Call a method descriptor "setDisplayName". The arguments of the method:
+      |displayName|
+      |test-name|
+    Then Call a method descriptor "getDisplayName", I get the value of "test-name"
