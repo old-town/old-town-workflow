@@ -22,7 +22,7 @@ script:
 
 after_script:
   - ./vendor/bin/phpcov merge --clover .reports/clover.xml .reports/coverage
-  - ./vendor/bin/coveralls -v  --quiet --config .coveralls.yml
+  - ./vendor/bin/coveralls -v --config .coveralls.yml
 
 notifications:
   email:
