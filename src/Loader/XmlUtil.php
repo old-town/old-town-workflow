@@ -48,7 +48,13 @@ abstract class XmlUtil
             $list = [];
 
             for ($i = 0; $i < $listElements->length; $i++) {
-                $list[] = $listElements->item($i);
+                $currentItem = $listElements->item($i);
+
+                if (!$parent->isSameNode($currentItem->parentNode)) {
+                    continue;
+                }
+
+                $list[] = $currentItem;
             }
 
             return $list;

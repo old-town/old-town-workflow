@@ -263,15 +263,16 @@ class ConditionalResultDescriptor extends ResultDescriptor
             }
         }
 
+        $preFunctionsElement = $this->printPreFunctions($dom);
+        if (null !== $preFunctionsElement) {
+            $descriptor->appendChild($preFunctionsElement);
+        }
+
         $postFunctionsElement = $this->printPostFunctions($dom);
         if (null !== $postFunctionsElement) {
             $descriptor->appendChild($postFunctionsElement);
         }
 
-        $preFunctionsElement = $this->printPreFunctions($dom);
-        if (null !== $preFunctionsElement) {
-            $descriptor->appendChild($preFunctionsElement);
-        }
         return $descriptor;
     }
 }
