@@ -22,6 +22,5 @@ class ValidatorDescriptorTest extends TestCase
      */
     public function testValidate()
     {
-
     }
 }
