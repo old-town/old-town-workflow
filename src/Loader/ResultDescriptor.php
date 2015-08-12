@@ -57,7 +57,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
     /**
      * @var integer
      */
-    protected $step = 0;
+    protected $step;
 
     /**
      * @var bool
@@ -213,7 +213,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
      */
     public function setOldStatus($oldStatus)
     {
-        $this->oldStatus = (string)$oldStatus;
+        $this->oldStatus = $oldStatus;
 
         return $this;
     }
@@ -414,7 +414,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
                 try {
                     $functionElement = $function->writeXml($dom);
                 } catch (\Exception $e) {
-                    $errMsg  = 'Ошибка сохранения workflow';
+                    $errMsg  = 'Ошибка сохранения workflow. Ошибка в post-function';
                     throw new InvalidWriteWorkflowException($errMsg, $e->getCode(), $e);
                 }
 
@@ -444,7 +444,7 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
                 try {
                     $functionElement = $function->writeXml($dom);
                 } catch (\Exception $e) {
-                    $errMsg  = 'Ошибка сохранения workflow';
+                    $errMsg  = 'Ошибка сохранения workflow. Ошибка в pre-function';
                     throw new InvalidWriteWorkflowException($errMsg, $e->getCode(), $e);
                 }
                 $preFunctionsElements->appendChild($functionElement);
@@ -570,22 +570,22 @@ class ResultDescriptor extends AbstractDescriptor implements ValidateDescriptorI
         $join = $this->getJoin();
 
         $parent = $this->getParent();
-        if ((0 === $split) && (0 === $join) && !($parent instanceof ActionDescriptor && ($parent->isFinish()))) {
+        if ((null === $split) && (null === $join) && !($parent instanceof ActionDescriptor && ($parent->isFinish()))) {
             $errMsg = '';
             $id = (integer)$this->getId();
-            if ($id > 0) {
-                $errMsg .= sprintf('#%s', $id);
+            if (is_numeric($id)) {
+                $errMsg .= sprintf('#%s:', $id);
             }
-            $errMsg .= 'Не имеет ни split ни join вложенных дескрипторов';
+            $errMsg .= 'Если не указано значение атрибутов split или join, необходимо указать';
 
-            if ($this->hasStep) {
-                $errMsg .= ' для следующего шага';
+            if (!$this->hasStep) {
+                $errMsg .= ' id следующего шага';
                 throw new InvalidWorkflowDescriptorException($errMsg);
             }
 
             $status = $this->getStatus();
             if (!$status) {
-                $errMsg .= ' для статуса';
+                $errMsg .= ' статус';
                 throw new InvalidWorkflowDescriptorException($errMsg);
             }
         }
