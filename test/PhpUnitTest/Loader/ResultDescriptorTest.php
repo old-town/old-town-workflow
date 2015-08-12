@@ -6,7 +6,6 @@
 namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use PHPUnit_Framework_TestCase as TestCase;
-use \OldTown\Workflow\Loader\ResultDescriptor;
 
 /**
  * Class ValidatorDescriptorTest
@@ -23,8 +22,6 @@ class ValidatorDescriptorTest extends TestCase
      */
     public function testValidate()
     {
-        $descriptor = new ResultDescriptor();
 
-        $descriptor->validate();
     }
 }
