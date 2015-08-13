@@ -266,6 +266,35 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
+     * @Then Call a method descriptor :nameMethod. I expect to get an exception message :expectedExceptionMessage
+     *
+     * @param $nameMethod
+     * @param $expectedExceptionMessage
+     */
+    public function callAMethodDescriptorIExpectToGetAnExceptionMessage($nameMethod, $expectedExceptionMessage)
+    {
+        $actualExceptionMessage = null;
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($nameMethod)) {
+                $errMsg = "Method {$nameMethod}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $r->getMethod($nameMethod)->invoke($descriptor);
+        } catch (\Exception $e) {
+            $actualExceptionMessage = $e->getMessage();
+        }
+
+        PHPUnit_Framework_Assert::assertEquals($expectedExceptionMessage, $actualExceptionMessage);
+    }
+
+
+
+
+    /**
      * @Then Call a method descriptor :nameMethod, I get the value of :expectedResult. The arguments of the method:
      *
      * @param string    $nameMethod
@@ -384,9 +413,10 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * @Then I save to descriptor xml. I expect to get an exception message :expectedException
+     * @Then     I save to descriptor xml. I expect to get an exception message :expectedException
      *
-     * @param string $expectedException
+     * @param $expectedExceptionMessage
+     *
      */
     public function iSaveToDescriptorXmlIExpectToGetAnExceptionMessage($expectedExceptionMessage)
     {

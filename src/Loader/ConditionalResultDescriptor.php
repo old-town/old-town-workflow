@@ -74,6 +74,7 @@ class ConditionalResultDescriptor extends ResultDescriptor
      * @return string
      * @throws InvalidWorkflowDescriptorException
      * @throws InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function getDestination()
     {
@@ -94,15 +95,7 @@ class ConditionalResultDescriptor extends ResultDescriptor
         //step
         $actionDesc = $parent->getParent();
         if (null !== $actionDesc) {
-            $actionDescParent = $actionDesc->getParent();
-            if (!$actionDescParent instanceof WorkflowDescriptor) {
-                $errMsg = sprintf(
-                    'Родитель должен реализовывать %s',
-                    WorkflowDescriptor::class
-                );
-                throw new InvalidWorkflowDescriptorException($errMsg);
-            }
-            $desc = $actionDescParent;
+            $desc = $actionDesc->getParent();
         }
 
         $join = $this->getJoin();
@@ -118,16 +111,11 @@ class ConditionalResultDescriptor extends ResultDescriptor
             if ($desc !== null) {
                 /** @var WorkflowDescriptor $desc */
 
-                try {
-                    $stepDescriptor = $desc->getStep($step);
-                } catch (\Exception $e) {
-                    $errMsg  = 'Ошибка при получение шага workflow';
-                    throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
-                }
+                $stepDescriptor = $desc->getStep($step);
 
                 if (!$stepDescriptor instanceof StepDescriptor) {
                     $errMsg = sprintf(
-                        'Дескриптор шалаг должен реализовывать  %s',
+                        'Дескриптор шалаг должен реализовывать %s',
                         StepDescriptor::class
                     );
                     throw new InvalidWorkflowDescriptorException($errMsg);

@@ -158,3 +158,154 @@ Feature:Conditional Result Descriptor
       <result old-status="Finished" status="Queued" />
     """
     Then I save to descriptor xml. I expect to get an exception message "Некорректное значение для атрибута step"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method getDestination. No parent descriptor.
+    Given Create descriptor "ConditionalResultDescriptor" based on xml:
+    """
+      <result old-status="Finished" status="Queued" />
+    """
+    Then Call a method descriptor "getDestination". I expect to get an exception message "Родитель должен реализовывать OldTown\Workflow\Loader\AbstractDescriptor"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method getDestination. In result of these non-existent stepId.
+    Given Create descriptor "WorkflowDescriptor" based on xml:
+    """
+        <workflow id="1">
+          <initial-actions>
+          </initial-actions>
+          <steps>
+            <step id="2" name="test-step">
+              <actions>
+                <action id="3" name="test-action">
+                  <results>
+                    <result old-status="Finished" step="7" />
+                  </results>
+                </action>
+              </actions>
+            </step>
+          </steps>
+        </workflow>
+    """
+    And Get the descriptor using the method of "getSteps"
+    And Get the descriptor using the method of "getActions"
+    And Get the descriptor using the method of "getConditionalResults"
+    Then Call a method descriptor "getDestination". I expect to get an exception message "Дескриптор шалаг должен реализовывать OldTown\Workflow\Loader\StepDescriptor"
+
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method getDestination. For step.
+    Given Create descriptor "WorkflowDescriptor" based on xml:
+    """
+        <workflow id="1">
+          <initial-actions>
+          </initial-actions>
+          <steps>
+            <step id="7" name="test-step">
+              <actions>
+                <action id="3" name="test-action">
+                  <results>
+                    <result old-status="Finished" step="7" />
+                  </results>
+                </action>
+              </actions>
+            </step>
+          </steps>
+        </workflow>
+    """
+    And Get the descriptor using the method of "getSteps"
+    And Get the descriptor using the method of "getActions"
+    And Get the descriptor using the method of "getConditionalResults"
+    Then Call a method descriptor "getDestination", I get the value of "step #7 [test-step]"
+
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method getDestination. For join.
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+      <action id="3" name="test-action">
+        <results>
+          <result old-status="Finished" join="7" />
+        </results>
+      </action>
+    """
+    And Get the descriptor using the method of "getConditionalResults"
+    Then Call a method descriptor "getDestination", I get the value of "join #7"
+
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method getDestination. For split.
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+      <action id="3" name="test-action">
+        <results>
+          <result old-status="Finished" split="7" />
+        </results>
+      </action>
+    """
+    And Get the descriptor using the method of "getConditionalResults"
+    Then Call a method descriptor "getDestination", I get the value of "split #7"
+
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method validate.
+    Given Create descriptor "WorkflowDescriptor" based on xml:
+    """
+        <workflow id="1">
+          <initial-actions>
+          </initial-actions>
+          <steps>
+            <step id="7" name="test-step">
+              <actions>
+                <action id="3" name="test-action">
+                  <results>
+                    <result old-status="Finished" step="7" status="Queued">
+                      <conditions type="AND">
+                        <condition type="class" id="8" name="test-name" negate="true">
+                            <arg name="class.name">TestConditionDescriptorClassName</arg>
+                            <arg name="testArg">testValue</arg>
+                        </condition>
+                      </conditions>
+                    </result>
+                  </results>
+                </action>
+              </actions>
+            </step>
+          </steps>
+        </workflow>
+    """
+    And Get the descriptor using the method of "getSteps"
+    And Get the descriptor using the method of "getActions"
+    And Get the descriptor using the method of "getConditionalResults"
+    Then Call a method descriptor "validate", I get the value of "(null)null"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method validate. No parent descriptor.
+    Given Create descriptor "ConditionalResultDescriptor" based on xml:
+    """
+      <result old-status="Finished" step="7" status="Queued" />
+    """
+    Then I validated descriptor. I expect to get an exception message "Родитель должен реализовывать OldTown\Workflow\Loader\ActionDescriptor"
+
+
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing method validate. No parent descriptor.
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+      <action id="3" name="test-action">
+        <results>
+          <result old-status="Finished" split="7" />
+        </results>
+      </action>
+    """
+    And Get the descriptor using the method of "getConditionalResults"
+    Then I validated descriptor. I expect to get an exception message "Результат условия от test-action к split #7 должны иметь по крайней мере одну условие"
