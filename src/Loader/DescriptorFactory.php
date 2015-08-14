@@ -118,7 +118,7 @@ class DescriptorFactory
     /**
      * @param DOMElement $element
      *
-     * @return FunctionDescriptor
+     * @return ResultDescriptor
      */
     public function createResultDescriptor(DOMElement $element = null)
     {

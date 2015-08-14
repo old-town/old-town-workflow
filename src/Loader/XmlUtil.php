@@ -25,9 +25,14 @@ abstract class XmlUtil
      */
     public static function getChildElement(DOMElement $parent, $childName)
     {
-        $list = $parent->getElementsByTagName($childName);
-        if ($list->length > 0) {
-            return $list->item(0);
+        $listElements = $parent->getElementsByTagName($childName);
+        if ($listElements->length > 0) {
+            for ($i = 0; $i < $listElements->length; $i++) {
+                $currentItem = $listElements->item($i);
+                if ($parent->isSameNode($currentItem->parentNode)) {
+                    return $currentItem;
+                }
+            }
         }
 
         return null;

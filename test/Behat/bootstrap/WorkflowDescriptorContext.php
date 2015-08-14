@@ -96,6 +96,28 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
         }
     }
 
+
+    /**
+     * @When Create descriptor :nameDescriptor based on xml. I expect exception with the text :expectedExceptionMessage. Xml source:
+     *
+     * @param string       $nameDescriptor
+     * @param string       $expectedExceptionMessage
+     * @param PyStringNode $xml
+     *
+     * @return AbstractDescriptor
+     */
+    public function createDescriptorByNameBasedOnXmlAndExpectToGetAnExceptionMessage($nameDescriptor, $expectedExceptionMessage, PyStringNode $xml)
+    {
+        $actualExceptionMessage = null;
+        try {
+            $this->createDescriptorByNameBasedOnXml($nameDescriptor, $xml);
+        } catch (\Exception $e) {
+            $actualExceptionMessage = $e->getMessage();
+        }
+
+        PHPUnit_Framework_Assert::assertEquals($expectedExceptionMessage, $actualExceptionMessage);
+    }
+
     /**
      * @Then Call a method descriptor :nameMethod, I get the value of :expectedResult
      *

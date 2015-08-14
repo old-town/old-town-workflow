@@ -82,6 +82,7 @@ class ActionDescriptor extends AbstractDescriptor
 
     /**
      * @param $element
+     * @throws InvalidWorkflowDescriptorException
      */
     public function __construct(DOMElement $element = null)
     {
@@ -101,6 +102,7 @@ class ActionDescriptor extends AbstractDescriptor
      * @param DOMElement $action
      *
      * @return void
+     * @throws InvalidWorkflowDescriptorException
      */
     protected function init(DOMElement $action)
     {
@@ -108,28 +110,33 @@ class ActionDescriptor extends AbstractDescriptor
         $this->parseName($action);
 
         if ($action->hasAttribute('view')) {
-            $this->view = XmlUtil::getRequiredAttributeValue($action, 'view');
+            $view = XmlUtil::getRequiredAttributeValue($action, 'view');
+            $this->setView($view);
         }
 
         if ($action->hasAttribute('auto')) {
             $autoValue = XmlUtil::getRequiredAttributeValue($action, 'auto');
             $auto = strtolower($autoValue);
-            $this->autoExecute = 'true' === $auto;
+            $autoExecute = 'true' === $auto;
+            $this->setAutoExecute($autoExecute);
         }
 
         if ($action->hasAttribute('finish')) {
             $finishValue = XmlUtil::getRequiredAttributeValue($action, 'finish');
             $finish = strtolower($finishValue);
-            $this->finish = 'true' === $finish;
+            $finish = 'true' === $finish;
+            $this->setFinish($finish);
         }
 
         $metaElements = XmlUtil::getChildElements($action, 'meta');
+        $metaAttributes = [];
         foreach ($metaElements as $meta) {
             $value = XmlUtil::getText($meta);
             $name = XmlUtil::getRequiredAttributeValue($meta, 'name');
 
-            $this->metaAttributes[$name] = $value;
+            $metaAttributes[$name] = $value;
         }
+        $this->setMetaAttributes($metaAttributes);
 
         // set up validators -- OPTIONAL
         $v = XMLUtil::getChildElement($action, 'validators');
@@ -155,6 +162,10 @@ class ActionDescriptor extends AbstractDescriptor
 
         // set up results - REQUIRED
         $resultsElement = XMLUtil::getChildElement($action, 'results');
+        if (!$resultsElement instanceof DOMElement) {
+            $errMsg = 'Отсутствует обязательный блок results';
+            throw new InvalidWorkflowDescriptorException($errMsg);
+        }
         $results = XMLUtil::getChildElements($resultsElement, 'result');
         foreach ($results as $result) {
             $conditionalResultDescriptor = new ConditionalResultDescriptor($result);
@@ -164,8 +175,9 @@ class ActionDescriptor extends AbstractDescriptor
 
         $unconditionalResult = XMLUtil::getChildElement($resultsElement, 'unconditional-result');
         if (null !== $unconditionalResult) {
-            $this->unconditionalResult = DescriptorFactory::getFactory()->createResultDescriptor($unconditionalResult);
-            $this->unconditionalResult->setParent($this);
+            $unconditionalResult = DescriptorFactory::getFactory()->createResultDescriptor($unconditionalResult);
+            $unconditionalResult->setParent($this);
+            $this->setUnconditionalResult($unconditionalResult);
         }
 
 
@@ -183,12 +195,11 @@ class ActionDescriptor extends AbstractDescriptor
         // set up restrict-to - OPTIONAL
         $restrictElement = XMLUtil::getChildElement($action, 'restrict-to');
         if (null !== $restrictElement) {
-            $this->restriction = new RestrictionDescriptor($restrictElement);
+            $restriction = new RestrictionDescriptor($restrictElement);
 
-            if (null === $this->restriction->getConditionsDescriptor()) {
-                $this->restriction = null;
-            } else {
-                $this->restriction->setParent($this);
+            if (null !== $restriction->getConditionsDescriptor()) {
+                $restriction->setParent($this);
+                $this->setRestriction($restriction);
             }
         }
     }
