@@ -398,7 +398,7 @@ class ActionDescriptor extends AbstractDescriptor
         $unconditionalResult = $this->getUnconditionalResult();
         if (null === $unconditionalResult && $conditionalResults->count() > 0) {
             $name = (string)$this->getName();
-            $errMsg = sprintf('Действие %s имеет безусловные условия, но не имеет запасного безусловного', $name);
+            $errMsg = sprintf('Действие %s имеет условные условия, но не имеет запасного безусловного', $name);
             throw new InvalidWorkflowDescriptorException($errMsg);
         }
 

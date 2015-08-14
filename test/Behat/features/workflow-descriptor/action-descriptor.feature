@@ -1,7 +1,5 @@
 Feature: Action Descriptor
 
-
-
   @workflowDescriptor
   Scenario: Create a descriptor from xml. Validation save in xml descriptor.
     Given Create descriptor "ActionDescriptor" based on xml:
@@ -269,6 +267,7 @@ Feature: Action Descriptor
       </action>
     """
 
+
   @workflowDescriptor
   Scenario: Create a descriptor from xml. Validation save in xml descriptor.
     Checking for exceptions when a descriptor is created. No tag "results"
@@ -277,11 +276,84 @@ Feature: Action Descriptor
       <action id="10" name="Start Workflow" view="test-view" auto="true" finish="true" />
     """
 
+
   @workflowDescriptor
   Scenario: Create ResultDescriptor. Attempt to write without reference DOMDocument
     Given Create descriptor "ActionDescriptor"
     Then Call a method descriptor "writeXml". I expect to get an exception message "Не передан DOMDocument"
 
+
   @workflowDescriptor
-  Scenario: Проверить что возникает исключение, в случае если сохраянется без id
+  Scenario: Check that there is an exception if ActionDescriptor saved without id
     Given Create descriptor "ActionDescriptor"
+    Then Call a method descriptor "writeXml". I expect to get an exception message "Отсутствует атрибут id". The arguments of the method:
+      |dom|
+      |(DOMDocument)domDocument|
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Test validate method
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+      <action id="10">
+        <restrict-to>
+            <conditions type="AND">
+                <condition type="phpshell" id="40" name="test-name3">
+                    <arg name="script"><![CDATA[echo 'test';]]></arg>
+                </condition>
+            </conditions>
+        </restrict-to>
+        <results>
+          <result id="90" old-status="Finished" status="Queued" step="2" due-date="2001-03-10 17:16:18" owner="my" display-name="test-display">
+            <conditions type="AND">
+              <condition type="phpshell" id="120" name="test-name3">
+                  <arg name="script"><![CDATA[echo 'test';]]></arg>
+              </condition>
+            </conditions>
+          </result>
+          <unconditional-result id="190" old-status="Finished" status="Queued" step="2" />
+        </results>
+      </action>
+    """
+    Then Call a method descriptor "validate", I get the value of "(null)null"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Test validate method
+    Given Create descriptor "ActionDescriptor" based on xml:
+    """
+      <action id="10" name="test">
+        <results>
+          <result id="90" old-status="Finished" status="Queued" step="2" due-date="2001-03-10 17:16:18" owner="my" display-name="test-display">
+            <conditions type="AND">
+              <condition type="phpshell" id="120" name="test-name3">
+                  <arg name="script"><![CDATA[echo 'test';]]></arg>
+              </condition>
+            </conditions>
+          </result>
+        </results>
+      </action>
+    """
+    Then I validated descriptor. I expect to get an exception message "Действие test имеет условные условия, но не имеет запасного безусловного"
+
+
+  @workflowDescriptor
+  Scenario: Create a descriptor from xml. Testing common action.
+    Given Create descriptor "WorkflowDescriptor" based on xml:
+    """
+        <workflow id="1">
+          <initial-actions>
+          </initial-actions>
+          <steps>
+          </steps>
+          <common-actions>
+            <action id="10" name="test">
+              <results>
+                <unconditional-result id="190" old-status="Finished" status="Queued" step="2" />
+              </results>
+            </action>
+          </common-actions>
+        </workflow>
+    """
+    And Get the descriptor using the method of "getCommonActions"
+    Then Call a method descriptor "isCommon", I get the value of "(boolean)true"

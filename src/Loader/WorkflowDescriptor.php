@@ -445,7 +445,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    private function addAction($actionsCollectionOrMap, ActionDescriptor $descriptor)
+    private function addAction(&$actionsCollectionOrMap, ActionDescriptor $descriptor)
     {
         $descriptorId = $descriptor->getId();
         $action = $this->getAction($descriptorId);

@@ -262,6 +262,47 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
 
 
     /**
+     * @When Call a method descriptor :nameMethod. I expect to get an exception message :expectedExceptionMessage. The arguments of the method:
+     *
+     * @param $nameMethod
+     * @param $expectedExceptionMessage
+     * @param TableNode $table
+     *
+     */
+    public function callAMethodDescriptorIExpectToGetAnExceptionMessageTheArgumentsOfTheMethod($nameMethod, $expectedExceptionMessage, TableNode $table)
+    {
+        $actualExceptionMessage = null;
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($nameMethod)) {
+                $errMsg = "Method {$nameMethod}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $rows = $table->getHash();
+            if (1 !== count($rows)) {
+                $errMsg = 'Incorrect arguments';
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $args = $rows[0];
+
+            $transformArg = [];
+            foreach ($args as $index => $arg) {
+                $transformArg[$index] = $this->intelligentTransformArgument($arg);
+            }
+
+            $r->getMethod($nameMethod)->invokeArgs($descriptor, $transformArg);
+        } catch (\Exception $e) {
+            $actualExceptionMessage = $e->getMessage();
+        }
+
+        PHPUnit_Framework_Assert::assertEquals($expectedExceptionMessage, $actualExceptionMessage);
+    }
+
+    /**
      * @Then Call a method descriptor :nameMethod. I expect to get an exception :expectedException
      *
      * @param string $nameMethod
@@ -646,8 +687,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             $targetDescriptor = $descriptors;
             if ((is_array($descriptors) || $descriptors instanceof \Traversable) && 1 === count($descriptors)) {
                 $iterator = is_array($descriptors) ? $descriptors : iterator_to_array($descriptors);
-
-                $targetDescriptor = $iterator[0];
+                reset($iterator);
+                $targetDescriptor = current($iterator);
             }
 
             if (!$targetDescriptor instanceof AbstractDescriptor) {
