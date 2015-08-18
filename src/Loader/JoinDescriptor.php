@@ -66,8 +66,9 @@ class JoinDescriptor extends AbstractDescriptor  implements ValidateDescriptorIn
 
         $resultElement = XMLUtil::getChildElement($join, 'unconditional-result');
         if (null !== $resultElement) {
-            $this->result = new ResultDescriptor($resultElement);
-            $this->result->setParent($this);
+            $result = new ResultDescriptor($resultElement);
+            $result->setParent($this);
+            $this->setResult($result);
         }
     }
 
