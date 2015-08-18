@@ -407,6 +407,33 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
     /**
+     * @When Call a method descriptor :nameMethod
+     *
+     * @param $nameMethod
+     *
+     * @throws RuntimeException
+     */
+    public function callAMethodDescriptor($nameMethod)
+    {
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($nameMethod)) {
+                $errMsg = "Method {$nameMethod}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $r->getMethod($nameMethod)->invoke($descriptor);
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+
+
+
+    /**
      * @Then     I save to descriptor xml. Compare with xml:
      *
      * @param PyStringNode $expectedXmlNode
@@ -683,6 +710,62 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
             }
 
             $descriptors = call_user_func([$descriptor, $methodName]);
+
+            $targetDescriptor = $descriptors;
+            if ((is_array($descriptors) || $descriptors instanceof \Traversable) && 1 === count($descriptors)) {
+                $iterator = is_array($descriptors) ? $descriptors : iterator_to_array($descriptors);
+                reset($iterator);
+                $targetDescriptor = current($iterator);
+            }
+
+            if (!$targetDescriptor instanceof AbstractDescriptor) {
+                $errMsg = 'Descriptor not instance of AbstractDescriptor';
+                throw new \RuntimeException($errMsg);
+            }
+
+            return $targetDescriptor;
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+
+    /**
+     * @When Get the descriptor using the method of :methodName. The arguments of the method:
+     *
+     * @param           $methodName
+     * @param TableNode $table
+     *
+     * @return mixed
+     * @throws \RuntimeException
+     */
+    public function getTheDescriptorUsingTheMethodOfTheArgumentsOfTheMethod($methodName, TableNode $table)
+    {
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+
+
+            $r = new \ReflectionObject($descriptor);
+
+            if (!$r->hasMethod($methodName)) {
+                $errMsg = "Method {$methodName}  does not exist";
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $rows = $table->getHash();
+            if (1 !== count($rows)) {
+                $errMsg = 'Incorrect arguments';
+                throw new \InvalidArgumentException($errMsg);
+            }
+
+            $args = $rows[0];
+
+            $transformArg = [];
+            foreach ($args as $index => $arg) {
+                $transformArg[$index] = $this->intelligentTransformArgument($arg);
+            }
+
+            $descriptors = $r->getMethod($methodName)->invokeArgs($descriptor, $transformArg);
 
             $targetDescriptor = $descriptors;
             if ((is_array($descriptors) || $descriptors instanceof \Traversable) && 1 === count($descriptors)) {

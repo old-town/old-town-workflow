@@ -103,12 +103,14 @@ class StepDescriptor extends AbstractDescriptor
 
 
         $metaElements = XmlUtil::getChildElements($step, 'meta');
+        $metaAttributes = [];
         foreach ($metaElements as $meta) {
             $value = XmlUtil::getText($meta);
             $name = XmlUtil::getRequiredAttributeValue($meta, 'name');
 
-            $this->metaAttributes[$name] = $value;
+            $metaAttributes[$name] = $value;
         }
+        $this->setMetaAttributes($metaAttributes);
 
         // set up pre-functions -- OPTIONAL
         $pre = XMLUtil::getChildElement($step, 'pre-functions');
@@ -124,7 +126,7 @@ class StepDescriptor extends AbstractDescriptor
         // set up permissions - OPTIONAL
         $p = XMLUtil::getChildElement($step, 'external-permissions');
         if (null !== $p) {
-            $permissions = XMLUtil::getChildElements($pre, 'permission');
+            $permissions = XMLUtil::getChildElements($p, 'permission');
             foreach ($permissions as $permission) {
                 $permissionDescriptor = DescriptorFactory::getFactory()->createPermissionDescriptor($permission);
                 $permissionDescriptor->setParent($this);
@@ -301,6 +303,16 @@ class StepDescriptor extends AbstractDescriptor
         return false;
     }
 
+    /**
+     * Возвращает флаг определяющий есть ли действия у данного шага
+     *
+     * @return boolean
+     */
+    public function getFlagHasActions()
+    {
+        return $this->hasActions;
+    }
+
 
     /**
      * Валидация дескриптора
@@ -369,6 +381,10 @@ class StepDescriptor extends AbstractDescriptor
      */
     public function writeXml(DOMDocument $dom = null)
     {
+        if (null === $dom) {
+            $errMsg = 'Не передан DOMDocument';
+            throw new InvalidWriteWorkflowException($errMsg);
+        }
         $descriptor = $dom->createElement('step');
 
         if (!$this->hasId()) {
