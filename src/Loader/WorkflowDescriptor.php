@@ -114,6 +114,8 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * @param DOMElement $element
      * @throws InvalidArgumentException
      * @throws RuntimeException
+     * @throws InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     public function __construct(DOMElement $element = null)
     {
@@ -289,6 +291,8 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * @param DOMElement $root
      * @throws InvalidArgumentException
      * @throws RuntimeException
+     * @throws InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      */
     protected function init(DOMElement $root)
     {
@@ -329,7 +333,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         foreach ($initialActions as $initialAction) {
             $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($initialAction);
             $actionDescriptor->setParent($this);
-            $this->initialActions->attach($actionDescriptor);
+            $this->addInitialAction($actionDescriptor);
         }
 
         // handle global-actions - OPTIONAL
@@ -341,7 +345,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             foreach ($globalActions as $globalAction) {
                 $actionDescriptor = DescriptorFactory::getFactory()->createActionDescriptor($globalAction);
                 $actionDescriptor->setParent($this);
-                $this->globalActions->attach($actionDescriptor);
+                $this->addGlobalAction($actionDescriptor);
             }
         }
 
@@ -369,10 +373,13 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             $timerFunctions = XMLUtil::getChildElements($timerFunctionsElement, 'trigger-function');
 
             foreach ($timerFunctions as $timerFunction) {
-                $function = DescriptorFactory::getFactory()->createFunctionDescriptor($timerFunction);
+                $functionElement = XmlUtil::getRequiredChildElement($timerFunction, 'function');
+                $id = XmlUtil::getRequiredAttributeValue($timerFunction, 'id');
+
+                $function = DescriptorFactory::getFactory()->createFunctionDescriptor($functionElement);
                 $function->setParent($this);
-                $id = $function->getId();
-                $this->timerFunctions[$id] = $function;
+
+                $this->setTriggerFunction($id, $function);
             }
         }
 
@@ -382,7 +389,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 
         foreach ($steps as $step) {
             $stepDescriptor = DescriptorFactory::getFactory()->createStepDescriptor($step, $this);
-            $this->steps->attach($stepDescriptor);
+            $this->addStep($stepDescriptor);
         }
 
 
@@ -393,7 +400,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             foreach ($split as $s) {
                 $splitDescriptor = DescriptorFactory::getFactory()->createSplitDescriptor($s);
                 $splitDescriptor->setParent($this);
-                $this->splits->attach($splitDescriptor);
+                $this->addSplit($splitDescriptor);
             }
         }
 
@@ -405,7 +412,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             foreach ($join as $s) {
                 $joinDescriptor = DescriptorFactory::getFactory()->createJoinDescriptor($s);
                 $joinDescriptor->setParent($this);
-                $this->joins->attach($joinDescriptor);
+                $this->addJoin($joinDescriptor);
             }
         }
     }
@@ -895,7 +902,9 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             foreach ($timerFunctions as $timerFunctionId => $timerFunction) {
                 $timerFunctionElement = clone $timerFunctionElementBase;
                 $timerFunctionElement->setAttribute('id', $timerFunctionId);
+
                 $functionElement = $timerFunction->writeXml($dom);
+
                 $timerFunctionElement->appendChild($functionElement);
 
                 $timerFunctionsElement->appendChild($timerFunctionElement);
@@ -926,12 +935,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         if ($globalActions->count() > 0) {
             $globalActionsElement = $dom->createElement('global-actions');
             foreach ($globalActions as $globalAction) {
-                try {
-                    $globalActionElement = $globalAction->writeXml($dom);
-                } catch (\Exception $e) {
-                    $errMsg  = 'Ошибка генерации workflow';
-                    throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
-                }
+                $globalActionElement = $globalAction->writeXml($dom);
 
                 $globalActionsElement->appendChild($globalActionElement);
             }
@@ -943,12 +947,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         if (count($commonActions) > 0) {
             $commonActionsElement = $dom->createElement('common-actions');
             foreach ($commonActions as $commonAction) {
-                try {
-                    $commonActionElement = $commonAction->writeXml($dom);
-                } catch (\Exception $e) {
-                    $errMsg  = 'Ошибка генерации workflow';
-                    throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
-                }
+                $commonActionElement = $commonAction->writeXml($dom);
                 $commonActionsElement->appendChild($commonActionElement);
             }
 
@@ -959,12 +958,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         $stepsElement = $dom->createElement('steps');
         $steps = $this->getSteps();
         foreach ($steps as $step) {
-            try {
-                $stepElement = $step->writeXml($dom);
-            } catch (\Exception $e) {
-                $errMsg  = 'Ошибка генерации workflow';
-                throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
-            }
+            $stepElement = $step->writeXml($dom);
             $stepsElement->appendChild($stepElement);
         }
 

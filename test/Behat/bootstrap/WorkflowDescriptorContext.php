@@ -431,6 +431,41 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     }
 
 
+    /**
+     * @Then I save to descriptor xml. Not DomDocument. Compare with xml:
+     *
+     * @param PyStringNode $expectedXmlNode
+     *
+     * @throws \RuntimeException
+     *
+     */
+    public function iSaveToDescriptorXmlNotDomDocumentCompareWithXml(PyStringNode $expectedXmlNode)
+    {
+        try {
+            $descriptor = $this->getLastCreatedDescriptor();
+            if (!$descriptor instanceof WriteXmlInterface) {
+                $errMsg = 'Descriptor not implement WriteXmlInterface';
+                throw new \RuntimeException($errMsg);
+            }
+
+            $result = $descriptor->writeXml();
+
+            if ($result instanceof \DOMDocument) {
+                $actualXml = $result->saveXML();
+            } elseif ($result instanceof \DOMElement) {
+                $actualXml = $result->ownerDocument->saveXML($result);
+            } else {
+                $errMsg = 'Incorrect result writeXml';
+                throw new \RuntimeException($errMsg);
+            }
+
+            $expectedXml = $expectedXmlNode->getRaw();
+
+            PHPUnit_Framework_Assert::assertXmlStringEqualsXmlString($expectedXml, $actualXml);
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
 
 
     /**

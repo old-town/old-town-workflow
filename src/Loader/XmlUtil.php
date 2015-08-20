@@ -7,6 +7,7 @@ namespace OldTown\Workflow\Loader;
 
 use DOMElement;
 use OldTown\Workflow\Exception\NotExistsRequiredAttributeException;
+use OldTown\Workflow\Exception\NotExistsRequiredElementException;
 
 /**
  * Interface WorkflowDescriptor
@@ -37,6 +38,31 @@ abstract class XmlUtil
 
         return null;
     }
+
+    /**
+     * Ищет среди потомков элемента $parent, первый элемент с именем тега $childName. В случае если элемент не найден,
+     * бросается исключение
+     *
+     * @param DOMElement $parent
+     * @param string $childName
+     *
+     * @return DOMElement
+     */
+    public static function getRequiredChildElement(DOMElement $parent, $childName)
+    {
+        $element = static::getChildElement($parent, $childName);
+
+        if (!$element instanceof DOMElement) {
+            $errMsg = sprintf('Отсутствует элемен %s', $childName);
+            $exception =  new NotExistsRequiredElementException($errMsg);
+
+            throw $exception;
+        }
+
+        return $element;
+    }
+
+
 
     /**
      * Ищет среди потомков элемента $parent,  элементы с именем тега $childName
