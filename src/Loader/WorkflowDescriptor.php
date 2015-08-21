@@ -9,6 +9,7 @@ use OldTown\Workflow\Exception\ArgumentNotNumericException;
 use OldTown\Workflow\Exception\InternalWorkflowException;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Exception\InvalidDescriptorException;
+use OldTown\Workflow\Exception\InvalidDtdSchemaException;
 use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use DOMElement;
 use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
@@ -191,19 +192,17 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 
 
         $actions = [];
-        $actionsStorage = new SplObjectStorage();
 
         foreach ($globalActions as $action) {
             $actionId = $action->getId();
             if (array_key_exists($actionId, $actions)) {
                 $errMsg = sprintf(
-                    'Действие с id %s уже существует ',
+                    'Ошибка валидация. Действие с id %s уже существует',
                     $actionId
                 );
                 throw new InvalidWorkflowDescriptorException($errMsg);
             }
             $actions[$actionId] = $actionId;
-            $actionsStorage->attach($action);
         }
 
         foreach ($steps as $step) {
@@ -214,24 +213,23 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
                     $actionId = $action->getId();
                     if (array_key_exists($actionId, $actions)) {
                         $errMsg = sprintf(
-                            'Действие с id %s найденное у шага %s является дубликатом. ',
+                            'Действие с id %s найденное у шага %s является дубликатом',
                             $actionId,
                             $step->getId()
                         );
                         throw new InvalidWorkflowDescriptorException($errMsg);
                     }
                     $actions[$actionId] = $actionId;
-                    $actionsStorage->attach($action);
                 }
             }
         }
 
 
         foreach ($commonActions as $action) {
-            if ($actionsStorage->contains($action)) {
-                $actionId = $action->getId();
+            $actionId = $action->getId();
+            if (array_key_exists($actionId, $actions)) {
                 $errMsg = sprintf(
-                    'common-action  с id %s дублирует действие с шага . ',
+                    'common-action  с id %s является дубликатом',
                     $actionId
                 );
                 throw new InvalidWorkflowDescriptorException($errMsg);
@@ -250,10 +248,10 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
      * @throws InvalidDescriptorException
      * @throws InvalidWriteWorkflowException
      * @throws  \OldTown\Workflow\Exception\InvalidDtdSchemaException
-     * @throws \OldTown\Workflow\Exception\InvalidWorkflowDescriptorException
      */
     private function validateDtd()
     {
+        $libxmlUseInternalErrors = libxml_use_internal_errors(true);
         $dom = $this->writeXml();
 
         $secureDtdEntityResolver = new SecureDtdEntityResolver();
@@ -283,8 +281,10 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             }
             $errMsg = implode(" \n", $errMsgStack);
 
-            throw new InvalidWorkflowDescriptorException($errMsg);
+            libxml_use_internal_errors($libxmlUseInternalErrors);
+            throw new InvalidDtdSchemaException($errMsg);
         };
+        libxml_use_internal_errors($libxmlUseInternalErrors);
     }
 
     /**
@@ -457,22 +457,17 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
         $descriptorId = $descriptor->getId();
         $action = $this->getAction($descriptorId);
         if (null !== $action) {
-            $errMsg = sprintf('action with id "%s" already exists for this step.', $descriptorId);
+            $errMsg = sprintf('Действие с id %s уже существует', $descriptorId);
             throw new InvalidArgumentException($errMsg);
         }
 
         if ($actionsCollectionOrMap instanceof SplObjectStorage) {
             $actionsCollectionOrMap->attach($descriptor);
-            return $this;
-        }
-
-        if (is_array($actionsCollectionOrMap)) {
+        } elseif (is_array($actionsCollectionOrMap)) {
             $actionsCollectionOrMap[$descriptorId] = $descriptor;
-            return $this;
         }
 
-        $errMsg = 'Ошибка при добавления перехода workflow';
-        throw new RuntimeException($errMsg);
+        return $this;
     }
 
     /**
@@ -587,6 +582,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             $errMsg = 'Аргумент должен быть числом';
             throw new ArgumentNotNumericException($errMsg);
         }
+        $id = (integer)$id;
 
         $initialActions = $this->getInitialActions();
         foreach ($initialActions as $actionDescriptor) {
@@ -619,6 +615,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             $errMsg = 'Аргумент должен быть числом';
             throw new ArgumentNotNumericException($errMsg);
         }
+        $id = (integer)$id;
 
         $joins = $this->getJoins();
         foreach ($joins as $joinDescriptor) {
@@ -668,6 +665,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             $errMsg = 'Аргумент должен быть числом';
             throw new ArgumentNotNumericException($errMsg);
         }
+        $id = (integer)$id;
 
         $splits = $this->getSplits();
         foreach ($splits as $splitDescriptor) {
@@ -811,18 +809,36 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
     }
 
     /**
+     * Удаление action по id
+     *
+     * @param $id
+     *
+     * @return bool
+     */
+    public function removeActionActionById($id)
+    {
+        $descriptor = $this->getAction($id);
+
+        $result = $this->removeAction($descriptor);
+
+        return $result;
+    }
+
+    /**
      * @param ActionDescriptor $actionToRemove
      * @return boolean
      */
     public function removeAction(ActionDescriptor $actionToRemove)
     {
+        $resultRemove = false;
+
         $actionToRemoveId = $actionToRemove->getId();
         $globalActions = $this->getGlobalActions();
         foreach ($globalActions as $actionDescriptor) {
             if ($actionToRemoveId === $actionDescriptor->getId()) {
                 $globalActions->detach($actionDescriptor);
 
-                return true;
+                $resultRemove = true;
             }
         }
 
@@ -833,11 +849,11 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
             if (null !== $actionDescriptor) {
                 $stepDescriptor->getActions()->detach($actionDescriptor);
 
-                return true;
+                $resultRemove = true;
             }
         }
 
-        return false;
+        return $resultRemove;
     }
 
 
