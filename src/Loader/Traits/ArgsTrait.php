@@ -46,7 +46,7 @@ trait ArgsTrait
     }
 
     /**
-     * Устанавливает аргумент
+     * Получить аргумент по имени
      *
      * @param string $name
      * @param mixed $defaultValue
@@ -85,24 +85,22 @@ trait ArgsTrait
     protected function writeArgs(DOMElement $parent)
     {
         $args = $this->getArgs();
-        if (0 === count($args)) {
-            return null;
-        }
+        if (count($args) > 0) {
+            $dom = $parent->ownerDocument;
+            $argBase = $dom->createElement('arg');
+            foreach ($args as $key => $value) {
+                $arg = clone $argBase;
+                $arg->setAttribute('name', $key);
 
-        $dom = $parent->ownerDocument;
-        $argBase = $dom->createElement('arg');
-        foreach ($args as $key => $value) {
-            $arg = clone $argBase;
-            $arg->setAttribute('name', $key);
+                if ($this instanceof CustomArgInterface && $this->flagUseCustomArgWriter($key, $value)) {
+                    $this->buildArgValue($key, $value, $arg);
+                } else {
+                    $valueArgElement = $dom->createTextNode($value);
+                    $arg->appendChild($valueArgElement);
+                }
 
-            if ($this instanceof CustomArgInterface && $this->flagUseCustomArgWriter($key, $value)) {
-                $this->buildArgValue($key, $value, $arg);
-            } else {
-                $valueArgElement = $dom->createTextNode($value);
-                $arg->appendChild($valueArgElement);
+                $parent->appendChild($arg);
             }
-
-            $parent->appendChild($arg);
         }
     }
 }
