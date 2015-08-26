@@ -39,11 +39,11 @@ class DescriptorFactory
     }
 
     /**
-     * @param DOMElement $root
+     * @param DOMElement|null $root
      *
      * @return WorkflowDescriptor
      */
-    public function createWorkflowDescriptor(DOMElement $root)
+    public function createWorkflowDescriptor(DOMElement $root = null)
     {
         $descriptor = new WorkflowDescriptor($root);
 
