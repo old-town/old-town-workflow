@@ -29,7 +29,7 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
 
     /**
      * @param string $workflowName
-     * @param object $layout
+     * @param string $layout
      * @return void
      */
     public function setLayout($workflowName, $layout)
