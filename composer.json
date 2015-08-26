@@ -43,7 +43,8 @@
     "zendframework/zend-loader": "2.5.1",
     "satooshi/php-coveralls": "dev-master",
     "behat/behat": "~3.0",
-    "vipsoft/code-coverage-extension": "~3@dev"
+    "vipsoft/code-coverage-extension": "~3@dev",
+    "internations/http-mock": "~0.7"
   },
   "autoload": {
     "psr-4": {

@@ -7,6 +7,7 @@ namespace OldTown\Workflow\Loader;
 
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
 use DOMElement;
+use Psr\Http\Message\UriInterface;
 
 /**
  * Class WorkflowLoader
@@ -23,16 +24,25 @@ class WorkflowLoader
      */
     public static function load($resource, $validate = true)
     {
-        if (!is_string($resource)) {
-            $errMsg = 'Путь к файлу workflow должен быть строкой';
-            throw new InvalidParsingWorkflowException($errMsg);
+        $content = null;
+        if ($resource instanceof UriInterface) {
+            die((string)$resource);
+
+
+            $content = '';
+        } elseif (is_string($resource)) {
+            if (!file_exists($resource)) {
+                $errMsg = sprintf(
+                    'По пути %s отсутствует файл с workflow',
+                    $resource
+                );
+                throw new InvalidParsingWorkflowException($errMsg);
+            }
+            $content = file_get_contents($resource);
         }
 
-        if (!file_exists($resource)) {
-            $errMsg = sprintf(
-                'По пути %s отсутствует файл с workflow',
-                $resource
-            );
+        if (!is_string($content)) {
+            $errMsg = 'Не удалось получить workflow';
             throw new InvalidParsingWorkflowException($errMsg);
         }
 
@@ -41,7 +51,7 @@ class WorkflowLoader
             libxml_use_internal_errors(true);
 
             $xmlDoc = new \DOMDocument();
-            $resultLoadXml = $xmlDoc->load($resource);
+            $resultLoadXml = $xmlDoc->loadXML($content);
 
             if (!$resultLoadXml) {
                 $error = libxml_get_last_error();
