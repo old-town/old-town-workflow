@@ -43,7 +43,6 @@ class SecureDtdEntityResolverTest extends TestCase
      */
     public function testResolveEntity($schema)
     {
-
         $imp = new DOMImplementation();
         $dtd  = $imp->createDocumentType(
             'workflow',
@@ -71,7 +70,6 @@ class SecureDtdEntityResolverTest extends TestCase
 
 
         static::assertEquals($expectedContent, $actualContent);
-
     }
 
     /**
@@ -108,7 +106,6 @@ class SecureDtdEntityResolverTest extends TestCase
 
         $secureDtdEntityResolver = new SecureDtdEntityResolver();
         $secureDtdEntityResolver->resolveEntity($dom->doctype);
-
     }
 
 
@@ -133,7 +130,6 @@ class SecureDtdEntityResolverTest extends TestCase
 
         $secureDtdEntityResolver = new SecureDtdEntityResolver();
         $secureDtdEntityResolver->resolveEntity($dom->doctype);
-
     }
 
 
@@ -153,6 +149,5 @@ class SecureDtdEntityResolverTest extends TestCase
         SecureDtdEntityResolver::setUriClassName($current);
 
         static::assertEquals($expected, $actual);
-
     }
 }

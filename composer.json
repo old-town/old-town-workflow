@@ -24,6 +24,10 @@
     {
       "type": "vcs",
       "url": "git@github.com:onema/php-coveralls.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@github.com:old-town/http-mock.git"
     }
   ],
   "require": {
@@ -44,7 +48,7 @@
     "satooshi/php-coveralls": "dev-master",
     "behat/behat": "~3.0",
     "vipsoft/code-coverage-extension": "~3@dev",
-    "internations/http-mock": "~0.7"
+    "internations/http-mock": "dev-master"
   },
   "autoload": {
     "psr-4": {

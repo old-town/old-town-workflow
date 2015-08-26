@@ -104,7 +104,6 @@ class UrlWorkflowFactoryTest extends TestCase
     public function testGetWorkflowNames()
     {
         $this->urlWorkflowFactory->getWorkflowNames();
-
     }
 
 
@@ -120,7 +119,6 @@ class UrlWorkflowFactoryTest extends TestCase
         $actual = $this->urlWorkflowFactory->createWorkflow('example');
 
         static::assertNull($actual);
-
     }
 
 
@@ -135,7 +133,6 @@ class UrlWorkflowFactoryTest extends TestCase
     public function testRemoveWorkflow()
     {
         $this->urlWorkflowFactory->removeWorkflow('example');
-
     }
 
 
@@ -200,6 +197,6 @@ class UrlWorkflowFactoryTest extends TestCase
         $actual = UrlWorkflowFactory::getUriClassName();
         UrlWorkflowFactory::setUriClassName($current);
 
-        static::assertEquals($expected,$actual);
+        static::assertEquals($expected, $actual);
     }
 }

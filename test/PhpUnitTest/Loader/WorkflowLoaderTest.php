@@ -5,11 +5,10 @@
  */
 namespace OldTown\Workflow\PhpUnitTest\Loader;
 
-
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\WorkflowLoader;
 use Psr\Http\Message\UriInterface;
-
+use \InterNations\Component\HttpMock\PHPUnit\HttpMockTrait;
 
 /**
  * Class WorkflowLoaderTest
@@ -18,6 +17,40 @@ use Psr\Http\Message\UriInterface;
  */
 class WorkflowLoaderTest extends TestCase
 {
+    use HttpMockTrait;
+
+    /**
+     *
+     */
+    public static function setUpBeforeClass()
+    {
+        static::setUpHttpMockBeforeClass('8082', 'localhost');
+    }
+
+    /**
+     *
+     */
+    public static function tearDownAfterClass()
+    {
+        static::tearDownHttpMockAfterClass();
+    }
+
+    /**
+     *
+     */
+    public function setUp()
+    {
+        $this->setUpHttpMock();
+    }
+
+    /**
+     *
+     */
+    public function tearDown()
+    {
+        $this->tearDownHttpMock();
+    }
+
     /**
      * @var string
      */
@@ -46,9 +79,23 @@ class WorkflowLoaderTest extends TestCase
 
     public function testLoadFromUrl()
     {
-        $url = 'file:///path/to/file/test.xml';
-        $uri = self::uriFactory($url);
+        $this->http->mock
+            ->when()
+            ->methodIs('GET')
+            ->pathIs('/foo')
+            ->then()
+            ->body('mocked body')
+            ->end();
+        $this->http->setUp();
 
-        $descriptor = WorkflowLoader::load($uri);
+        static::assertSame('mocked body', file_get_contents('http://localhost:8082/foo'));
+
+
+
+//
+//        $url = 'file:///path/to/file/test.xml';
+//        $uri = self::uriFactory($url);
+//
+//        $descriptor = WorkflowLoader::load($uri);
     }
 }
