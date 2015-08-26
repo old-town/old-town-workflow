@@ -27,7 +27,7 @@ class WorkflowLoader
         $content = null;
         if ($resource instanceof UriInterface) {
             $uri = $resource->__toString();
-            $content = file_get_contents($uri);;
+            $content = file_get_contents($uri);
         } elseif (is_string($resource)) {
             if (!file_exists($resource)) {
                 $errMsg = sprintf(
@@ -51,17 +51,14 @@ class WorkflowLoader
             $xmlDoc = new \DOMDocument();
             $resultLoadXml = $xmlDoc->loadXML($content);
 
-            if (!$resultLoadXml) {
-                $error = libxml_get_last_error();
-                if ($error instanceof \LibXMLError) {
-                    $errMsg = "Error in workflow xml.\n";
-                    $errMsg .= "Message: {$error->message}.\n";
-                    $errMsg .= "File: {$error->file}.\n";
-                    $errMsg .= "Line: {$error->line}.\n";
-                    $errMsg .= "Column: {$error->column}.";
+            if (!$resultLoadXml && ($error = libxml_get_last_error()) && $error instanceof \LibXMLError) {
+                $errMsg = "Error in workflow xml.\n";
+                $errMsg .= "Message: {$error->message}.\n";
+                $errMsg .= "File: {$error->file}.\n";
+                $errMsg .= "Line: {$error->line}.\n";
+                $errMsg .= "Column: {$error->column}.";
 
-                    throw new InvalidParsingWorkflowException($errMsg);
-                }
+                throw new InvalidParsingWorkflowException($errMsg);
             }
 
             /** @var DOMElement $root */
@@ -75,7 +72,7 @@ class WorkflowLoader
 
             return $descriptor;
         } catch (\Exception $e) {
-            $errMsg = "Ошибка при загрузке workflow из файла {$resource}.";
+            $errMsg = "Ошибка при загрузке workflow из ресурса {$resource}.";
             throw new InvalidParsingWorkflowException($errMsg, $e->getCode(), $e);
         }
     }
