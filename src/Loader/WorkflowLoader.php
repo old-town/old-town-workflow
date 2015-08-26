@@ -26,10 +26,8 @@ class WorkflowLoader
     {
         $content = null;
         if ($resource instanceof UriInterface) {
-            die((string)$resource);
-
-
-            $content = '';
+            $uri = $resource->__toString();
+            $content = file_get_contents($uri);;
         } elseif (is_string($resource)) {
             if (!file_exists($resource)) {
                 $errMsg = sprintf(

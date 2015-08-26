@@ -20,11 +20,21 @@ class WorkflowLoaderTest extends TestCase
     use HttpMockTrait;
 
     /**
+     * @var string
+     */
+    private static $exampleWorkflowXml;
+
+    /**
      *
      */
     public static function setUpBeforeClass()
     {
         static::setUpHttpMockBeforeClass('8082', 'localhost');
+
+        if (!static::$exampleWorkflowXml) {
+            $path = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'example.xml';
+            static::$exampleWorkflowXml = file_get_contents($path);
+        }
     }
 
     /**
@@ -77,6 +87,9 @@ class WorkflowLoaderTest extends TestCase
         return $uri;
     }
 
+    /**
+     *
+     */
     public function testLoadFromUrl()
     {
         $this->http->mock
@@ -84,19 +97,13 @@ class WorkflowLoaderTest extends TestCase
             ->methodIs('GET')
             ->pathIs('/foo')
             ->then()
-            ->body('mocked body')
+            ->body(static::$exampleWorkflowXml)
             ->end();
         $this->http->setUp();
 
-        static::assertSame('mocked body', file_get_contents('http://localhost:8082/foo'));
+        $url = 'http://localhost:8082/foo';
+        $uri = self::uriFactory($url);
+        $descriptor = WorkflowLoader::load($uri);
 
-
-        //@todo
-
-//
-//        $url = 'file:///path/to/file/test.xml';
-//        $uri = self::uriFactory($url);
-//
-//        $descriptor = WorkflowLoader::load($uri);
     }
 }
