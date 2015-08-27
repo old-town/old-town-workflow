@@ -100,15 +100,7 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
 
         if ($useCache && array_key_exists($name, $this->cache)) {
             $descriptor = $this->cache[$name];
-
-            if (null !== $descriptor && !$descriptor instanceof WorkflowDescriptor) {
-                $errMsg = "Ошибка при получение workflow {$name} из кеша";
-                throw new FactoryException($errMsg);
-            }
-
-            if (null !== $descriptor) {
-                return $descriptor;
-            }
+            return $descriptor;
         }
 
         try {
@@ -119,7 +111,7 @@ class  UrlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
                 $this->cache[$name] = $descriptor;
             }
         } catch (\Exception $e) {
-            $errMsg = "Unable to find workflow {$name}";
+            $errMsg = sprintf('Ошибка при загрузке workflow: %s', $name);
             throw new FactoryException($errMsg, $e->getCode(), $e);
         }
 

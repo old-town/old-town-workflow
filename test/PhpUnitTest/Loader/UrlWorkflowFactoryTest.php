@@ -5,6 +5,7 @@
  */
 namespace OldTown\Workflow\PhpUnitTest\Loader;
 
+use InterNations\Component\HttpMock\PHPUnit\HttpMockTrait;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\UrlWorkflowFactory;
@@ -17,17 +18,64 @@ use OldTown\Workflow\Loader\UrlWorkflowFactory;
  */
 class UrlWorkflowFactoryTest extends TestCase
 {
+    use HttpMockTrait;
+
     /**
      * @var UrlWorkflowFactory
      */
     private $urlWorkflowFactory;
 
     /**
+     * @var string
+     */
+    private static $exampleWorkflowXml;
+
+    /**
+     * Путь до файла с тестовым workflow
+     *
+     * @var string
+     */
+    private static $pathToExampleWorkflowXml;
+
+    /**
      *
      */
-    protected function setUp()
+    public static function setUpBeforeClass()
     {
+        static::setUpHttpMockBeforeClass('8082', 'localhost');
+        if (!static::$pathToExampleWorkflowXml) {
+            $path = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'example.xml';
+            static::$pathToExampleWorkflowXml = $path;
+        }
+
+        if (!static::$exampleWorkflowXml) {
+            static::$exampleWorkflowXml = file_get_contents(static::$pathToExampleWorkflowXml);
+        }
+    }
+
+    /**
+     *
+     */
+    public static function tearDownAfterClass()
+    {
+        static::tearDownHttpMockAfterClass();
+    }
+
+    /**
+     *
+     */
+    public function setUp()
+    {
+        $this->setUpHttpMock();
         $this->urlWorkflowFactory = new UrlWorkflowFactory();
+    }
+
+    /**
+     *
+     */
+    public function tearDown()
+    {
+        $this->tearDownHttpMock();
     }
 
     /**
@@ -198,5 +246,81 @@ class UrlWorkflowFactoryTest extends TestCase
         UrlWorkflowFactory::setUriClassName($current);
 
         static::assertEquals($expected, $actual);
+    }
+
+    /**
+     * Тест получения workflow по url
+     *
+     * @return void
+     */
+    public function testGetWorkflow()
+    {
+        $this->http->mock
+            ->when()
+            ->methodIs('GET')
+            ->pathIs('/foo')
+            ->then()
+            ->body(static::$exampleWorkflowXml)
+            ->end();
+        $this->http->setUp();
+
+        $url = 'http://localhost:8082/foo';
+
+        $descriptor = $this->urlWorkflowFactory->getWorkflow($url);
+
+        static::assertInstanceOf(WorkflowDescriptor::class, $descriptor);
+    }
+
+
+    /**
+     * Тест получения workflow по url
+     *
+     * @return void
+     */
+    public function testGetWorkflowFromCache()
+    {
+        $this->urlWorkflowFactory->getProperties()->setProperty(UrlWorkflowFactory::CACHE, 'true');
+
+        $this->http->mock
+            ->when()
+            ->methodIs('GET')
+            ->pathIs('/foo')
+            ->then()
+            ->body(static::$exampleWorkflowXml)
+            ->end();
+        $this->http->setUp();
+
+        $url = 'http://localhost:8082/foo';
+        //save cache
+        $expectedDescriptor = $this->urlWorkflowFactory->getWorkflow($url);
+        //read cache
+        $actualDescriptor = $this->urlWorkflowFactory->getWorkflow($url);
+
+
+        static::assertTrue($expectedDescriptor === $actualDescriptor);
+    }
+
+
+    /**
+     * Тест получения workflow по url. Отдается невалидный xml
+     *
+     * @expectedException \OldTown\Workflow\Exception\FactoryException
+     * @expectedExceptionMessage Ошибка при загрузке workflow: http://localhost:8082/foo
+     * @return void
+     */
+    public function testGetWorkflowFromInvalidXml()
+    {
+        $this->http->mock
+            ->when()
+            ->methodIs('GET')
+            ->pathIs('/foo')
+            ->then()
+            ->body('invalid xml')
+            ->end();
+        $this->http->setUp();
+
+        $url = 'http://localhost:8082/foo';
+
+        $this->urlWorkflowFactory->getWorkflow($url);
     }
 }
