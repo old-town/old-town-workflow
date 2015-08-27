@@ -47,20 +47,10 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         $this->initDefaultPathsToWorkflows();
     }
 
-    /**
-     * Иницализация путей по которым происходит поиск
-     *
-     * @return void
-     */
-    protected function initDefaultPathsToWorkflows()
-    {
-        static::$defaultPathsToWorkflows[] = __DIR__ . '/../../config';
-    }
-
 
     /**
      * @param string $workflowName
-     * @param object $layout
+     * @param string $layout
      *
      * @return $this
      */
@@ -78,6 +68,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         return null;
     }
 
+
     /**
      *
      * @return string
@@ -88,6 +79,98 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     }
 
     /**
+     * @param string $name
+     *
+     * @return boolean
+     */
+    public function isModifiable($name)
+    {
+        return true;
+    }
+
+    /**
+     * String representation of object
+     *
+     * @link http://php.net/manual/en/serializable.serialize.php
+     * @return string the string representation of the object or null
+     */
+    public function serialize()
+    {
+    }
+
+    /**
+     * Constructs the object
+     *
+     * @link http://php.net/manual/en/serializable.unserialize.php
+     *
+     * @param string $serialized <p>
+     *
+     * @return void
+     */
+    public function unserialize($serialized)
+    {
+    }
+    /**
+     *
+     * @return String[]
+     * @throws FactoryException
+     */
+    public function getWorkflowNames()
+    {
+        throw new FactoryException('XmlWorkflowFactory не содержит имена workflow');
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return boolean
+     * @throws FactoryException
+     */
+    public function removeWorkflow($name)
+    {
+        throw new FactoryException('Удаление workflow не поддерживается');
+    }
+
+    /**
+     * @param string $oldName
+     * @param string $newName
+     *
+     * @return void
+     */
+    public function renameWorkflow($newName, $oldName = null)
+    {
+    }
+
+    /**
+     * @return void
+     */
+    public function save()
+    {
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return void
+     * @throws FactoryException
+     */
+    public function createWorkflow($name)
+    {
+    }
+
+    /**
+     * Иницализация путей по которым происходит поиск
+     *
+     * @return void
+     */
+    protected function initDefaultPathsToWorkflows()
+    {
+        static::$defaultPathsToWorkflows[] = __DIR__ . '/../../config';
+    }
+
+
+
+    /**
      *
      * @return void
      * @throws FactoryException
@@ -95,7 +178,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function initDone()
     {
-        $this->reload = (boolean)$this->getProperties('reload', false);
+        $this->reload = 'true' === $this->getProperties()->getProperty('reload', 'false');
 
         $name = $this->getProperties()->getProperty('resource', 'workflows.xml');
 
@@ -189,7 +272,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      * @return void
      * @throws FactoryException
      */
-    private function loadWorkflow(WorkflowConfig $c, $validate)
+    private function loadWorkflow(WorkflowConfig $c, $validate = true)
     {
         $validate = (boolean)$validate;
         try {
@@ -224,33 +307,8 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         return $absolutePath;
     }
 
-    /**
-     * @param string $name
-     *
-     * @return boolean
-     * @throws FactoryException
-     */
-    public function removeWorkflow($name)
-    {
-        throw new FactoryException('Удаление workflow не поддерживается');
-    }
 
-    /**
-     * @param string $oldName
-     * @param string $newName
-     *
-     * @return void
-     */
-    public function renameWorkflow($newName, $oldName = null)
-    {
-    }
 
-    /**
-     * @return void
-     */
-    public function save()
-    {
-    }
 
 
     /**
@@ -288,7 +346,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public static function getDefaultPathsToWorkflows()
     {
-        return self::$defaultPathsToWorkflows;
+        return static::$defaultPathsToWorkflows;
     }
 
     /**
@@ -296,7 +354,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public static function setDefaultPathsToWorkflows(array $defaultPathsToWorkflows = [])
     {
-        self::$defaultPathsToWorkflows = $defaultPathsToWorkflows;
+        static::$defaultPathsToWorkflows = $defaultPathsToWorkflows;
     }
 
     /**
@@ -306,68 +364,20 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     {
         $path = (string)$path;
 
-        array_unshift(self::$defaultPathsToWorkflows, $path);
+        array_unshift(static::$defaultPathsToWorkflows, $path);
     }
 
 ########################################################################################################################
 #Необходимо портировать из базового приложения##########################################################################
 ########################################################################################################################
 
-    /**
-     * @param string $name
-     *
-     * @return boolean
-     */
-    public function isModifiable($name)
-    {
-        return false;
-    }
 
 
-    /**
-     * String representation of object
-     *
-     * @link http://php.net/manual/en/serializable.serialize.php
-     * @return string the string representation of the object or null
-     */
-    public function serialize()
-    {
-    }
-
-    /**
-     * Constructs the object
-     *
-     * @link http://php.net/manual/en/serializable.unserialize.php
-     *
-     * @param string $serialized <p>
-     *
-     * @return void
-     */
-    public function unserialize($serialized)
-    {
-    }
 
 
-    /**
-     *
-     * @return String[]
-     * @throws FactoryException
-     */
-    public function getWorkflowNames()
-    {
-        throw new FactoryException('URLWorkflowFactory не содержит имена workflow');
-    }
 
 
-    /**
-     * @param string $name
-     *
-     * @return void
-     * @throws FactoryException
-     */
-    public function createWorkflow($name)
-    {
-    }
+
 
 
     /**
