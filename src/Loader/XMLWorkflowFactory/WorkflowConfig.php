@@ -53,6 +53,7 @@ class WorkflowConfig implements Serializable
      * @param $baseDir
      * @param $type
      * @param $location
+     * @throws \BadMethodCallException
      */
     public function __construct($baseDir, $type, $location)
     {
