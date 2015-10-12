@@ -7,15 +7,27 @@ namespace OldTown\Workflow\Loader\XMLWorkflowFactory;
 
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use Psr\Http\Message\UriInterface;
-use Serializable;
+use OldTown\Workflow\Exception\RemoteException;
 
 /**
  * Class WorkflowDescriptor
  *
  * @package OldTown\Workflow\Loader\WorkflowConfig
  */
-class WorkflowConfig implements Serializable
+class WorkflowConfig
 {
+    /**
+     *
+     * @var string
+     */
+    const URL_TYPE = 'URL';
+
+    /**
+     *
+     * @var string
+     */
+    const FILE_TYPE = 'file';
+
     /**
      * @var string
      */
@@ -53,7 +65,7 @@ class WorkflowConfig implements Serializable
      * @param $baseDir
      * @param $type
      * @param $location
-     * @throws \BadMethodCallException
+     * @throws RemoteException
      */
     public function __construct($baseDir, $type, $location)
     {
@@ -64,18 +76,30 @@ class WorkflowConfig implements Serializable
      * @param $baseDir
      * @param $type
      * @param $location
-     * @throws \BadMethodCallException
+     * @throws RemoteException
      */
     protected function init($baseDir, $type, $location)
     {
         switch ($type) {
-            case 'URL': {
-                //@fixme task: портировать поддержку подгрузки для url
-                $errMsg = 'Работа с Url. Необходимо портировать из оригинального проекта';
-                throw new \BadMethodCallException($errMsg);
+            case (static::URL_TYPE): {
+                $uri = $this->uriFactory($location);
+                $this->url = $uri;
+
+                $uriString = (string)$uri;
+                $meta = get_headers($uriString, 1);
+
+                $lastModified = time();
+                if (array_key_exists('Last-Modified', $meta)) {
+                    $lastModified = $meta['Last-Modified'];
+                    $date = \DateTime::createFromFormat("D, d M Y H:i:s \G\M\T", $lastModified);
+                    $lastModified = $date->getTimestamp();
+                }
+
+                $this->lastModified = $lastModified;
+
                 break;
             }
-            case 'file': {
+            case (static::FILE_TYPE): {
                 $pathToFile = $baseDir . DIRECTORY_SEPARATOR . $location;
                 if (file_exists($pathToFile)) {
                     $this->url = realpath($pathToFile);
@@ -95,23 +119,6 @@ class WorkflowConfig implements Serializable
 
         $this->type = $type;
         $this->location = $location;
-    }
-
-    /**
-     * @link http://php.net/manual/en/serializable.serialize.php
-     * @return string the string representation of the object or null
-     */
-    public function serialize()
-    {
-    }
-
-    /**
-     * @link http://php.net/manual/en/serializable.unserialize.php
-     * @param string $serialized
-     * @return void
-     */
-    public function unserialize($serialized)
-    {
     }
 
     /**
