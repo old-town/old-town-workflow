@@ -207,7 +207,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
             $xmlDoc->loadXML($content);
 
             if ($error = libxml_get_last_error()) {
-
                 $errMsg = "Error in workflow xml.\n";
                 $errMsg .= "Message: {$error->message}.\n";
                 $errMsg .= "File: {$error->file}.\n";
@@ -215,7 +214,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
                 $errMsg .= "Column: {$error->column}.";
 
                 throw new InvalidParsingWorkflowException($errMsg);
-
             }
 
             /** @var DOMElement $root */
@@ -260,7 +258,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         $c = $this->workflows[$name];
 
         if (null !== $c->descriptor) {
-            if ($this->reload && (file_exists($c->url && (filemtime($c->url) > $c->lastModified)))) {
+            if ($this->reload && file_exists($c->url) && (filemtime($c->url) > $c->lastModified)) {
                 $c->lastModified = filemtime($c->url);
                 $this->loadWorkflow($c, $validate);
             }

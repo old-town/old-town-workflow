@@ -57,5 +57,4 @@ class Paths
 
         return static::$pathToTestDataDir;
     }
-
 }

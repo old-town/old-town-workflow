@@ -10,7 +10,7 @@ use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\PhpUnitTest\Paths;
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\XmlWorkflowFactory;
-
+use Ramsey\Uuid\Uuid;
 
 /**
  * Class XMLWorkflowFactoryTest
@@ -224,7 +224,6 @@ class XMLWorkflowFactoryTest extends TestCase
      */
     public function testInitDone()
     {
-
         XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToDataDir());
 
         $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
@@ -264,8 +263,6 @@ class XMLWorkflowFactoryTest extends TestCase
 
 
         $xmlWorkflowFactoryMock->initDone();
-
-
     }
 
 
@@ -277,7 +274,66 @@ class XMLWorkflowFactoryTest extends TestCase
     public function testGetWorkflowInvalidName()
     {
         $this->xmlWorkflowFactory->getWorkflow('invalid-name');
+    }
 
 
+
+    /**
+     * Тестирование кеша при получение дескриптора workflow
+     *
+     *
+     */
+    public function testGetWorkflowReload()
+    {
+        $pathToTmp = Paths::getPathToTestDataDir();
+        if (!(file_exists($pathToTmp) && is_dir($pathToTmp) && is_writable($pathToTmp))) {
+            static::markTestSkipped(sprintf('Invalid resource %s', $pathToTmp));
+        }
+
+        $testDir = $pathToTmp . DIRECTORY_SEPARATOR . Uuid::uuid4()->toString();
+
+        try {
+            mkdir($testDir);
+
+            $files = [
+                'workflows.xml',
+                'example.xml'
+            ];
+
+            foreach ($files as $file) {
+                $from = Paths::getPathToDataDir() . DIRECTORY_SEPARATOR . $file;
+                $to = $testDir . DIRECTORY_SEPARATOR . $file;
+                copy($from, $to);
+            }
+
+            XmlWorkflowFactory::addDefaultPathToWorkflows($testDir);
+            $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+            $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RELOAD_PROPERTY, 'true');
+
+            $this->xmlWorkflowFactory->initDone();
+            $this->xmlWorkflowFactory->getWorkflow('example');
+
+            $pathToTestWorkflow = $testDir . DIRECTORY_SEPARATOR . 'example.xml';
+
+            $dom = new \DOMDocument();
+            $dom->load($pathToTestWorkflow);
+            $xpath = new \DOMXpath($dom);
+            $meta = $xpath->query('//workflow/meta[@name="lastModified"]')->item(0);
+
+            $expected = 'test';
+            $meta->nodeValue = $expected;
+            sleep(1);
+            $dom->save($pathToTestWorkflow);
+            clearstatcache();
+            $descriptor = $this->xmlWorkflowFactory->getWorkflow('example');
+            $metaAttributes = $descriptor->getMetaAttributes();
+
+            static::assertEquals($expected, $metaAttributes['lastModified']);
+        } finally {
+            foreach (glob(sprintf('%s%s*', $testDir, DIRECTORY_SEPARATOR)) as $file) {
+                unlink($file);
+            }
+            rmdir($testDir);
+        }
     }
 }
