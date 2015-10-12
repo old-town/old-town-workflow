@@ -7,6 +7,7 @@ namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use InterNations\Component\HttpMock\PHPUnit\HttpMockTrait;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
+use OldTown\Workflow\PhpUnitTest\Paths;
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\XmlWorkflowFactory;
 
@@ -26,10 +27,24 @@ class XMLWorkflowFactoryTest extends TestCase
     private $xmlWorkflowFactory;
 
     /**
+     * @var mixed
+     */
+    private $originalDefaultPathsToWorkflows;
+
+    /**
      *
      */
     public static function setUpBeforeClass()
     {
+        static::setUpHttpMockBeforeClass('8082', 'localhost');
+    }
+
+    /**
+     *
+     */
+    public static function tearDownAfterClass()
+    {
+        static::tearDownHttpMockAfterClass();
     }
 
     /**
@@ -37,8 +52,20 @@ class XMLWorkflowFactoryTest extends TestCase
      */
     public function setUp()
     {
+        $this->setUpHttpMock();
+        $this->originalDefaultPathsToWorkflows = XmlWorkflowFactory::getDefaultPathsToWorkflows();
         $this->xmlWorkflowFactory = new XmlWorkflowFactory();
     }
+
+    /**
+     *
+     */
+    public function tearDown()
+    {
+        XmlWorkflowFactory::setDefaultPathsToWorkflows($this->originalDefaultPathsToWorkflows);
+        $this->tearDownHttpMock();
+    }
+
 
 
     /**
@@ -189,5 +216,68 @@ class XMLWorkflowFactoryTest extends TestCase
         $actual = $this->xmlWorkflowFactory->createWorkflow('example');
 
         static::assertNull($actual);
+    }
+
+    /**
+     *
+     *
+     */
+    public function testInitDone()
+    {
+
+        XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToDataDir());
+
+        $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+
+        $this->xmlWorkflowFactory->initDone();
+
+        $workflow = $this->xmlWorkflowFactory->getWorkflow('example');
+
+
+        static::assertEquals(true, $workflow instanceof WorkflowDescriptor);
+    }
+
+    /**
+     * @expectedException \OldTown\Workflow\Exception\InvalidParsingWorkflowException
+     *
+     */
+    public function testInvalidConfig()
+    {
+        $this->http->mock
+            ->when()
+            ->methodIs('GET')
+            ->pathIs('/foo')
+            ->then()
+            ->body('invalid content')
+            ->end();
+        $this->http->setUp();
+
+        $url = 'http://localhost:8082/foo';
+
+
+        /** @var XmlWorkflowFactory|\PHPUnit_Framework_MockObject_MockObject $xmlWorkflowFactoryMock */
+        $xmlWorkflowFactoryMock = $this->getMock(XmlWorkflowFactory::class, [
+            'getPathWorkflowFile'
+        ]);
+
+        $xmlWorkflowFactoryMock->expects(static::once())->method('getPathWorkflowFile')->will(static::returnValue($url));
+
+
+        $xmlWorkflowFactoryMock->initDone();
+
+
+    }
+
+
+    /**
+     * @expectedException \OldTown\Workflow\Exception\FactoryException
+     * @expectedExceptionMessage Нет workflow с именем invalid-name
+     *
+     */
+    public function testGetWorkflowInvalidName()
+    {
+        $this->xmlWorkflowFactory->getWorkflow('invalid-name');
+
+
     }
 }

@@ -13,6 +13,7 @@ use Serializable;
 use OldTown\Workflow\Loader\XMLWorkflowFactory\WorkflowConfig;
 use DOMElement;
 use DOMDocument;
+use OldTown\Workflow\Exception\RuntimeException;
 
 /**
  * Class UrlWorkflowFactory
@@ -22,9 +23,21 @@ use DOMDocument;
 class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializable
 {
     /**
+     *
+     * @var string
+     */
+    const RESOURCE_PROPERTY = 'resource';
+
+    /**
+     *
+     * @var string
+     */
+    const RELOAD_PROPERTY = 'reload';
+
+    /**
      * @var WorkflowConfig[]
      */
-    protected $workflows;
+    protected $workflows = [];
 
     /**
      * @var bool
@@ -61,7 +74,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     /**
      * @param string $workflowName
      *
-     * @return object|null
+     * @return mixed|null
      */
     public function getLayout($workflowName)
     {
@@ -178,37 +191,37 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function initDone()
     {
-        $this->reload = 'true' === $this->getProperties()->getProperty('reload', 'false');
+        $this->reload = 'true' === $this->getProperties()->getProperty(static::RELOAD_PROPERTY, 'false');
 
-        $name = $this->getProperties()->getProperty('resource', 'workflows.xml');
+        $name = $this->getProperties()->getProperty(static::RESOURCE_PROPERTY, 'workflows.xml');
 
-        $contentWorkflowFile = $this->getContentWorkflowFile($name);
+        $pathWorkflowFile = $this->getPathWorkflowFile($name);
+        $content = file_get_contents($pathWorkflowFile);
 
         try {
             libxml_use_internal_errors(true);
 
+            libxml_clear_errors();
+
             $xmlDoc = new DOMDocument();
-            $resultLoadXml = $xmlDoc->loadXML($contentWorkflowFile);
+            $xmlDoc->loadXML($content);
 
-            if (!$resultLoadXml) {
-                $error = libxml_get_last_error();
-                if ($error instanceof \LibXMLError) {
-                    $errMsg = "Error in workflow xml.\n";
-                    $errMsg .= "Message: {$error->message}.\n";
-                    $errMsg .= "File: {$error->file}.\n";
-                    $errMsg .= "Line: {$error->line}.\n";
-                    $errMsg .= "Column: {$error->column}.";
+            if ($error = libxml_get_last_error()) {
 
-                    throw new InvalidParsingWorkflowException($errMsg);
-                }
+                $errMsg = "Error in workflow xml.\n";
+                $errMsg .= "Message: {$error->message}.\n";
+                $errMsg .= "File: {$error->file}.\n";
+                $errMsg .= "Line: {$error->line}.\n";
+                $errMsg .= "Column: {$error->column}.";
+
+                throw new InvalidParsingWorkflowException($errMsg);
+
             }
 
             /** @var DOMElement $root */
             $root = $xmlDoc->getElementsByTagName('workflows')->item(0);
 
-            $this->workflows = [];
-
-            $basedir = $this->getBaseDir($root);
+            $basedir = $this->getBaseDir($root, $pathWorkflowFile);
 
             $list = XmlUtil::getChildElements($root, 'workflow');
 
@@ -241,15 +254,10 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     {
         $name = (string)$name;
         if (!array_key_exists($name, $this->workflows)) {
-            $errMsg = "Нет workflow с именем {$name}";
+            $errMsg = sprintf('Нет workflow с именем %s', $name);
             throw new FactoryException($errMsg);
         }
         $c = $this->workflows[$name];
-
-        if (!$c instanceof WorkflowConfig) {
-            $errMsg = 'Некорректный конфиг workflow  с именем';
-            throw new FactoryException($errMsg);
-        }
 
         if (null !== $c->descriptor) {
             if ($this->reload && (file_exists($c->url && (filemtime($c->url) > $c->lastModified)))) {
@@ -288,20 +296,29 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      *
      * @param DOMElement $root
      *
+     * @param            $pathWorkflowFile
+     *
      * @return string
+     * @throws RuntimeException
      */
-    protected function getBaseDir(DOMElement $root)
+    protected function getBaseDir(DOMElement $root, $pathWorkflowFile)
     {
         if (!$root->hasAttribute('basedir')) {
             return null;
         }
-        $basedir = XmlUtil::getRequiredAttributeValue($root, 'basedir');
+        $basedirAtr = XmlUtil::getRequiredAttributeValue($root, 'basedir');
+
+
+        $basedir = $basedirAtr;
+        if (0 === strpos($basedir, '.')) {
+            $basedir = dirname($pathWorkflowFile) .  substr($basedir, 1);
+        }
 
         if (file_exists($basedir)) {
             $absolutePath = realpath($basedir);
         } else {
-            $basedirResolve = $this->getProperties()->getProperty('user.dir', $basedir);
-            $absolutePath = realpath($basedirResolve);
+            $errMsg = sprintf('Отсутствует ресурс %s', $basedirAtr);
+            throw new RuntimeException($errMsg);
         }
 
         return $absolutePath;
@@ -317,7 +334,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      * @return string
      * @throws FactoryException
      */
-    protected function getContentWorkflowFile($name)
+    protected function getPathWorkflowFile($name)
     {
         $paths = static::getDefaultPathsToWorkflows();
 
@@ -327,14 +344,14 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
             if ($path) {
                 $filePath = $path . DIRECTORY_SEPARATOR . $name;
                 if (file_exists($filePath)) {
-                    $content = file_get_contents($filePath);
+                    $content = $filePath;
                     break;
                 }
             }
         }
 
         if (null === $content) {
-            $errMsg = 'Не удалось прочитать конфигурационный файл';
+            $errMsg = 'Не удалось найти конфигурационный файл';
             throw new FactoryException($errMsg);
         }
 

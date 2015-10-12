@@ -20,6 +20,13 @@ class Paths
     protected static $pathToDataDir;
 
     /**
+     * Путь до временной директории, куда могу записывать свои файлы тесты
+     *
+     * @var string|null
+     */
+    protected static $pathToTestDataDir;
+
+    /**
      * Возвращает путь до директории с данными для тестов
      *
      * @return string
@@ -34,4 +41,21 @@ class Paths
 
         return static::$pathToDataDir;
     }
+
+    /**
+     * Возвращает путь до директории с данными для тестов
+     *
+     * @return string
+     */
+    public static function getPathToTestDataDir()
+    {
+        if (static::$pathToTestDataDir) {
+            return static::$pathToTestDataDir;
+        }
+
+        static::$pathToTestDataDir = __DIR__ . '/../../data/test';
+
+        return static::$pathToTestDataDir;
+    }
+
 }
