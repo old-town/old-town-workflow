@@ -1,0 +1,4 @@
+<workflows basedir="./">
+    <workflow name="example" type="file" location="example.xml"/>
+    <workflow name="newExample" type="file" location="new-example.xml"/>
+</workflows>

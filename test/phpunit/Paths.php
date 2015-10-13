@@ -27,6 +27,50 @@ class Paths
     protected static $pathToTestDataDir;
 
     /**
+     * Ресурсы используемые разными тестами
+     *
+     * @var string|null
+     */
+    protected static $pathToCommonDataDir;
+
+    /**
+     * Корректный конфиг workflow+некорректный файл самого workflow
+     *
+     * @var string
+     */
+    protected static $pathToInvalidWorkflowDir;
+
+    /**
+     * Каталог с примерами некорректных файлов конфига workflow
+     *
+     * @var string
+     */
+    protected static $pathToInvalidWorkflowConfig;
+
+    /**
+     * Директория содержит файлы используемые для тестирования сохранения workflow
+     *
+     * @var string
+     */
+    protected static $pathToSaveWorkflowDir;
+
+    /**
+     * Возвращает путь до директории с данными для тестов
+     *
+     * @return string
+     */
+    public static function getPathToSaveWorkflowDir()
+    {
+        if (static::$pathToSaveWorkflowDir) {
+            return static::$pathToSaveWorkflowDir;
+        }
+
+        static::$pathToSaveWorkflowDir = __DIR__ . '/_files/save-workflow';
+
+        return static::$pathToSaveWorkflowDir;
+    }
+
+    /**
      * Возвращает путь до директории с данными для тестов
      *
      * @return string
@@ -40,6 +84,55 @@ class Paths
         static::$pathToDataDir = __DIR__ . '/_files';
 
         return static::$pathToDataDir;
+    }
+
+    /**
+     * Возвращает путь до директории с данными для тестов
+     *
+     * @return string
+     */
+    public static function getPathToCommonDataDir()
+    {
+        if (static::$pathToCommonDataDir) {
+            return static::$pathToCommonDataDir;
+        }
+
+        static::$pathToCommonDataDir = __DIR__ . '/_files/common';
+
+        return static::$pathToCommonDataDir;
+    }
+
+
+    /**
+     * Возвращает путь до каталога с примерами некорректных файлов конфига workflow
+     *
+     * @return string
+     */
+    public static function getPathToInvalidWorkflowConfig()
+    {
+        if (static::$pathToInvalidWorkflowConfig) {
+            return static::$pathToInvalidWorkflowConfig;
+        }
+
+        static::$pathToInvalidWorkflowConfig = __DIR__ . '/_files/invalid-workflow-config';
+
+        return static::$pathToInvalidWorkflowConfig;
+    }
+
+    /**
+     * Возвращает путь до директории содержащий корректный конфиг workflow+некорректный файл самого workflow
+     *
+     * @return string
+     */
+    public static function getPathToInvalidWorkflowDir()
+    {
+        if (static::$pathToInvalidWorkflowDir) {
+            return static::$pathToInvalidWorkflowDir;
+        }
+
+        static::$pathToInvalidWorkflowDir = __DIR__ . '/_files/invalid-workflow';
+
+        return static::$pathToInvalidWorkflowDir;
     }
 
     /**

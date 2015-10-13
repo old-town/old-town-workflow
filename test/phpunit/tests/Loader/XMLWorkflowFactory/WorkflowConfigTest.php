@@ -45,7 +45,7 @@ class WorkflowConfigTest extends TestCase
     {
         static::setUpHttpMockBeforeClass('8082', 'localhost');
         if (!static::$pathToExampleWorkflowConfig) {
-            $path = Paths::getPathToDataDir() . DIRECTORY_SEPARATOR . 'osworkflow.xml';
+            $path = Paths::getPathToCommonDataDir() . DIRECTORY_SEPARATOR . 'osworkflow.xml';
             static::$pathToExampleWorkflowConfig = $path;
         }
 
@@ -87,7 +87,7 @@ class WorkflowConfigTest extends TestCase
      */
     public function testCorrectSetFileType()
     {
-        $workflowConfig = new WorkflowConfig(Paths::getPathToDataDir(), 'file', 'example.xml');
+        $workflowConfig = new WorkflowConfig(Paths::getPathToCommonDataDir(), 'file', 'example.xml');
 
         static::assertEquals('example.xml', $workflowConfig->location);
         static::assertTrue(file_exists($workflowConfig->url));
@@ -134,7 +134,7 @@ class WorkflowConfigTest extends TestCase
      */
     public function testCorrectSetDefaultType()
     {
-        $path = Paths::getPathToDataDir() . DIRECTORY_SEPARATOR . 'osworkflow.xml';
+        $path = Paths::getPathToCommonDataDir() . DIRECTORY_SEPARATOR . 'osworkflow.xml';
         $workflowConfig = new WorkflowConfig(null, null, $path);
 
         static::assertEquals(filemtime($path), $workflowConfig->lastModified);

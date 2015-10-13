@@ -7,7 +7,8 @@ namespace OldTown\Workflow\Loader;
 
 use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\InvalidParsingWorkflowException;
-use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
+use OldTown\Workflow\Exception\InvalidWriteWorkflowException;
+use OldTown\Workflow\Exception\UnsupportedOperationException;
 use OldTown\Workflow\Util\Properties\Properties;
 use Serializable;
 use OldTown\Workflow\Loader\XMLWorkflowFactory\WorkflowConfig;
@@ -227,7 +228,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
             foreach ($list as $e) {
                 $type = XmlUtil::getRequiredAttributeValue($e, 'type');
                 $location = XmlUtil::getRequiredAttributeValue($e, 'location');
-                $config = new WorkflowConfig($basedir, $type, $location);
+                $config = $this->buildWorkflowConfig($basedir, $type, $location);
                 $name = XmlUtil::getRequiredAttributeValue($e, 'name');
                 $this->workflows[$name] = $config;
             }
@@ -240,6 +241,20 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         }
     }
 
+    /**
+     * @param $basedir
+     * @param $type
+     * @param $location
+     *
+     * @return WorkflowConfig
+     * @throws \OldTown\Workflow\Exception\RemoteException
+     */
+    protected function buildWorkflowConfig($basedir, $type, $location)
+    {
+        $config = new WorkflowConfig($basedir, $type, $location);
+
+        return $config;
+    }
 
     /**
      * @param string $name
@@ -278,7 +293,7 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      * @return void
      * @throws FactoryException
      */
-    private function loadWorkflow(WorkflowConfig $c, $validate = true)
+    protected function loadWorkflow(WorkflowConfig $c, $validate = true)
     {
         $validate = (boolean)$validate;
         try {
@@ -336,24 +351,24 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
     {
         $paths = static::getDefaultPathsToWorkflows();
 
-        $content = null;
+        $pathWorkflowFile = null;
         foreach ($paths as $path) {
             $path = realpath($path);
             if ($path) {
                 $filePath = $path . DIRECTORY_SEPARATOR . $name;
                 if (file_exists($filePath)) {
-                    $content = $filePath;
+                    $pathWorkflowFile = $filePath;
                     break;
                 }
             }
         }
 
-        if (null === $content) {
-            $errMsg = 'Не удалось найти конфигурационный файл';
+        if (null === $pathWorkflowFile) {
+            $errMsg = 'Не удалось найти файл workflow';
             throw new FactoryException($errMsg);
         }
 
-        return $content;
+        return $pathWorkflowFile;
     }
 
     /**
@@ -382,19 +397,6 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
         array_unshift(static::$defaultPathsToWorkflows, $path);
     }
 
-########################################################################################################################
-#Необходимо портировать из базового приложения##########################################################################
-########################################################################################################################
-
-
-
-
-
-
-
-
-
-
     /**
      * Сохраняет workflow
      *
@@ -405,10 +407,84 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      *
      * @return boolean true - если workflow было сохранено
      * @throws FactoryException
-     * @throws InvalidWorkflowDescriptorException
+     * @throws UnsupportedOperationException
+     * @throws InvalidWriteWorkflowException
      */
-    public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace)
+    public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false)
     {
-        //@fixme Организовать созранение workflow в UrlWorkflowFactory
+        $name = (string)$name;
+        $c = array_key_exists($name, $this->workflows) ? $this->workflows[$name] : null;
+
+        if (null !== $c && !$replace) {
+            return false;
+        }
+
+        if (null === $c) {
+            $errMsg = 'Сохранение workflow не поддерживается';
+            throw new UnsupportedOperationException($errMsg);
+        }
+
+        try {
+            $content = $descriptor->writeXml();
+            $newFileName = $c->url . '.new';
+            $content->save($newFileName);
+
+
+            $bakFileName = $c->url . '.bak';
+            $isOk = $this->createBackupFile($c->url, $bakFileName);
+
+            if (!$isOk) {
+                $errMsg = sprintf(
+                    'Ошибка при архивирование оригинального файла workflow %s в %s - сохранение прервано',
+                    $c->url,
+                    $bakFileName
+                );
+                throw new FactoryException($errMsg);
+            }
+            $isOk = $this->createNewWorkflowFile($newFileName, $c->url);
+
+            if (!$isOk) {
+                $errMsg = sprintf(
+                    'Ошибка при переименовывание нового файла workflow %s в %s - сохранение прервано',
+                    $newFileName,
+                    $c->url
+                );
+                throw new FactoryException($errMsg);
+            }
+
+            unlink($bakFileName);
+
+            return true;
+        } catch (\Exception $e) {
+            throw new InvalidWriteWorkflowException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * Архивирование оригинального файла workflow
+     *
+     * @param $original
+     * @param $backup
+     *
+     * @return bool
+     */
+    protected function createBackupFile($original, $backup)
+    {
+        $isOk = !file_exists($original) || rename($original, $backup);
+
+        return $isOk;
+    }
+
+    /**
+     * @param $newFileName
+     * @param $targetFile
+     *
+     * @return bool
+     */
+    protected function createNewWorkflowFile($newFileName, $targetFile)
+    {
+        $isOk = rename($newFileName, $targetFile);
+
+        return $isOk;
     }
 }

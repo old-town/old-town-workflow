@@ -860,7 +860,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
     /**
      * Создает DOMElement - эквивалентный состоянию дескриптора
      *
-     * @param DOMDocument $dom
+     * @param DOMDocument|null $dom
      *
      * @return DOMDocument
      * @throws InternalWorkflowException

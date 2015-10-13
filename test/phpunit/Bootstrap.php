@@ -66,8 +66,9 @@ class Bootstrap
                 StandardAutoloader::class => [
                     'autoregister_zf' => true,
                     'namespaces' => [
-                        'OldTown\Workflow' => __DIR__ . '/../../src/',
+                        'OldTown\\Workflow' => __DIR__ . '/../../src/',
                         __NAMESPACE__ => __DIR__. '/tests/',
+                        'OldTown\\Workflow\\PhpUnit\\Utils' => __DIR__ . '/utils',
                     ]
                 ],
                 ClassMapAutoloader::class => [

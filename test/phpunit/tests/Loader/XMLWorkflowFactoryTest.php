@@ -10,7 +10,8 @@ use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\PhpUnit\Test\Paths;
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\XmlWorkflowFactory;
-use Ramsey\Uuid\Uuid;
+use OldTown\Workflow\Loader\XMLWorkflowFactory\WorkflowConfig;
+use OldTown\Workflow\PhpUnit\Utils\DirUtilTrait;
 
 /**
  * Class XMLWorkflowFactoryTest
@@ -19,7 +20,7 @@ use Ramsey\Uuid\Uuid;
  */
 class XMLWorkflowFactoryTest extends TestCase
 {
-    use HttpMockTrait;
+    use HttpMockTrait, DirUtilTrait;
 
     /**
      * @var XmlWorkflowFactory
@@ -188,21 +189,6 @@ class XMLWorkflowFactoryTest extends TestCase
     }
 
 
-    /**
-     * Сохранение workflow
-     *
-     *
-     * @return void
-     */
-    public function testSaveWorkflow()
-    {
-        /** @var WorkflowDescriptor $workflowDescriptor */
-        $workflowDescriptor = $this->getMock(WorkflowDescriptor::class);
-        /** @noinspection PhpVoidFunctionResultUsedInspection */
-        $actual = $this->xmlWorkflowFactory->saveWorkflow('example', $workflowDescriptor, false);
-
-        static::assertNull($actual);
-    }
 
     /**
      * Проверка создания Workflow
@@ -224,7 +210,7 @@ class XMLWorkflowFactoryTest extends TestCase
      */
     public function testInitDone()
     {
-        XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToDataDir());
+        XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToCommonDataDir());
 
         $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
 
@@ -285,26 +271,12 @@ class XMLWorkflowFactoryTest extends TestCase
      */
     public function testGetWorkflowReload()
     {
-        $pathToTmp = Paths::getPathToTestDataDir();
-        if (!(file_exists($pathToTmp) && is_dir($pathToTmp) && is_writable($pathToTmp))) {
-            static::markTestSkipped(sprintf('Invalid resource %s', $pathToTmp));
-        }
-
-        $testDir = $pathToTmp . DIRECTORY_SEPARATOR . Uuid::uuid4()->toString();
-
         try {
-            mkdir($testDir);
-
-            $files = [
+            $testDir = $this->setUpTestDir([
                 'workflows.xml',
                 'example.xml'
-            ];
+            ], Paths::getPathToCommonDataDir());
 
-            foreach ($files as $file) {
-                $from = Paths::getPathToDataDir() . DIRECTORY_SEPARATOR . $file;
-                $to = $testDir . DIRECTORY_SEPARATOR . $file;
-                copy($from, $to);
-            }
 
             XmlWorkflowFactory::addDefaultPathToWorkflows($testDir);
             $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
@@ -330,10 +302,229 @@ class XMLWorkflowFactoryTest extends TestCase
 
             static::assertEquals($expected, $metaAttributes['lastModified']);
         } finally {
-            foreach (glob(sprintf('%s%s*', $testDir, DIRECTORY_SEPARATOR)) as $file) {
-                unlink($file);
-            }
-            rmdir($testDir);
+            $this->tearDownTestDir();
+        }
+    }
+
+    /**
+     * Попытка загрузить некорректный workflow файл
+     *
+     * @expectedException \OldTown\Workflow\Exception\FactoryException
+     * @expectedExceptionMessageRegExp /Некорректный дескрипторв workflow:.*+/
+     */
+    public function testLoadInvalidWorkflow()
+    {
+        XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToInvalidWorkflowDir());
+
+        $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+
+        $this->xmlWorkflowFactory->initDone();
+
+        $workflow = $this->xmlWorkflowFactory->getWorkflow('example');
+
+
+        static::assertEquals(true, $workflow instanceof WorkflowDescriptor);
+    }
+
+
+    /**
+     * Проверка ситуации когда в конфиге workflow не задана атрибут baseDir
+     *
+     */
+    public function testNoBaseDir()
+    {
+        XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToInvalidWorkflowConfig());
+
+
+        /** @var XmlWorkflowFactory|\PHPUnit_Framework_MockObject_MockObject $xmlWorkflowFactory */
+        $xmlWorkflowFactory = $this->getMock(XmlWorkflowFactory::class, ['buildWorkflowConfig']);
+        /** @var WorkflowConfig $mockConfig */
+        $mockConfig = $this->getMock(WorkflowConfig::class, [], [], '', false);
+        $mockConfig->url = Paths::getPathToInvalidWorkflowConfig() . DIRECTORY_SEPARATOR . 'example.xml';
+
+        $xmlWorkflowFactory->expects(static::once())
+                           ->method('buildWorkflowConfig')
+                           ->with(static::isNull(), static::equalTo('file'), static::equalTo('example.xml'))
+                           ->will(static::returnValue($mockConfig));
+
+
+        $xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows-no-base-dir.xml');
+        $xmlWorkflowFactory->initDone();
+
+        $xmlWorkflowFactory->getWorkflow('example');
+    }
+
+
+    /**
+     * Проверка ситуации когда отсутствует файл с описанием используемых workflow
+     *
+     * @expectedException \OldTown\Workflow\Exception\FactoryException
+     * @expectedExceptionMessage Не удалось найти файл workflow
+     */
+    public function testNotFoundWorkflowsFile()
+    {
+        $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'not exists file');
+
+        $this->xmlWorkflowFactory->initDone();
+    }
+
+
+    /**
+     * Проверка ситуации когда в конфиге workflow  задана некорректынй атрибут baseDir
+     *
+     * @expectedException \OldTown\Workflow\Exception\RuntimeException
+     * @expectedExceptionMessage Отсутствует ресурс ./invalid-base-dir
+     */
+    public function testInvalidBaseDir()
+    {
+        XmlWorkflowFactory::addDefaultPathToWorkflows(Paths::getPathToInvalidWorkflowConfig());
+        $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows-invalid-base-dir.xml');
+
+        $this->xmlWorkflowFactory->initDone();
+    }
+
+
+    /**
+     * Сохранение workflow
+     *
+     *
+     * @return void
+     */
+    public function testSaveWorkflow()
+    {
+        try {
+            $testDir = $this->setUpTestDir([
+                'workflows.xml',
+                'example.xml',
+                'new-example.xml'
+            ], Paths::getPathToSaveWorkflowDir());
+
+
+            XmlWorkflowFactory::addDefaultPathToWorkflows($testDir);
+            $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+
+            $this->xmlWorkflowFactory->initDone();
+            $workflow = $this->xmlWorkflowFactory->getWorkflow('newExample');
+            $this->xmlWorkflowFactory->saveWorkflow('example', $workflow, true);
+
+            $path = $testDir . DIRECTORY_SEPARATOR;
+            static::assertXmlFileEqualsXmlFile($path . 'new-example.xml', $path . 'example.xml');
+        } finally {
+            $this->tearDownTestDir();
+        }
+    }
+
+    /**
+     * Сохранение workflow
+     *
+     * @expectedException \OldTown\Workflow\Exception\InvalidWriteWorkflowException
+     * @expectedExceptionMessageRegExp /Ошибка при архивирование оригинального файла workflow .*+/
+     *
+     * @return void
+     */
+    public function testSaveWorkflowInvalidBackup()
+    {
+        try {
+            $testDir = $this->setUpTestDir([
+                'workflows.xml',
+                'example.xml',
+                'new-example.xml'
+            ], Paths::getPathToSaveWorkflowDir());
+
+
+            XmlWorkflowFactory::addDefaultPathToWorkflows($testDir);
+            /** @var XmlWorkflowFactory|\PHPUnit_Framework_MockObject_MockObject $xmlWorkflowFactory */
+            $xmlWorkflowFactory = $this->getMock(XmlWorkflowFactory::class, ['createBackupFile']);
+            $xmlWorkflowFactory->expects(static::once())->method('createBackupFile')->will(static::returnValue(false));
+
+            $xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+
+            $xmlWorkflowFactory->initDone();
+            $workflow = $xmlWorkflowFactory->getWorkflow('newExample');
+            $xmlWorkflowFactory->saveWorkflow('example', $workflow, true);
+        } finally {
+            $this->tearDownTestDir();
+        }
+    }
+
+
+    /**
+     * Сохранение workflow
+     *
+     * @expectedException \OldTown\Workflow\Exception\InvalidWriteWorkflowException
+     * @expectedExceptionMessageRegExp /Ошибка при переименовывание нового файла workflow .*+/
+     *
+     * @return void
+     */
+    public function testSaveWorkflowInvalidCreateNewFile()
+    {
+        try {
+            $testDir = $this->setUpTestDir([
+                'workflows.xml',
+                'example.xml',
+                'new-example.xml'
+            ], Paths::getPathToSaveWorkflowDir());
+
+
+            XmlWorkflowFactory::addDefaultPathToWorkflows($testDir);
+            /** @var XmlWorkflowFactory|\PHPUnit_Framework_MockObject_MockObject $xmlWorkflowFactory */
+            $xmlWorkflowFactory = $this->getMock(XmlWorkflowFactory::class, ['createNewWorkflowFile']);
+            $xmlWorkflowFactory->expects(static::once())->method('createNewWorkflowFile')->will(static::returnValue(false));
+
+            $xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+
+            $xmlWorkflowFactory->initDone();
+            $workflow = $xmlWorkflowFactory->getWorkflow('newExample');
+            $xmlWorkflowFactory->saveWorkflow('example', $workflow, true);
+        } finally {
+            $this->tearDownTestDir();
+        }
+    }
+
+
+
+    /**
+     * Сохранение workflow. Указано незарегестрированное имя workflow
+     *
+     * @expectedException \OldTown\Workflow\Exception\UnsupportedOperationException
+     * @expectedExceptionMessage Сохранение workflow не поддерживается
+     *
+     * @return void
+     */
+    public function testSaveWorkflowIncorrectName()
+    {
+        /** @var  WorkflowDescriptor $descriptor */
+        $descriptor = $this->getMock(WorkflowDescriptor::class);
+        $this->xmlWorkflowFactory->saveWorkflow('example', $descriptor);
+    }
+
+
+    /**
+     * Сохранение workflow. Проверка варианта когда указан флаг, не позволяющий перезаписывать существующее workflow
+     *
+     *
+     * @return void
+     */
+    public function testSaveWorkflowReplace()
+    {
+        try {
+            $testDir = $this->setUpTestDir([
+                'workflows.xml',
+                'example.xml',
+                'new-example.xml'
+            ], Paths::getPathToSaveWorkflowDir());
+
+
+            XmlWorkflowFactory::addDefaultPathToWorkflows($testDir);
+            $this->xmlWorkflowFactory->getProperties()->setProperty(XmlWorkflowFactory::RESOURCE_PROPERTY, 'workflows.xml');
+
+            $this->xmlWorkflowFactory->initDone();
+            $workflow = $this->xmlWorkflowFactory->getWorkflow('newExample');
+            $result = $this->xmlWorkflowFactory->saveWorkflow('example', $workflow, false);
+
+            static::assertEquals(false, $result);
+        } finally {
+            $this->tearDownTestDir();
         }
     }
 }

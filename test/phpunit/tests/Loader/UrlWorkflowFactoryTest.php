@@ -45,7 +45,7 @@ class UrlWorkflowFactoryTest extends TestCase
     {
         static::setUpHttpMockBeforeClass('8082', 'localhost');
         if (!static::$pathToExampleWorkflowXml) {
-            $path = Paths::getPathToDataDir() . DIRECTORY_SEPARATOR . 'example.xml';
+            $path = Paths::getPathToCommonDataDir() . DIRECTORY_SEPARATOR . 'example.xml';
             static::$pathToExampleWorkflowXml = $path;
         }
 

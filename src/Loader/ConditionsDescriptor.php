@@ -53,7 +53,7 @@ class ConditionsDescriptor extends AbstractDescriptor
      */
     protected function init(DOMElement $element)
     {
-        $this->parseType($element);
+        $this->parseType($element, false);
 
         for ($i = 0; $i < $element->childNodes->length; $i++) {
             /** @var DOMElement $child */
@@ -154,7 +154,7 @@ class ConditionsDescriptor extends AbstractDescriptor
             }
         }
 
-        if ($countConditions > 0 && null === $this->getType()) {
+        if ($countConditions > 1 && null === $this->getType()) {
             $errMsg = 'В условие должен быть определен тип AND или OR';
             throw new InvalidWorkflowDescriptorException($errMsg);
         }
