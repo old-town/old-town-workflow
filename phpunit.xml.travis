@@ -19,6 +19,5 @@
 
     <logging>
         <log type="coverage-php" target="./.reports/coverage/coverage-phpunit.cov"/>
-        <log type="coverage-html" target="./.reports/coverage-report-html"/>
     </logging>
 </phpunit>
