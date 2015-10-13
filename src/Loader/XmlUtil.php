@@ -10,7 +10,7 @@ use OldTown\Workflow\Exception\NotExistsRequiredAttributeException;
 use OldTown\Workflow\Exception\NotExistsRequiredElementException;
 
 /**
- * Interface WorkflowDescriptor
+ * Class XmlUtil
  *
  * @package OldTown\Workflow\Loader
  */

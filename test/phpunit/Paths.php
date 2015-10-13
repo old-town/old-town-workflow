@@ -55,6 +55,29 @@ class Paths
     protected static $pathToSaveWorkflowDir;
 
     /**
+     * Путь до каталого содержащего тестовые данные для тестирования наборы утилитарного функционала для разбора xml
+     *
+     * @var string
+     */
+    protected static $xmlUtilTest;
+
+    /**
+     * Возвращает путь до каталого содержащего тестовые данные для тестирования наборы утилитарного функционала для разбора xml
+     *
+     * @return string
+     */
+    public static function getXmlUtilTest()
+    {
+        if (static::$xmlUtilTest) {
+            return static::$xmlUtilTest;
+        }
+
+        static::$xmlUtilTest = __DIR__ . '/_files/xml-util';
+
+        return static::$xmlUtilTest;
+    }
+
+    /**
      * Возвращает путь до директории с данными для тестов
      *
      * @return string

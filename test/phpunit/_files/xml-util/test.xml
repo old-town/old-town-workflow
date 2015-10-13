@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test>
+    <testGetChildElement>
+        <element1 level="1">
+            <element1 level="2"/>
+        </element1>
+        <element1 level="1_1">
+            <element1 level="2_1"/>
+        </element1>
+        <element2/>
+    </testGetChildElement>
+    <testGetRequiredChildElement>
+        <element1 level="1">
+            <element1 level="2"/>
+        </element1>
+        <element1 level="1_1">
+            <element1 level="2_1"/>
+        </element1>
+        <element2/>
+    </testGetRequiredChildElement>
+    <testGetChildElements>
+        <element1 level="1">
+            <element1 level="2"/>
+        </element1>
+        <element1 level="1_1">
+            <element1 level="2_1"/>
+        </element1>
+        <element1 level="1_2"/>
+        <element2/>
+    </testGetChildElements>
+    <testGetText><![CDATA[test_text_1]]>test_text_2</testGetText>
+    <testGetChildText>
+        <element1 level="1"><![CDATA[test_text_1]]>test_text_2<element1 level="2"/></element1>
+        <element1 level="1_1">
+            <element1 level="2_1"/>
+        </element1>
+        <element1 level="1_2"/>
+        <element2/>
+    </testGetChildText>
+    <testGetRequiredAttributeValue>
+        <element1 level="1"/>
+    </testGetRequiredAttributeValue>
+</test>
