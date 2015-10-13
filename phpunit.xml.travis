@@ -16,7 +16,11 @@
             <directory>./test/phpunit</directory>
         </testsuite>
     </testsuites>
-
+    <filter>
+        <whitelist>
+            <directory>./src</directory>
+        </whitelist>
+    </filter>
     <logging>
         <log type="coverage-php" target="./.reports/coverage/coverage-phpunit.cov"/>
     </logging>
