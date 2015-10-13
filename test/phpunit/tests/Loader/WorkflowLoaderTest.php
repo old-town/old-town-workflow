@@ -6,6 +6,7 @@
 namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use OldTown\Workflow\Loader\WorkflowDescriptor;
+use OldTown\Workflow\PhpUnit\Test\Paths;
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\WorkflowLoader;
 use Psr\Http\Message\UriInterface;
@@ -39,7 +40,7 @@ class WorkflowLoaderTest extends TestCase
     {
         static::setUpHttpMockBeforeClass('8082', 'localhost');
         if (!static::$pathToExampleWorkflowXml) {
-            $path = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'data' . DIRECTORY_SEPARATOR . 'example.xml';
+            $path = $path = Paths::getPathToDataDir() . DIRECTORY_SEPARATOR . 'example.xml';
             static::$pathToExampleWorkflowXml = $path;
         }
 

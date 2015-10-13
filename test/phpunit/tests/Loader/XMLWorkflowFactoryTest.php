@@ -7,7 +7,7 @@ namespace OldTown\Workflow\PhpUnitTest\Loader;
 
 use InterNations\Component\HttpMock\PHPUnit\HttpMockTrait;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
-use OldTown\Workflow\PhpUnitTest\Paths;
+use OldTown\Workflow\PhpUnit\Test\Paths;
 use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\Loader\XmlWorkflowFactory;
 use Ramsey\Uuid\Uuid;

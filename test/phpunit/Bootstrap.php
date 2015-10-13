@@ -3,11 +3,13 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\PhpUnitTest;
+namespace OldTown\Workflow\PhpUnit\Test;
 
 use Zend\Loader\AutoloaderFactory;
 use Zend\Loader\StandardAutoloader;
+use Zend\Loader\ClassMapAutoloader;
 use RuntimeException;
+use OldTown\Workflow\PhpUnit\Test\Paths;
 
 error_reporting(E_ALL | E_STRICT);
 chdir(__DIR__);
@@ -66,9 +68,16 @@ class Bootstrap
                     'autoregister_zf' => true,
                     'namespaces' => [
                         'OldTown\Workflow' => __DIR__ . '/../../src/',
-                        __NAMESPACE__ => __DIR__
+                        __NAMESPACE__ => __DIR__. '/tests/',
+                    ]
+                ],
+                ClassMapAutoloader::class => [
+                    [
+                        Paths::class => __DIR__ . DIRECTORY_SEPARATOR . 'Paths.php'
                     ]
                 ]
+
+
             ]);
         } catch (\Exception $e) {
             $errMsg = 'Ошибка инициации автолоадеров';

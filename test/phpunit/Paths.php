@@ -3,12 +3,12 @@
  * @link https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
-namespace OldTown\Workflow\PhpUnitTest;
+namespace OldTown\Workflow\PhpUnit\Test;
 
 /**
- * Test bootstrap, for setting up autoloading
+ * Class Paths
  *
- * @subpackage UnitTest
+ * @package OldTown\Workflow\PhpUnit\Test
  */
 class Paths
 {
@@ -37,7 +37,7 @@ class Paths
             return static::$pathToDataDir;
         }
 
-        static::$pathToDataDir = __DIR__ . '/data';
+        static::$pathToDataDir = __DIR__ . '/_files';
 
         return static::$pathToDataDir;
     }

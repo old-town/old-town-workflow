@@ -8,7 +8,7 @@ namespace OldTown\Workflow\PhpUnitTest\Loader\XMLWorkflowFactory;
 use InterNations\Component\HttpMock\PHPUnit\HttpMockTrait;
 use OldTown\Workflow\Loader\XMLWorkflowFactory\WorkflowConfig;
 use PHPUnit_Framework_TestCase as TestCase;
-use OldTown\Workflow\PhpUnitTest\Paths;
+use OldTown\Workflow\PhpUnit\Test\Paths;
 use Zend\Diactoros\Uri;
 
 /**
@@ -87,8 +87,7 @@ class WorkflowConfigTest extends TestCase
      */
     public function testCorrectSetFileType()
     {
-        $baseDir = dirname(dirname(__DIR__))  . DIRECTORY_SEPARATOR . 'data';
-        $workflowConfig = new WorkflowConfig($baseDir, 'file', 'example.xml');
+        $workflowConfig = new WorkflowConfig(Paths::getPathToDataDir(), 'file', 'example.xml');
 
         static::assertEquals('example.xml', $workflowConfig->location);
         static::assertTrue(file_exists($workflowConfig->url));
