@@ -9,7 +9,6 @@ use Zend\Loader\AutoloaderFactory;
 use Zend\Loader\StandardAutoloader;
 use Zend\Loader\ClassMapAutoloader;
 use RuntimeException;
-use OldTown\Workflow\PhpUnit\Test\Paths;
 
 error_reporting(E_ALL | E_STRICT);
 chdir(__DIR__);
