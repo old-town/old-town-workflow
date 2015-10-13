@@ -144,6 +144,18 @@ class XmlUtilTest extends TestCase
         static::assertEquals($expected, $text);
     }
 
+    /**
+     * Проверка получения текста
+     */
+    public function testGetChildTextNotFoundElement()
+    {
+        /** @var \DOMElement  $elem */
+        $elem = static::$xpath->query('//testGetChildText')->item(0);
+        $text = XmlUtil::getChildText($elem, 'element3');
+
+        static::assertEquals(null, $text);
+    }
+
 
     /**
      * Проверка получения значения атрибута
