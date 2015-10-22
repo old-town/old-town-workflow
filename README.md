@@ -7,5 +7,5 @@
 
 Обсуждение проблем https://github.com/old-town/old-town-workflow/issues
 
-
+Документация (в процессе перевода) https://github.com/old-town/old-town-workflow/doc/documentation.md
 
