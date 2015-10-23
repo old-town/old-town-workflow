@@ -1,12 +1,12 @@
-# OSWorkflow - Documentation
+# OSWorkflow - Документация
 
-OSWorkflow is fairly different from most other workflow systems available, both commercially and in the open source world. What makes OSWorkflow different is that it is extremely flexible. This can be hard to grasp at first, however. For example, OSWorkflow does not mandate a graphical tool for developing workflows, and the recommended approach is to write the xml workflow descriptors 'by hand'. It is up to the application developer to provide this sort of integration, as well as any integration with existing code and databases. These may seem like problems to someone who is looking for a quick "plug-and-play" workflow solution, but we've found that such a solution never provides enough flexibility to properly fulfill all requirements in a full-blown application.
- 
- *OSWorkflow gives you this flexibility*.
+OSWorkflow довольно сильно отличается от большинства других доступных систем workflow, как коммерческих, так и с открытым исходным кодом. OSWorkflow выделяется своей чрезвычайной гибкостью. Сначала она может показаться непростой для понимания. Например, OSWorkflow не требует графических инструментов для создания workflow, а рекомендуемым способом работы является написание XML- файлов с описанием workflow «вручную». Задача интеграции c GUI, а также любой интеграции с существующими кодом и базой данной, ложится на разработчика приложения. Для тех, кому нужно быстрое решение, это может показаться проблемой, но мы считаем, что в противном случае при разработке workflow никогда не будет достигнута гибкость, столь необходимая для соблюдения всех требований полноценного приложения.
 
- OSWorkflow can be considered a "low level" workflow implementation. Situations like "loops" and "conditions" that might be represented by a graphical icon in other workflow systems must be "coded" in OSWorkflow. That's not to say that actual code is needed to implement situations like this, but a scripting language must be employed to specify these conditions. It is not expected that a non-technical user modify workflow. We've found that although some systems provide GUIs that allow for simple editing of workflows, the applications surrounding the workflow usually end up damaged when changes like these are made. We believe it is best for these changes to be made by a developer who is aware of each change. Having said that, the latest version provides a GUI designer that can help with the editing of the workflow.
+*OSWorkflow дает именно такую гибкость.*
 
-*Documentation:*
+OSWorkflow можно рассматривать как низкоуровневую реализацию workflow. Конструкции вида "цикл" и "условие", которые могли бы быть представлены как графический значок в других системах workflow, должны быть "закодированы" в OSWorkflow. Это не означает, что для реализации подобных конструкций необходим реальный код, но тем не менее придется использовать скриптовый язык. Мы считаем, что нетехнические пользователи не должен иметь возможность менять workflow. Хотя некоторые системы предоставляют GUI, позволяющие легко редактировать workflow, приложения, построенные вокруг workflow, как правило, перестают работать правильно, если в них вносят изменения таким образом. Мы полагаем, что лучше всего, когда изменения вносит разработчик, который понимает смысл каждого действия. Однако несмотря на вышесказанное, последняя версия предлагает GUI-проектировщик, который может помочь при редактировании workflow.
+
+*Документация:*
 
 * [Tutorial](tutorial/tutorial.md) - OldTown Workflow tutorial
 * [Manual](manual/manual.md) - OldTown Workflow documentation
