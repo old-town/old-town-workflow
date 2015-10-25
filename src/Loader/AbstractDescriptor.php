@@ -36,11 +36,37 @@ abstract class AbstractDescriptor
     protected $id;
 
     /**
+     * @var integer
+     */
+    protected $entityId;
+
+    /**
      * @param DOMElement $element
      */
     public function __construct(DOMElement $element = null)
     {
     }
+
+    /**
+     * @return int
+     */
+    public function getEntityId()
+    {
+        return $this->entityId;
+    }
+
+    /**
+     * @param int $entityId
+     *
+     * @return $this
+     */
+    public function setEntityId($entityId)
+    {
+        $this->entityId = (integer)$entityId;
+
+        return $this;
+    }
+
 
     /**
      * Устанавливает родительский дескриптор
