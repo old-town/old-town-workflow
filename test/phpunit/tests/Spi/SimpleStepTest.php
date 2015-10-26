@@ -10,7 +10,6 @@ namespace OldTown\Workflow\PhpUnitTest\Spi;
 
 use DateTime;
 use OldTown\Workflow\Spi\SimpleStep;
-use PHPUnit_Framework_Error;
 use PHPUnit_Framework_TestCase as TestCase;
 
 /**
@@ -96,7 +95,8 @@ class SimpleStepTest extends TestCase
         try {
             $step->setDueDate('incorrect date');
             $this->fail('Не сработала ошибка при установке некорректной даты');
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
     }
 
     public function testGetDueDate()
@@ -155,7 +155,8 @@ class SimpleStepTest extends TestCase
         try {
             $step->setFinishDate('incorrect date');
             $this->fail('Не сработала ошибка при установке некорректной даты');
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
     }
 
     public function testGetFinishDate()
@@ -239,7 +240,7 @@ class SimpleStepTest extends TestCase
         $this->assertEquals([5,6,7], $refProp->getValue($step));
 
         // test type "array" in method hint
-        $this->setExpectedException(get_class(new PHPUnit_Framework_Error("",0,"",1)));
+        $this->setExpectedException('PHPUnit_Framework_Error');
         $step->setPreviousStepIds(null);
     }
 
@@ -269,7 +270,8 @@ class SimpleStepTest extends TestCase
         try {
             $step->setStartDate('incorrect date');
             $this->fail('Не сработала ошибка при установке некорректной даты');
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
     }
 
     public function testGetStartDate()
@@ -354,7 +356,7 @@ class SimpleStepTest extends TestCase
 
     public function testSerialize()
     {
-        set_error_handler(function() {
+        set_error_handler(function () {
             TestCase::assertEquals('Метод OldTown\Workflow\Spi\SimpleStep::serialize класса OldTown\Workflow\Spi\SimpleStep требуется реализовать', func_get_arg(1));
         });
         $d = new DateTime();
@@ -364,7 +366,7 @@ class SimpleStepTest extends TestCase
 
     public function testUnserialize()
     {
-        set_error_handler(function() {
+        set_error_handler(function () {
             TestCase::assertEquals('Метод OldTown\Workflow\Spi\SimpleStep::unserialize класса OldTown\Workflow\Spi\SimpleStep требуется реализовать', func_get_arg(1));
         });
         $d = new DateTime();
