@@ -21,7 +21,7 @@ class SimpleStepTest extends TestCase
     public function testConstruct()
     {
         $d = new DateTime();
-        $simpleStep = $simpleStep = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $simpleStep = $simpleStep = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $this->assertInstanceOf(SimpleStep::class, $simpleStep);
     }
@@ -32,7 +32,7 @@ class SimpleStepTest extends TestCase
     public function testSetActionId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'actionId');
         $refProp->setAccessible(true);
@@ -50,14 +50,14 @@ class SimpleStepTest extends TestCase
     public function testGetActionId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 4, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 4, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
         $this->assertEquals(4, $step->getActionId());
     }
 
     public function testSetCaller()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'caller');
         $refProp->setAccessible(true);
@@ -72,7 +72,7 @@ class SimpleStepTest extends TestCase
     public function testGetCaller()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'caller');
         $refProp->setAccessible(true);
@@ -83,7 +83,7 @@ class SimpleStepTest extends TestCase
     public function testSetDueDate()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'dueDate');
         $refProp->setAccessible(true);
@@ -102,7 +102,7 @@ class SimpleStepTest extends TestCase
     public function testGetDueDate()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'dueDate');
         $refProp->setAccessible(true);
@@ -117,7 +117,7 @@ class SimpleStepTest extends TestCase
     public function testSetEntryId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refActionProp = new \ReflectionProperty(SimpleStep::class, 'entryId');
         $refActionProp->setAccessible(true);
@@ -132,7 +132,7 @@ class SimpleStepTest extends TestCase
     public function testGetEntryId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refEntryProp = new \ReflectionProperty(SimpleStep::class, 'entryId');
         $refEntryProp->setAccessible(true);
@@ -143,7 +143,7 @@ class SimpleStepTest extends TestCase
     public function testSetFinishDate()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refDateProp = new \ReflectionProperty(SimpleStep::class, 'finishDate');
         $refDateProp->setAccessible(true);
@@ -162,7 +162,7 @@ class SimpleStepTest extends TestCase
     public function testGetFinishDate()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
         $refDateProp = new \ReflectionProperty(SimpleStep::class, 'finishDate');
         $refDateProp->setAccessible(true);
         $d1 = new DateTime('2012-11-12');
@@ -177,7 +177,7 @@ class SimpleStepTest extends TestCase
     public function testSetId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refIdProp = new \ReflectionProperty(SimpleStep::class, 'id');
         $refIdProp->setAccessible(true);
@@ -195,7 +195,7 @@ class SimpleStepTest extends TestCase
     public function testGetId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refIdProp = new \ReflectionProperty(SimpleStep::class, 'id');
         $refIdProp->setAccessible(true);
@@ -207,7 +207,7 @@ class SimpleStepTest extends TestCase
     public function testSetOwner()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refOwnerProp = new \ReflectionProperty(SimpleStep::class, 'owner');
         $refOwnerProp->setAccessible(true);
@@ -219,7 +219,7 @@ class SimpleStepTest extends TestCase
     public function testGetOwner()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refOwnerProp = new \ReflectionProperty(SimpleStep::class, 'owner');
         $refOwnerProp->setAccessible(true);
@@ -231,13 +231,13 @@ class SimpleStepTest extends TestCase
     public function testSetPreviousStepIds()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'previousStepIds');
         $refProp->setAccessible(true);
 
-        $step->setPreviousStepIds([5,6,7]);
-        $this->assertEquals([5,6,7], $refProp->getValue($step));
+        $step->setPreviousStepIds([5, 6, 7]);
+        $this->assertEquals([5, 6, 7], $refProp->getValue($step));
 
         // test type "array" in method hint
         $this->setExpectedException('PHPUnit_Framework_Error');
@@ -247,18 +247,18 @@ class SimpleStepTest extends TestCase
     public function testGetPreviousStepIds()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'previousStepIds');
         $refProp->setAccessible(true);
-        $refProp->setValue($step, [4,5,6]);
-        $this->assertEquals([4,5,6], $step->getPreviousStepIds());
+        $refProp->setValue($step, [4, 5, 6]);
+        $this->assertEquals([4, 5, 6], $step->getPreviousStepIds());
     }
 
     public function testSetStartDate()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'startDate');
         $refProp->setAccessible(true);
@@ -277,7 +277,7 @@ class SimpleStepTest extends TestCase
     public function testGetStartDate()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refProp = new \ReflectionProperty(SimpleStep::class, 'startDate');
         $refProp->setAccessible(true);
@@ -290,7 +290,7 @@ class SimpleStepTest extends TestCase
     public function testSetStatus()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refStatusProp = new \ReflectionProperty(SimpleStep::class, 'status');
         $refStatusProp->setAccessible(true);
@@ -305,7 +305,7 @@ class SimpleStepTest extends TestCase
     public function testGetStatus()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refStatusProp = new \ReflectionProperty(SimpleStep::class, 'status');
         $refStatusProp->setAccessible(true);
@@ -319,7 +319,7 @@ class SimpleStepTest extends TestCase
     public function testSetStepId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
 
         $refStepIdProp = new \ReflectionProperty(SimpleStep::class, 'stepId');
         $refStepIdProp->setAccessible(true);
@@ -337,7 +337,7 @@ class SimpleStepTest extends TestCase
     public function testGetStepId()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1,2,3], 'c');
+        $step = new SimpleStep(1, 1, 1, 1, 1, $d, $d, $d, 1, [1, 2, 3], 'c');
         $refStepIdProp = new \ReflectionProperty(SimpleStep::class, 'stepId');
         $refStepIdProp->setAccessible(true);
         $refStepIdProp->setValue($step, 52);
@@ -347,7 +347,7 @@ class SimpleStepTest extends TestCase
     public function testToString()
     {
         $d = new DateTime();
-        $step = new SimpleStep(1, 2, 3, 4, 'ow', $d, $d, $d, 6, [1,2,3], 'c');
+        $step = new SimpleStep(1, 2, 3, 4, 'ow', $d, $d, $d, 6, [1, 2, 3], 'c');
         $this->assertEquals(
             'SimpleStep@ 3[owner=ow, actionId=4, status=6]',
             $step->__toString()
@@ -360,7 +360,7 @@ class SimpleStepTest extends TestCase
             TestCase::assertEquals('Метод OldTown\Workflow\Spi\SimpleStep::serialize класса OldTown\Workflow\Spi\SimpleStep требуется реализовать', func_get_arg(1));
         });
         $d = new DateTime();
-        $step = new SimpleStep(1, 2, 3, 4, 'ow', $d, $d, $d, 6, [1,2,3], 'c');
+        $step = new SimpleStep(1, 2, 3, 4, 'ow', $d, $d, $d, 6, [1, 2, 3], 'c');
         $step->serialize();
     }
 
@@ -370,7 +370,7 @@ class SimpleStepTest extends TestCase
             TestCase::assertEquals('Метод OldTown\Workflow\Spi\SimpleStep::unserialize класса OldTown\Workflow\Spi\SimpleStep требуется реализовать', func_get_arg(1));
         });
         $d = new DateTime();
-        $step = new SimpleStep(1, 2, 3, 4, 'ow', $d, $d, $d, 6, [1,2,3], 'c');
+        $step = new SimpleStep(1, 2, 3, 4, 'ow', $d, $d, $d, 6, [1, 2, 3], 'c');
         $step->unserialize(null);
     }
 }
