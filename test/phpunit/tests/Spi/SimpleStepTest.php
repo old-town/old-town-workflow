@@ -18,6 +18,9 @@ use PHPUnit_Framework_TestCase as TestCase;
  */
 class SimpleStepTest extends TestCase
 {
+    /**
+     * Проверяем что конструктор работает без фаталов
+     */
     public function testConstruct()
     {
         $d = new DateTime();
@@ -47,6 +50,9 @@ class SimpleStepTest extends TestCase
         $step->setActionId('actionid');
     }
 
+    /**
+     * Проверяем getActionId
+     */
     public function testGetActionId()
     {
         $d = new DateTime();
@@ -54,6 +60,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals(4, $step->getActionId());
     }
 
+    /**
+     * Проверяем установку caller
+     */
     public function testSetCaller()
     {
         $d = new DateTime();
@@ -69,6 +78,9 @@ class SimpleStepTest extends TestCase
         $this->assertNull($refProp->getValue($step));
     }
 
+    /**
+     * Проверяем получение caller
+     */
     public function testGetCaller()
     {
         $d = new DateTime();
@@ -80,6 +92,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals('test', $step->getCaller());
     }
 
+    /**
+     * Проверяем установку dueDate
+     */
     public function testSetDueDate()
     {
         $d = new DateTime();
@@ -99,6 +114,9 @@ class SimpleStepTest extends TestCase
         }
     }
 
+    /**
+     * Проверяем получение dueDate
+     */
     public function testGetDueDate()
     {
         $d = new DateTime();
@@ -129,6 +147,9 @@ class SimpleStepTest extends TestCase
         $step->setEntryId('something');
     }
 
+    /**
+     * Проверяем получение entryId
+     */
     public function testGetEntryId()
     {
         $d = new DateTime();
@@ -140,6 +161,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals(45, $step->getEntryId());
     }
 
+    /**
+     * Проверяем установку finishDate
+     */
     public function testSetFinishDate()
     {
         $d = new DateTime();
@@ -159,6 +183,9 @@ class SimpleStepTest extends TestCase
         }
     }
 
+    /**
+     * Проверяем получение finishDate
+     */
     public function testGetFinishDate()
     {
         $d = new DateTime();
@@ -192,6 +219,9 @@ class SimpleStepTest extends TestCase
         $step->setId('something');
     }
 
+    /**
+     * Проверяем получение id
+     */
     public function testGetId()
     {
         $d = new DateTime();
@@ -204,6 +234,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals(123, $step->getId());
     }
 
+    /**
+     * Проверяем установку owner
+     */
     public function testSetOwner()
     {
         $d = new DateTime();
@@ -216,6 +249,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals('owner', $refOwnerProp->getValue($step));
     }
 
+    /**
+     * Проверяем получение owner
+     */
     public function testGetOwner()
     {
         $d = new DateTime();
@@ -228,6 +264,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals('own3er', $step->getOwner());
     }
 
+    /**
+     * Проверяем установку id предыдущих шагов
+     */
     public function testSetPreviousStepIds()
     {
         $d = new DateTime();
@@ -244,6 +283,9 @@ class SimpleStepTest extends TestCase
         $step->setPreviousStepIds(null);
     }
 
+    /**
+     * Проверяем получение id предыдущих шагов
+     */
     public function testGetPreviousStepIds()
     {
         $d = new DateTime();
@@ -255,6 +297,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals([4, 5, 6], $step->getPreviousStepIds());
     }
 
+    /**
+     * Проверяем установку startDate
+     */
     public function testSetStartDate()
     {
         $d = new DateTime();
@@ -274,6 +319,9 @@ class SimpleStepTest extends TestCase
         }
     }
 
+    /**
+     * Проверяем получение startDate
+     */
     public function testGetStartDate()
     {
         $d = new DateTime();
@@ -287,6 +335,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals($d1, $step->getStartDate());
     }
 
+    /**
+     * Проверяем установку статуса
+     */
     public function testSetStatus()
     {
         $d = new DateTime();
@@ -302,6 +353,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals('', $refStatusProp->getValue($step));
     }
 
+    /**
+     * Проверяем получение статуса
+     */
     public function testGetStatus()
     {
         $d = new DateTime();
@@ -334,6 +388,9 @@ class SimpleStepTest extends TestCase
         $step->setId('something');
     }
 
+    /**
+     * Проверяем получение id шага
+     */
     public function testGetStepId()
     {
         $d = new DateTime();
@@ -344,6 +401,9 @@ class SimpleStepTest extends TestCase
         $this->assertEquals(52, $step->getStepId());
     }
 
+    /**
+     * Проверяем преобразование объекта в строку
+     */
     public function testToString()
     {
         $d = new DateTime();
@@ -354,6 +414,9 @@ class SimpleStepTest extends TestCase
         );
     }
 
+    /**
+     * Проверяем triggerError для serialize
+     */
     public function testSerialize()
     {
         set_error_handler(function () {
@@ -364,6 +427,9 @@ class SimpleStepTest extends TestCase
         $step->serialize();
     }
 
+    /**
+     * Проверяем triggerError для unserialize
+     */
     public function testUnserialize()
     {
         set_error_handler(function () {
