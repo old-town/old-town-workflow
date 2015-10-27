@@ -28,37 +28,37 @@ use OldTown\Workflow\Exception\InvalidArgumentException;
  *
  * @package OldTown\Workflow\Spi\Memory
  */
-class MemoryWorkflowStore  implements WorkflowStoreInterface
+class MemoryWorkflowStore implements WorkflowStoreInterface
 {
     /**
      * @var SimpleWorkflowEntry[]
      */
-    private static $entryCache = [];
+    protected static $entryCache = [];
 
     /**
      * @var SplObjectStorage[]|SimpleStep[]
      */
-    private static $currentStepsCache = [];
+    protected static $currentStepsCache = [];
 
     /**
      * @var SplObjectStorage[]|SimpleStep[]
      */
-    private static $historyStepsCache = [];
+    protected static $historyStepsCache = [];
 
     /**
      * @var array
      */
-    private static $propertySetCache = [];
+    protected static $propertySetCache = [];
 
     /**
      * @var int
      */
-    private static $globalEntryId = 1;
+    protected static $globalEntryId = 1;
 
     /**
      * @var int
      */
-    private static $globalStepId = 1;
+    protected static $globalStepId = 1;
 
     /**
      * Вызывается один раз, при инициализации хранилища
@@ -91,15 +91,21 @@ class MemoryWorkflowStore  implements WorkflowStoreInterface
         }
         $entryId = (integer)$entryId;
 
-        $ps = PropertySetManager::getInstance('memory');
+        $ps = $this->createPropertySet();
         static::$propertySetCache[$entryId] = $ps;
 
         return static::$propertySetCache[$entryId];
     }
 
-
-
-
+    /**
+     * Создаем экземпляр PropertySet
+     *
+     * @return PropertySetInterface
+     */
+    protected function createPropertySet()
+    {
+        return PropertySetManager::getInstance('memory');
+    }
 
     //~ Methods ////////////////////////////////////////////////////////////////
 
