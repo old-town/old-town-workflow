@@ -24,6 +24,14 @@ use SplObjectStorage;
 class MemoryWorkflowStoreTest extends TestCase
 {
     /**
+     * Из-за того что методы статичные, при создании через new они не всегда пустые
+     */
+    protected function setUp()
+    {
+        MemoryWorkflowStore::reset();
+    }
+
+    /**
      * Поскольку init пустой то тестим только type hinting
      */
     public function testInit()
