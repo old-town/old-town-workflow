@@ -300,4 +300,156 @@ class MemoryWorkflowStoreTest extends TestCase
         $markedStep = $storage->markFinished($step, $actionId, $finishDate, $status, $caller);
         $this->assertEquals($savedStep, $markedStep);
     }
+
+    /**
+     * Проверяем что reset очищает все нужные св-ва
+     */
+    public function testReset()
+    {
+        $memory = new MemoryWorkflowStore();
+
+        $refEntryProp = new ReflectionProperty(MemoryWorkflowStore::class, 'entryCache');
+        $refEntryProp->setAccessible(true);
+        $refEntryProp->setValue($memory, [123 => 'not empty array']);
+
+        $refCurStepsProp = new ReflectionProperty(MemoryWorkflowStore::class, 'currentStepsCache');
+        $refCurStepsProp->setAccessible(true);
+        $refCurStepsProp->setValue($memory, [123 => 'not empty array']);
+
+        $refHisStepsProp = new ReflectionProperty(MemoryWorkflowStore::class, 'historyStepsCache');
+        $refHisStepsProp->setAccessible(true);
+        $refHisStepsProp->setValue($memory, [123 => 'not empty array']);
+
+        $refPropSetStepsProp = new ReflectionProperty(MemoryWorkflowStore::class, 'propertySetCache');
+        $refPropSetStepsProp->setAccessible(true);
+        $refPropSetStepsProp->setValue($memory, [123 => 'not empty array']);
+
+        $memory->reset();
+
+        $this->assertEquals($refEntryProp->getValue($memory), []);
+        $this->assertEquals($refCurStepsProp->getValue($memory), []);
+        $this->assertEquals($refHisStepsProp->getValue($memory), []);
+        $this->assertEquals($refPropSetStepsProp->getValue($memory), []);
+    }
+
+    /**
+     * Проверяем отсутствие ошибок при перемещении отсутствующего шага в историю
+     */
+    public function testMoveNotExistsInCurrentStepsStepToHistory()
+    {
+        // Мок для шага который будем перемещать в историю
+        $step = $this->getMockBuilder(SimpleStep::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getEntryId', 'getId'])
+            ->getMock();
+
+        $step->expects($this->once())
+            ->method('getEntryId')
+            ->will($this->returnValue(123));
+
+        $memory = new MemoryWorkflowStore();
+        $memory->moveToHistory($step);
+    }
+
+    /**
+     * Проверяем корректное перемещение шага в историю
+     */
+    public function testMoveToHistory()
+    {
+        // Мок который будет лежать в currentSteps
+        $currentStep = $this->getMockBuilder(SimpleStep::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getId'])
+            ->getMock();
+
+        $currentStep->expects($this->once())
+            ->method('getId')
+            ->will($this->returnValue(2));
+
+        $currentSteps = new SplObjectStorage();
+        $currentSteps->attach($currentStep);
+
+        // Мок который будет лежать в истории
+        $historyStep = $this->getMockBuilder(SimpleStep::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getId'])
+            ->getMock();
+
+        $historyStep->expects($this->once())
+            ->method('getId')
+            ->will($this->returnValue(2));
+
+        $historySteps = new SplObjectStorage();
+        $historySteps->attach($historyStep);
+
+        // Мок для шага который будем перемещать в историю
+        $step = $this->getMockBuilder(SimpleStep::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getEntryId', 'getId'])
+            ->getMock();
+
+        $step->expects($this->once())
+            ->method('getEntryId')
+            ->will($this->returnValue(123));
+
+        $step->expects($this->exactly(2))
+            ->method('getId')
+            ->will($this->returnValue(2));
+
+        $memory = $this->getMockBuilder(MemoryWorkflowStore::class)
+            ->setMethods(['findCurrentSteps'])
+            ->getMock();
+
+        $memory->expects($this->once())
+            ->method('findCurrentSteps')
+            ->with($this->equalTo(123))
+            ->will($this->returnValue($currentSteps));
+
+        $refHistory = new ReflectionProperty(MemoryWorkflowStore::class, 'historyStepsCache');
+        $refHistory->setAccessible(true);
+        $refHistory->setValue($memory, [123 => $historySteps]);
+
+        $memory->moveToHistory($step);
+
+        // Проверяем что шаг исчез из currentSteps
+        $this->assertEquals($currentSteps->count(), 0);
+
+        // Проверяем что шаг появился в historySteps
+        $historyArray = $refHistory->getValue($memory);
+        $this->assertTrue(array_key_exists(123, $historyArray));
+    }
+
+    /**
+     * Проверяем что при отсутствии шага в истории, будет возвращен пустой SplObjectStorage
+     */
+    public function testFindHistoryStepWithEmptyHistory()
+    {
+        $memory = new MemoryWorkflowStore();
+        $historySteps = $memory->findHistorySteps(123);
+        $this->assertInstanceOf(SplObjectStorage::class, $historySteps);
+        $this->assertEquals(0, $historySteps->count());
+    }
+
+    /**
+     * Проверяем шаг из истории возвращается корректно
+     */
+    public function testFindHistoryStep()
+    {
+        // Мок который будет лежать в истории
+        $historyStep = $this->getMockBuilder(SimpleStep::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $historySteps = new SplObjectStorage();
+        $historySteps->attach($historyStep);
+
+        $memory = new MemoryWorkflowStore();
+
+        $refHistory = new ReflectionProperty(MemoryWorkflowStore::class, 'historyStepsCache');
+        $refHistory->setAccessible(true);
+        $refHistory->setValue($memory, [123 => $historySteps]);
+
+        $stepsFromHistory = $memory->findHistorySteps(123);
+        $this->assertEquals($historySteps, $stepsFromHistory);
+    }
 }
