@@ -156,7 +156,7 @@ class SimpleWorkflowEntryTest extends TestCase
 
     public function testSerialize()
     {
-        set_error_handler(function() {
+        set_error_handler(function () {
             TestCase::assertEquals('Метод OldTown\Workflow\Spi\SimpleWorkflowEntry::serialize класса OldTown\Workflow\Spi\SimpleWorkflowEntry требуется реализовать', func_get_arg(1));
         });
         $entry = new SimpleWorkflowEntry(null, null, null);
@@ -165,7 +165,7 @@ class SimpleWorkflowEntryTest extends TestCase
 
     public function testUnserialize()
     {
-        set_error_handler(function() {
+        set_error_handler(function () {
             TestCase::assertEquals('Метод OldTown\Workflow\Spi\SimpleWorkflowEntry::unserialize класса OldTown\Workflow\Spi\SimpleWorkflowEntry требуется реализовать', func_get_arg(1));
         });
         $entry = new SimpleWorkflowEntry(null, null, null);
