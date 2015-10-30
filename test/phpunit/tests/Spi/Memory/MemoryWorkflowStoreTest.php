@@ -8,6 +8,8 @@
 namespace OldTown\Workflow\PhpUnitTest\Spi\Memory;
 
 use DateTime;
+use OldTown\Workflow\Query\FieldExpression;
+use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\Memory\MemoryWorkflowStore;
 use OldTown\Workflow\Spi\SimpleStep;
 use OldTown\Workflow\Spi\SimpleWorkflowEntry;
@@ -451,5 +453,110 @@ class MemoryWorkflowStoreTest extends TestCase
 
         $stepsFromHistory = $memory->findHistorySteps(123);
         $this->assertEquals($historySteps, $stepsFromHistory);
+    }
+
+    /**
+     * Проверяем query с пустым кэшем entry
+     */
+    public function testQueryWithEmptyEntryCache()
+    {
+        $query = new WorkflowExpressionQuery();
+        $query->setExpression(new FieldExpression(1, 2, 3, 'value'));
+
+        $memory = new MemoryWorkflowStore();
+        $results = $memory->query($query);
+        $this->assertEquals([], $results);
+    }
+
+    /**
+     * Проверяем имя entry
+     */
+    public function testQueryEntryName()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entryName');
+
+        // Проверяем равно, ожидаем правду
+        $this->assertCount(1, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::EQUALS,
+            'entryName'
+        ))));
+
+        // Проверяем равно, ожидаем неправду
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::EQUALS,
+            'incorrectName'
+        ))));
+
+        // Проверяем "не равно", ожидаем правду
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::NOT_EQUALS,
+            'entryName'
+        ))));
+
+        // Проверяем "не равно", ожидаем неправду
+        $this->assertCount(1, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::NOT_EQUALS,
+            'incorrectName'
+        ))));
+
+        // Проверяем "больше", ожидаем правду
+        $this->assertCount(1, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::GT,
+            'enshrt'
+        ))));
+
+        // Проверяем "больше", ожидаем неправду
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::GT,
+            'entryNameLooooooooong'
+        ))));
+
+        // Проверяем "Меньше", ожидаем правду
+        $this->assertCount(1, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::LT,
+            'entryNameLooooooooong'
+        ))));
+
+        // Проверяем "Меньше", ожидаем неправду
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            FieldExpression::LT,
+            'enshrt'
+        ))));
+    }
+
+    /**
+     * Проверяем имя entry с некорректным условием
+     *
+     * @expectedException \OldTown\Workflow\Exception\InvalidArgumentException
+     */
+    public function testQueryEntryNameWithIncorrectOperator()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entryName');
+
+        // Проверяем "Меньше", ожидаем неправду
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::NAME,
+            FieldExpression::ENTRY,
+            123,
+            'entryName'
+        ))));
     }
 }
