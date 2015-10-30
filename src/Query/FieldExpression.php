@@ -138,7 +138,7 @@ class FieldExpression extends AbstractExpression
     const ENTRY = 3;
 
     /**
-     * @var Object
+     * @var mixed
      */
     private $value;
 
@@ -161,7 +161,7 @@ class FieldExpression extends AbstractExpression
      * @param integer $field
      * @param integer $context
      * @param integer $operator
-     * @param Object $value
+     * @param mixed $value
      * @param bool $negate
      *
      * @throws ArgumentNotNumericException
