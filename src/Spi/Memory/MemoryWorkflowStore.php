@@ -451,7 +451,7 @@ class MemoryWorkflowStore implements WorkflowStoreInterface
 
             case FieldExpression::CALLER:
                 $caller = $value;
-                if (false === settype($caller, 'string')) {
+                if ('string' !== gettype($caller)) {
                     $errMsg = 'unknown field';
                     throw new InvalidArgumentException($errMsg);
                 }
@@ -484,9 +484,8 @@ class MemoryWorkflowStore implements WorkflowStoreInterface
                 break;
 
             case FieldExpression::OWNER:
-
                 $owner = $value;
-                if (false === settype($owner, 'string')) {
+                if ('string' !== gettype($owner)) {
                     $errMsg = 'unknown field';
                     throw new InvalidArgumentException($errMsg);
                 }
@@ -520,7 +519,6 @@ class MemoryWorkflowStore implements WorkflowStoreInterface
                 break;
 
             case FieldExpression::STEP:
-
                 if (!is_numeric($value)) {
                     $errMsg = 'unknown field';
                     throw new InvalidArgumentException($errMsg);
@@ -538,9 +536,8 @@ class MemoryWorkflowStore implements WorkflowStoreInterface
                 break;
 
             case FieldExpression::STATUS:
-
                 $status = $value;
-                if (false === settype($status, 'string')) {
+                if ('string' !== gettype($status)) {
                     $errMsg = 'unknown field';
                     throw new InvalidArgumentException($errMsg);
                 }
@@ -556,7 +553,6 @@ class MemoryWorkflowStore implements WorkflowStoreInterface
                 break;
 
             case FieldExpression::DUE_DATE:
-
                 if ($value instanceof DateTime) {
                     $dueDate = $value;
                     foreach ($steps as $step) {
