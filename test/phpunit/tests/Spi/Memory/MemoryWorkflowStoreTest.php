@@ -8,6 +8,7 @@
 namespace OldTown\Workflow\PhpUnitTest\Spi\Memory;
 
 use DateTime;
+use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Query\FieldExpression;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\Memory\MemoryWorkflowStore;
@@ -544,7 +545,7 @@ class MemoryWorkflowStoreTest extends TestCase
     /**
      * Проверяем имя entry с некорректным условием
      *
-     * @expectedException \OldTown\Workflow\Exception\InvalidArgumentException
+     * @expectedException InvalidArgumentException
      */
     public function testQueryEntryNameWithIncorrectOperator()
     {
@@ -558,5 +559,371 @@ class MemoryWorkflowStoreTest extends TestCase
             123,
             'entryName'
         ))));
+    }
+
+    /**
+     * Проверяем поиск экземпляра по состоянию
+     *
+     * @expectedException InvalidArgumentException
+     */
+    public function testEntryStateWithIncorrectValue()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entryName');
+
+        $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STATE,
+            FieldExpression::ENTRY,
+            FieldExpression::EQUALS,
+            'not string'
+        )));
+    }
+
+    /**
+     * Тестируем поиск по состоянию
+     */
+    public function testEntryState()
+    {
+        $memory = new MemoryWorkflowStore();
+
+        // Создаем entry с состоянием CREATED
+        $created = $memory->createEntry('entry1');
+
+        // Создаем второе entry и через рефлекию меняем его состояние
+        $active = $memory->createEntry('entry2');
+        $refPropState = new ReflectionProperty(SimpleWorkflowEntry::class, 'state');
+        $refPropState->setAccessible(true);
+        $refPropState->setValue($active, WorkflowEntryInterface::SUSPENDED);
+
+        $results = $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STATE,
+            FieldExpression::ENTRY,
+            FieldExpression::EQUALS,
+            WorkflowEntryInterface::CREATED
+        )));
+        $this->assertArrayHasKey($created->getId(), $results);
+        $this->assertArrayNotHasKey($active->getId(), $results);
+
+        $results = $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STATE,
+            FieldExpression::ENTRY,
+            FieldExpression::NOT_EQUALS,
+            WorkflowEntryInterface::CREATED
+        )));
+        $this->assertArrayNotHasKey($created->getId(), $results);
+        $this->assertArrayHasKey($active->getId(), $results);
+
+        $results = $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STATE,
+            FieldExpression::ENTRY,
+            FieldExpression::GT,
+            WorkflowEntryInterface::SUSPENDED
+        )));
+        $this->assertArrayHasKey($created->getId(), $results);
+        $this->assertArrayNotHasKey($active->getId(), $results);
+
+        $results = $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STATE,
+            FieldExpression::ENTRY,
+            FieldExpression::LT,
+            WorkflowEntryInterface::CREATED
+        )));
+        $this->assertArrayNotHasKey($created->getId(), $results);
+        $this->assertArrayHasKey($active->getId(), $results);
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testEntryStateWithIncorrectOperator()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entry1');
+
+        $expression = new FieldExpression(
+            FieldExpression::STATE,
+            FieldExpression::ENTRY,
+            1,
+            WorkflowEntryInterface::CREATED
+        );
+        $refProp = new ReflectionProperty(FieldExpression::class, 'operator');
+        $refProp->setAccessible(true);
+        $refProp->setValue($expression, 'not int operator');
+
+        $memory->query(new WorkflowExpressionQuery($expression));
+    }
+
+    /**
+     * @expectedException InvalidArgumentException
+     */
+    public function testEntryWithIncorrectField()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entry1');
+
+        $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            99999,
+            FieldExpression::ENTRY,
+            1,
+            WorkflowEntryInterface::CREATED
+        )));
+    }
+
+    /**
+     * Тестируем наличие действия в текущем шаге
+     */
+    public function testQueryActionInCurrentSteps()
+    {
+        $memory = new MemoryWorkflowStore();
+        $entry = $memory->createEntry('entryId');
+
+        // Проверяем что не найдет
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::ACTION,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            1
+        ))));
+
+        $step = $memory->createCurrentStep(
+            $entry->getId(),
+            1,
+            'i am',
+            new DateTime(),
+            new DateTime('+1 h'),
+            'status',
+            []
+        );
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::ACTION,
+                FieldExpression::CURRENT_STEPS,
+                FieldExpression::EQUALS,
+                'incorrect value'
+            )));
+            $this->fail('expect InvalidArgumentException exception');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::ACTION,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getActionId()
+        ))));
+
+        $this->assertArrayNotHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::ACTION,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getActionId(),
+            true
+        ))));
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::OWNER,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getOwner()
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::OWNER,
+                FieldExpression::CURRENT_STEPS,
+                FieldExpression::EQUALS,
+                function () {
+                }// closure не стринг :)
+            )));
+            $this->fail('expect InvalidArgumentException exception on owner');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::START_DATE,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getStartDate()
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::START_DATE,
+                FieldExpression::CURRENT_STEPS,
+                FieldExpression::EQUALS,
+                function () {
+                }// closure не DateTime :)
+            )));
+            $this->fail('expect InvalidArgumentException exception on START_DATE');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STATUS,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getStatus()
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::STATUS,
+                FieldExpression::CURRENT_STEPS,
+                FieldExpression::EQUALS,
+                []
+            )));
+            $this->fail('expect InvalidArgumentException exception on STATUS');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::STEP,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getStepId()
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::STEP,
+                FieldExpression::CURRENT_STEPS,
+                FieldExpression::EQUALS,
+                'asd'
+            )));
+            $this->fail('expect InvalidArgumentException exception on STEP');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::DUE_DATE,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            $step->getDueDate()
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::DUE_DATE,
+                FieldExpression::CURRENT_STEPS,
+                FieldExpression::EQUALS,
+                'asd'
+            )));
+            $this->fail('expect InvalidArgumentException exception on DUE_DATE');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+    }
+
+    /**
+     * Тестируем наличие действия в текущем шаге
+     */
+    public function testQueryActionInHistorySteps()
+    {
+        $memory = new MemoryWorkflowStore();
+        $entry = $memory->createEntry('entryId');
+
+        // Проверяем что не найдет
+        $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::ACTION,
+            FieldExpression::CURRENT_STEPS,
+            FieldExpression::EQUALS,
+            1
+        ))));
+
+        $step = $memory->createCurrentStep(
+            $entry->getId(),
+            1,
+            'i am',
+            new DateTime(),
+            new DateTime('+1 h'),
+            'status',
+            []
+        );
+
+        $finishDate = new DateTime();
+        $memory->markFinished($step, $step->getActionId(), $finishDate, 'f', 'ya');
+        $memory->moveToHistory($step);
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::FINISH_DATE,
+            FieldExpression::HISTORY_STEPS,
+            FieldExpression::EQUALS,
+            $finishDate
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::FINISH_DATE,
+                FieldExpression::HISTORY_STEPS,
+                FieldExpression::EQUALS,
+                'asd'
+            )));
+            $this->fail('expect InvalidArgumentException exception on DUE_DATE');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::CALLER,
+            FieldExpression::HISTORY_STEPS,
+            FieldExpression::EQUALS,
+            $step->getCaller()
+        ))));
+
+        try {
+            $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::CALLER,
+                FieldExpression::HISTORY_STEPS,
+                FieldExpression::EQUALS,
+                []
+            )));
+            $this->fail('expect InvalidArgumentException exception on DUE_DATE');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
+
+        // Заодно протестируем сравнение дат...
+        $testDate = clone $finishDate;
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::FINISH_DATE,
+            FieldExpression::HISTORY_STEPS,
+            FieldExpression::NOT_EQUALS,
+            $testDate->modify('+1 hour')
+        ))));
+
+        $testDate = clone $finishDate;
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::FINISH_DATE,
+            FieldExpression::HISTORY_STEPS,
+            FieldExpression::GT,
+            $testDate->modify('-1 hour')
+        ))));
+
+        $testDate = clone $finishDate;
+        $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::FINISH_DATE,
+            FieldExpression::HISTORY_STEPS,
+            FieldExpression::LT,
+            $testDate->modify('+1 hour')
+        ))));
+
+        try {
+            $this->assertArrayHasKey($step->getId(), $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+                FieldExpression::FINISH_DATE,
+                FieldExpression::HISTORY_STEPS,
+                99999,
+                $testDate
+            ))));
+
+            $this->fail('expect InvalidArgumentException exception FINISH_DATE');
+        } catch (InvalidArgumentException $e) {
+            // nothing
+        }
     }
 }
