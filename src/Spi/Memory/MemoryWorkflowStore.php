@@ -271,6 +271,8 @@ class MemoryWorkflowStore implements WorkflowStoreInterface
         static::$currentStepsCache = [];
         static::$historyStepsCache = [];
         static::$propertySetCache = [];
+        static::$globalEntryId = 1;
+        static::$globalStepId = 1;
     }
 
     /**
