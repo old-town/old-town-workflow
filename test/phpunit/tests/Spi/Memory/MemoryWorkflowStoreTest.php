@@ -10,6 +10,7 @@ namespace OldTown\Workflow\PhpUnitTest\Spi\Memory;
 use DateTime;
 use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Query\FieldExpression;
+use OldTown\Workflow\Query\NestedExpression;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\Memory\MemoryWorkflowStore;
 use OldTown\Workflow\Spi\SimpleStep;
@@ -42,6 +43,16 @@ class MemoryWorkflowStoreTest extends TestCase
         $memory = new MemoryWorkflowStore();
         $this->setExpectedException('PHPUnit_Framework_Error');
         $memory->init('this is not array');
+    }
+
+    /**
+     * Проверяем что init ничего не возвращает
+     */
+    public function testInitCorrect()
+    {
+        $memory = new MemoryWorkflowStore();
+        $result = $memory->init([]);
+        $this->assertNull($result);
     }
 
     /**
@@ -831,7 +842,7 @@ class MemoryWorkflowStoreTest extends TestCase
         // Проверяем что не найдет
         $this->assertCount(0, $memory->query(new WorkflowExpressionQuery(new FieldExpression(
             FieldExpression::ACTION,
-            FieldExpression::CURRENT_STEPS,
+            FieldExpression::HISTORY_STEPS,
             FieldExpression::EQUALS,
             1
         ))));
@@ -925,5 +936,139 @@ class MemoryWorkflowStoreTest extends TestCase
         } catch (InvalidArgumentException $e) {
             // nothing
         }
+    }
+
+    /**
+     * @expectedException \OldTown\Workflow\Exception\InvalidArgumentException
+     */
+    public function testQueryStepsWithUnknownContext()
+    {
+        $memory = new MemoryWorkflowStore();
+        $entry = $memory->createEntry('entryId');
+
+        $memory->createCurrentStep(
+            $entry->getId(),
+            1,
+            'i am',
+            new DateTime(),
+            new DateTime('+1 h'),
+            'status',
+            []
+        );
+
+        $memory->query(new WorkflowExpressionQuery(new FieldExpression(
+            FieldExpression::FINISH_DATE,
+            999,
+            FieldExpression::EQUALS,
+            new DateTime()
+        )));
+    }
+
+    /**
+     * Тестируем вложенные выражения c AND и OR возвращающие результат
+     */
+    public function testSuccessNestedExpression()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entryName');
+
+        $expression = new NestedExpression([
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::CREATED
+            ),
+            new NestedExpression([
+                new FieldExpression(
+                    FieldExpression::NAME,
+                    FieldExpression::ENTRY,
+                    FieldExpression::EQUALS,
+                    'somename'
+                ),
+                new FieldExpression(
+                    FieldExpression::NAME,
+                    FieldExpression::ENTRY,
+                    FieldExpression::EQUALS,
+                    'entryName'
+                ),
+            ], NestedExpression::OR_OPERATOR)
+        ], NestedExpression::AND_OPERATOR);
+
+        $result = $memory->query(new WorkflowExpressionQuery($expression));
+        $this->assertCount(1, $result);
+    }
+
+    /**
+     * Тестируем запросы в которых результат невозможен
+     */
+    public function testNestedExpressionWithoutResult()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entryName');
+
+        $expression = new NestedExpression([
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::CREATED
+            ),
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::ACTIVATED
+            ),
+        ], NestedExpression::AND_OPERATOR);
+
+        $result = $memory->query(new WorkflowExpressionQuery($expression));
+        $this->assertCount(0, $result);
+
+        $expression = new NestedExpression([
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::ACTIVATED
+            ),
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::ACTIVATED
+            ),
+        ], NestedExpression::OR_OPERATOR);
+
+        $result = $memory->query(new WorkflowExpressionQuery($expression));
+        $this->assertCount(0, $result);
+    }
+
+    /**
+     * Тестируем наличие фатала
+     *
+     * @expectedException \OldTown\Workflow\Exception\InvalidArgumentException
+     */
+    public function testNestedExpressionWithIncorrectOperator()
+    {
+        $memory = new MemoryWorkflowStore();
+        $memory->createEntry('entryName');
+
+        $expression = new NestedExpression([
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::CREATED
+            ),
+            new FieldExpression(
+                FieldExpression::STATE,
+                FieldExpression::ENTRY,
+                FieldExpression::EQUALS,
+                SimpleWorkflowEntry::ACTIVATED
+            ),
+        ], 999);
+
+        $memory->query(new WorkflowExpressionQuery($expression));
     }
 }
