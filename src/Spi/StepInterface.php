@@ -88,4 +88,32 @@ interface StepInterface
      * @return integer
      */
     public function getStepId();
+
+    /**
+     * Устанавливаем статус
+     *
+     * @param $status
+     */
+    public function setStatus($status);
+
+    /**
+     * Устанавливаем действие
+     *
+     * @param $actionId
+     */
+    public function setActionId($actionId);
+
+    /**
+     * Устанавливаем дату завершения
+     *
+     * @param DateTime|null $finishDate
+     */
+    public function setFinishDate(DateTime $finishDate = null);
+
+    /**
+     * Устанавливаем источник проблем
+     *
+     * @param $caller
+     */
+    public function setCaller($caller);
 }
