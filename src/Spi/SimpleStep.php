@@ -102,11 +102,14 @@ class SimpleStep implements StepInterface, Serializable
      */
     public function setActionId($actionId)
     {
-        if (!is_numeric($actionId)) {
-            $errMsg = sprintf('Аргумент должен быть числом. Актуальное значение %s', $actionId);
-            throw new ArgumentNotNumericException($errMsg);
+        if ($actionId !== null) {
+            if (!is_numeric($actionId)) {
+                $errMsg = sprintf('Аргумент должен быть числом. Актуальное значение %s', $actionId);
+                throw new ArgumentNotNumericException($errMsg);
+            }
+            $this->actionId = (integer)$actionId;
         }
-        $this->actionId = (integer)$actionId;
+
         return $this;
     }
 

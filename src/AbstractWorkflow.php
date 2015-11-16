@@ -1281,6 +1281,43 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
     /**
+     * Этим полукостылём я портировал перегрузку методов в java
+     *
+     * @return bool
+     *
+     * @throws Exception\InvalidActionException
+     */
+    protected function passesConditions() {
+        $arguments = func_get_args();
+
+        if (count($arguments) === 4) {
+            /** @var ConditionsDescriptor $descriptor */
+            $descriptor = $arguments[0];
+            if ($descriptor == null) {
+                return true;
+            }
+
+            return $this->passesConditionsWithType(
+                $descriptor->getType(),
+                $descriptor->getConditions(),
+                $arguments[1],
+                $arguments[2],
+                $arguments[3]
+            );
+        } elseif (count($arguments) === 5) {
+            return $this->passesConditionsWithType(
+                $arguments[0],
+                $arguments[1],
+                $arguments[2],
+                $arguments[3],
+                $arguments[4]
+            );
+        }
+
+        throw new Exception\InvalidActionException('Incorrect params!!');
+    }
+
+    /**
      * @param string $conditionType
      * @param array $conditionsStorage
      * @param array $transientVars
@@ -1292,7 +1329,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\WorkflowException
      */
-    protected function passesConditions($conditionType, $conditionsStorage = null, array &$transientVars, PropertySetInterface $ps, $currentStepId)
+    protected function passesConditionsWithType($conditionType, $conditionsStorage = null, array &$transientVars, PropertySetInterface $ps, $currentStepId)
     {
         if (null === $conditionsStorage) {
             return true;
