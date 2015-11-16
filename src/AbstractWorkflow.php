@@ -1287,7 +1287,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @throws Exception\InvalidActionException
      */
-    protected function passesConditions() {
+    protected function passesConditions()
+    {
         $arguments = func_get_args();
 
         if (count($arguments) === 4) {
