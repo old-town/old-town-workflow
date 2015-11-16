@@ -72,8 +72,8 @@ trait ArgsTrait
     {
         $args = XmlUtil::getChildElements($element, 'arg');
         foreach ($args as $arg) {
-            $name = trim(XmlUtil::getRequiredAttributeValue($arg, 'name'));
-            $this->args[$name] = trim(XmlUtil::getText($arg));
+            $name = XmlUtil::getRequiredAttributeValue($arg, 'name');
+            $this->args[$name] = XmlUtil::getText($arg);
         }
     }
 
