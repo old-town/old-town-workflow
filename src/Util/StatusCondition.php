@@ -34,8 +34,7 @@ class StatusCondition implements ConditionInterface
     public function passesCondition(array $transientVars = [], array $args = [], PropertySetInterface $ps)
     {
         $status = $args['status'];
-        $stepIdVal = $args["stepId"];
-        $stepId = (int)$stepIdVal;
+        $stepId = array_key_exists('stepId', $args) ? (int)$args['stepId'] : 0;
 
         /** @var WorkflowEntryInterface $entry */
         $entry = $transientVars["entry"];
