@@ -100,7 +100,11 @@ class WorkflowConfig
                 break;
             }
             case (static::FILE_TYPE): {
-                $pathToFile = $baseDir . DIRECTORY_SEPARATOR . $location;
+                $pathToFile = $location;
+                if ($baseDir) {
+                    $pathToFile = $baseDir . DIRECTORY_SEPARATOR . $location;
+                }
+
                 if (file_exists($pathToFile)) {
                     $this->url = realpath($pathToFile);
                     $this->lastModified = filemtime($pathToFile);

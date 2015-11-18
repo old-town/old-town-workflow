@@ -5,8 +5,6 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use OldTown\Workflow\Exception\FactoryException;
-use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
 use OldTown\Workflow\Util\Properties\PropertiesInterface;
 
 /**
@@ -18,14 +16,14 @@ interface  WorkflowFactoryInterface
 {
     /**
      * @param string $workflowName
-     * @param object $layout
+     * @param mixed $layout
      * @return $this
      */
     public function setLayout($workflowName, $layout);
 
     /**
      * @param string $workflowName
-     * @return object|null
+     * @return mixed
      */
     public function getLayout($workflowName);
 
@@ -47,14 +45,12 @@ interface  WorkflowFactoryInterface
      * @param bool $validate
      *
      * @return WorkflowDescriptor
-     * @throws FactoryException
      */
     public function getWorkflow($name, $validate = true);
 
     /**
      *
      * @return String[]
-     * @throws FactoryException
      */
     public function getWorkflowNames();
 
@@ -62,14 +58,12 @@ interface  WorkflowFactoryInterface
      * @param string $name
      *
      * @return void
-     * @throws FactoryException
      */
     public function createWorkflow($name);
 
     /**
      *
      * @return void
-     * @throws FactoryException
      */
     public function initDone();
 
@@ -77,7 +71,6 @@ interface  WorkflowFactoryInterface
      * @param string $name
      *
      * @return boolean
-     * @throws FactoryException
      */
     public function removeWorkflow($name);
 
@@ -101,8 +94,6 @@ interface  WorkflowFactoryInterface
      * @param WorkflowDescriptor $descriptor descriptor workflow
      * @param boolean $replace если true - то в случае существования одноименного workflow, оно будет заменено
      * @return boolean true - если workflow было сохранено
-     * @throws FactoryException
-     * @throws InvalidWorkflowDescriptorException
      */
     public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace);
 

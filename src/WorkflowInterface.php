@@ -5,6 +5,8 @@
  */
 namespace OldTown\Workflow;
 
+use OldTown\Workflow\Config\ConfigurationInterface;
+use OldTown\Workflow\Config\DefaultConfiguration;
 use OldTown\Workflow\Exception\InvalidActionException;
 use OldTown\Workflow\Exception\InvalidEntryStateException;
 use OldTown\Workflow\Exception\InvalidInputException;
@@ -207,4 +209,25 @@ interface WorkflowInterface
      * @return array
      */
     public function query(WorkflowExpressionQuery $query);
+
+
+    /**
+     * Получить конфигурацию workflow. Метод также проверяет была ли иницилазированн конфигурация, если нет, то
+     * инициализирует ее.
+     *
+     * Если конфигурация не была установленна, то возвращает конфигурацию по умолчанию
+     *
+     * @return ConfigurationInterface|DefaultConfiguration Конфигурация которая была установленна
+     *
+     */
+    public function getConfiguration();
+
+    /**
+     * Устанавливает конфигурацию workflow
+     *
+     * @param ConfigurationInterface $configuration
+     *
+     * @return $this
+     */
+    public function setConfiguration(ConfigurationInterface $configuration);
 }

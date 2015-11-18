@@ -131,7 +131,9 @@ class  XmlWorkflowFactory extends AbstractWorkflowFactory implements Serializabl
      */
     public function getWorkflowNames()
     {
-        throw new FactoryException('XmlWorkflowFactory не содержит имена workflow');
+        $workflowNames = array_keys($this->workflows);
+
+        return $workflowNames;
     }
 
     /**
