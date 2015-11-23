@@ -1,6 +1,6 @@
-#OSWorkflow - Your first workflow
+#OSWorkflow – Ваш первый workflow
 
-First, let us define the workflow. You can name this workflow whatever you want. Workflow definitions are specified in an XML file, one workflow per file. Let us start by creating a file called 'myworkflow.xml". The boilerplate data for this file is as follows:
+Во-первых, давайте дадим определение нашему workflow. Вы можете назвать его как угодно. Определения рабочего процесса задаются в XML-файле, по одному один workflow на файл. Начнем с создания файла под названием "myworkflow.xml". Шаблон файла выглядит следующим образом:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -17,19 +17,19 @@ First, let us define the workflow. You can name this workflow whatever you want.
 </workflow>
 ```
 
-We have the standard XML header specified first. Note that OSWorkflow will validate all XML files to the specified DTD, so the workflow definition has to be valid. You can edit it using most XML tools and errors will be highlighted appropriately.
+Стандартный заголовок XML указывается первым. Обратите внимание, что OSWorkflow будет проверять все файлы XML на соответствие указанному DTD, поэтому определение workflow должен быть валидным. Вы можете редактировать его с помощью инструментов редактирования XML, и ошибки будут выделены соответствующим образом.
 
-### Steps and actions
+### Этапы (Steps) и действия (actions)
 
-Next we specify initial-actions and steps. The first important concept to understand is that of steps and actions in OSWorkflow. A step is simply a workflow position. As a simple workflow progresses, it moves from one step to another (or even stays in the same step sometimes). As an example, steps names for a document management system would be along the lines of 'First Draft', 'Edit Stage', and 'At publisher".
+Далее мы задаем начальные действия и этапы. Первой концепцией, важной для понимания OSWorkflow, являются этапы и действия. Этап - это просто состояние workflow. По мере работы workflow, он переходит из одного этапа в другой (или иногда даже остается на том же этапе). Например, имена этапов для системы управления документами могут быть такими: «Черновик» (First Draft), «Этап редактирования» (Edit Stage) и «У издателя» (At publisher).
 
-Actions specify the transitions that can take place within a particular step. An action can often result in a change of step. Examples of actions in our document management system would be 'start first draft' and 'complete first draft' in the 'First Draft' step we specified above.
+Действия указывают на переходы, которые могут иметь место в течение определенного этапа. Действие может часто приводить к изменению этапа. Примерами действий в нашей системе управления документами будет «начать работу с черновиком» (start first draft) и «закончить работу с черновиком» (complete first draft) на этапе «Черновик», указанном выше.
 
-Put simply, a step is 'where it is', and an action is 'where it can go'.
+Проще говоря, этап – это «где мы», а действие – «куда мы можем идти».
 
-Initial actions are a special type of action that are used to 'kick off' the workflow. At the very beginning of a workflow, we have no state, and are not in any step. The user must take some action to start off the process, and this set of possible actions to start the workflow is specified in <initial-actions>.
+Начальные действия (initial actions) представляют собой особый тип действий, которые используются для запуска workflow. В самом начале workflow, у нас нет никакого состояния, и мы не находимся ни на одном этапе. Пользователь должен предпринять некоторые действия, чтобы запустить workflow, и этот набор возможных действий для начала рабочего процесса указывается в <initial-actions>.
 
-For our example, let us assume that we only have one initial-action, which is simply, 'Start Workflow'. Add the following action definition inside of <initial-actions>:
+В нашем примере, давайте предположим, что у нас есть только одно начальное действие, «Запуск Workflow» (Start Workflow). Добавьте следующее определение действий внутри <initial-actions>:
 
 ```xml
 <action id="1" name="Start Workflow">
@@ -39,17 +39,17 @@ For our example, let us assume that we only have one initial-action, which is si
 </action>
 ```
 
-This action is the simplest possible type of action. It simply specifies the step we move to, as well as what values to set the status to.
+Это самый простой тип действия. В нем просто указывается, на какой этап мы переходим, а также, в какое значение установить состояние.
 
-### Workflow status
+### Состояние workflow
 
-A workflow status is a string that describes the status of a workflow within a particular step. In our document management system, our 'First Draft' step might have two disinct statuses, 'Underway', and 'Queued' that it cares about.
+Состояние workflow – это строка, которая описывает состояние workflow на конкретном этапе. В нашей системе управления документами этап «Черновик» может использовать два различных состояния «В работе» (Underway) и «В очереди» (Queued).
 
-We use 'Queued' to denote that the item has been queued in the 'First Draft'. Let's say someone has requested that a particular document be written, but no author has been assigned. So the document is now currently 'Queued' in the 'First Draft' step. The 'Underway' status would be used to denote that an author has picked the document from the queue and perhaps locked it, denoting that he is now working on the first draft.
+Мы используем состояние «В очереди», чтобы обозначить, что этот документ был поставлен в очередь на этапе «Черновик». Допустим, кто-то направил запрос на создание определенного документа, но исполнитель еще не был назначен. Таким образом документ находится «В очереди» на этапе «Черновик». Состояние «В работе» будет использоваться для обозначения ситуации, когда исполнитель взял документ из очередь и, возможно, заблокировал его, показав, что теперь он работает над черновиком. 
 
-### The first step
+### Первый этап (Step)
 
-Let us examine how that first step would be defined in our <steps> element. We know we have two actions. The first of these actions (start first draft) keeps us in the same step, but changes the status to 'Underway'. The second action moves us to the next step in the workflow, which in this case is a 'finished' step, for the sake of simplicity. So we now add the following inside our <steps> element:
+Давайте посмотрим, как первый этап будет определяться в наших терминах. Мы знаем, что у нас есть два действия. Первое из них (начать работу с черновиком) не вызывает смены этапа, а меняет состояние на «В работе». Второе действие переводит нас на следующий этап в workflow, в данном случае – этап «Завершено». Таким образом, мы теперь добавим следующее в наш код:
 
 ```xml
 <step id="1" name="First Draft">
@@ -69,28 +69,26 @@ Let us examine how that first step would be defined in our <steps> element. We k
 <step id="2" name="finished" />
 ```
 
-Above we see the two actions defined. The old-status attribute is used to denote what should be entered in the history table for the current state to denote that it has been completed. In almost all cases, this will be 'Finished'.
+Выше мы видим, что определены два действия. Атрибут old-status используется для обозначения того, что должно быть введено в таблице истории для текущего состояния, чтобы обозначить, что это состояние было изменено. Почти во всех случаях, это будет «Завершено».
 
-The actions as specified above are of limited use. For example, it is possible for a user to call action 2 without first having called action 1. Clearly, it should not be possible to finish a draft that has yet to be started. Similarly, it is possible to also start the first draft multiple times, which also makes no sense. Finally, we also have nothing in place to stop a second user cannot from finishing first user's draft. This is also something we'd like to avoid.
+Такие действия, как указано выше, имеют ограниченное применение. Например, пользователь может вызвать действие 2 без предварительного вызова действия 1. Очевидно, что нельзя завершить работу с черновиком, если эта работа еще не начата. Точно так же можно начать работу несколько раз, что тоже не имеет смысла. Наконец, еще мы не можем запретить второму пользователю завершать работу с черновиком первого пользователя, а этой ситуации хотелось бы избежать.
 
-Let us tackle these problems one at a time. First, we'd like to specify that a caller can only start a first draft when the workflow is in the 'Queued' state. This would stop users from being able to start the first draft multiple times. To do so, we specify a restriction on the action. The restriction consists of a condition.
+Будем решать эти проблемы по одной. Во-первых, мы хотели бы указать, что пользователь, вызывающий действие, может начать работу с черновиком, когда workflow находится в состоянии «В очереди». Это не даст пользователям начинать работу несколько раз. Для этого мы указываем ограничение на действие. Ограничение состоит из условия.
 
-### Conditions
+### Условия (Conditions)
 
-OSWorkflow has a number of useful built-in conditions that can be used. The relevant condition in this case 'StatusCondition'. Conditions can also accept arguments, which are usually specified in the javadocs for a particular condition (if it is a condition implemented as a java class).
+OSWorkflow имеет ряд полезных встроенных условий, которыми мы можем воспользоваться. В нашем случае нужное условие – «StatusCondition». Условия могут также принимать аргументы, как правило, указанные в Phpdocs для конкретного условия (если это условие реализуется как класс PHP).
 
-A condition, like functions and other base constructs, can be implemented in a variety of ways, including beanshell scripts, or java classes that implement the Condition interface.
+Условия, как функции и другие базовые конструкции, могут быть реализованы различными способами, в том числе через PhpShell-скрипты или классы PHP, которые реализуют интерфейс Condition.
 
-In this case for example, we use the status condition class. The status condition takes an argument called 'status' which specifies the status to check in order for the condition to pass. This idea becomes much clearer if we examine the XML required to specify this condition:
+Например, в нашем случае мы используем класс условия состояния. Условие состояния принимает аргумент «status», которые указывает на состояние, которое нужно проверить, чтобы условие сработало. Смысл этой конструкции становится понятнее, если мы рассмотрим XML для этого условия:
 
 ```xml
 <action id="1" name="Start First Draft">
   <restrict-to>
     <conditions>
       <condition type="class">
-        <arg name="class.name">
-          com.opensymphony.workflow.util.StatusCondition
-        </arg>
+        <arg name="class.name">OldTown\Workflow\Util\StatusCondition</arg>
         <arg name="status">Queued</arg>
       </condition>
     </conditions>
@@ -101,28 +99,28 @@ In this case for example, we use the status condition class. The status conditio
 </action>
 ```
 
-Hopefully the idea of conditions is clearer now. The above condition ensures that action 1 can only be invoked if the current status is 'Queued', which it only ever is right after our initial action has been called.
+Надеемся, так стало понятнее. Вышеуказанное условие не позволяет выполняться действию 1, если текущее состояние не равно «В очереди», а это состояние задается после выполнения начального действия.
 
-### Functions
+### Функции (Functions)
 
-Next, we'd like to specify that when a user starts the first draft, they become the 'owner'. To do this, we need a couple of things:
+Далее, мы хотели бы указать, что, когда пользователь начинает работу с черновиком, он становится «владельцем» (owner). Для этого нам нужны следующие вещи:
 
-1. A function that places a 'caller' variable in the current context.
-2. Setting the 'owner' attribute of the result to that 'caller' variable.
+1. Функция, которая заполняет переменную «вызывающий» (caller) в текущем контексте.
+2. 2. Установка атрибута «владелец» (owner) результатом переменной «вызывающий».
 
-Functions are a powerful feature of OSWorkflow. A function is basically a unit of work that can be performed during a workflow transition, that does not affect the workflow itself. For example, you could have a 'SendEmail' function that is responsible for sending out an email notification when a particular transition takes place.
+Функции – это мощная особенность OSWorkflow. По сути, функция - это единица работы, которая может быть выполнена во время перехода workflow и которая не влияет на сам workflow. Например, мы могли бы иметь функцию «SendEmail», которая отвечает за отправку уведомления по электронной почте в момент, когда происходит конкретный переход.
 
-Functions can also add variables to the current context. A variable is a named object that is made available to the workflow and can be referenced later on by other functions or scripts.
+Функции могут также добавлять переменные в текущий контекст. Переменная - это именованный объект, который становится доступен в workflow и к которому могут обращаться другие функции или скрипты.
 
-OSWorkflow comes with a number of useful built-in functions. One of these functions is the 'Caller' function. This function looks up the current user invoking the workflow, and exposes a named variable called 'caller' that is the string value of the calling user.
+OSWorkflow поставляется с рядом полезных встроенных функций. Одна из этих функций – это функция «Caller». Эта функция ищет текущего пользователя, вызывающего workflow, и публикует переменную под названием caller («вызывающий») со строковым значением вызывающего пользователя.
 
-Since we'd like to keep track of who started our first draft, we would use this function by modifying our action as follows:
+Так как мы хотели бы, чтобы отслеживать, кто начал работу с нашим черновиком, мы воспользуемся этой функцией, изменив наше действие следующим образом:
 
 ```xml
 <action id="1" name="Start First Draft">
   <pre-functions>
     <function type="class">
-      <arg name="class.name">com.opensymphony.workflow.util.Caller</arg>
+      <arg name="class.name">OldTown\Workflow\Util\Caller</arg>
     </function>
   </pre-functions>
   <results>
@@ -132,27 +130,23 @@ Since we'd like to keep track of who started our first draft, we would use this 
 </action>
 ```
 
-### Putting it all together
+### Окончательная сборка
 
-Putting the ideas above together, we now have the following definition for action 1:
+Собрав все концепции, описанные выше, вместе, мы получаем следующее описание для действия 1:
 
 ```xml
 <action id="1" name="Start First Draft">
   <restrict-to>
     <conditions>
       <condition type="class">
-        <arg name="class.name">
-                com.opensymphony.workflow.util.StatusCondition
-        </arg>
+        <arg name="class.name">OldTown\Workflow\Util\StatusCondition</arg>
         <arg name="status">Queued</arg>
       </condition>
     </conditions>
   </restrict-to>
   <pre-functions>
     <function type="class">
-      <arg name="class.name">
-              com.opensymphony.workflow.util.Caller
-      </arg>
+      <arg name="class.name">OldTown\Workflow\Util\Caller</arg>
     </function>
   </pre-functions>
   <results>
@@ -162,22 +156,18 @@ Putting the ideas above together, we now have the following definition for actio
 </action>
 ```
 
-We use the same ideas when defining action 2:
+Используем те же концепции для действия 2:
 
 ```xml
 <action id="2" name="Finish First Draft">
   <restrict-to>
     <conditions type="AND">
       <condition type="class">
-        <arg 
-        name="class.name">com.opensymphony.workflow.util.StatusCondition
-        </arg>
+        <arg name="class.name">OldTown\Workflow\Util\StatusCondition</arg>
         <arg name="status">Underway</arg>
       </condition>
       <condition type="class">
-        <arg name="class.name">
-              com.opensymphony.workflow.util.AllowOwnerOnlyCondition
-       </arg>
+        <arg name="class.name">OldTown\Workflow\Util\AllowOwnerOnlyCondition</arg>
       </condition>
     </conditions>
   </restrict-to>
@@ -187,9 +177,9 @@ We use the same ideas when defining action 2:
 </action>
 ```
 
-Here we specify a new condition, the 'allow owner only' condition. This ensures that only the user that started the first draft can finish it (which we specified in the previous result's owner attribute). The status condition likewise ensures that the 'finish first draft' action can only be performed when the status is 'Underway', which happens only after a user has started the first draft.
+Здесь мы указываем новое условие - «только для владельца» (allow owner only). Оно гарантирует, что только пользователь, который начал работу с черновиком, может закончить его (что мы указали в атрибуте владельца предыдущего результата). Условие состояния также гарантирует, что действие «закончить работу с черновиком» можно выполнить только тогда, когда статус «В работе», что происходит только после того, как пользователь взял в работу черновик.
 
-Putting it all together, we have our complete workflow definition below:
+Таким образом, мы получаем окончательное определение workflow:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -211,18 +201,14 @@ Putting it all together, we have our complete workflow definition below:
           <restrict-to>
             <conditions>
               <condition type="class">
-                <arg name="class.name">
-                   com.opensymphony.workflow.util.StatusCondition
-                </arg>
+                <arg name="class.name">OldTown\Workflow\Util\StatusCondition</arg>
                 <arg name="status">Queued</arg>
               </condition>
             </conditions>
           </restrict-to>
           <pre-functions>
             <function type="class">
-              <arg name="class.name">
-                 com.opensymphony.workflow.util.Caller
-              </arg>
+              <arg name="class.name">OldTown\Workflow\Util\Caller</arg>
             </function>
           </pre-functions>
           <results>
@@ -234,15 +220,11 @@ Putting it all together, we have our complete workflow definition below:
           <restrict-to>
             <conditions type="AND">
               <condition type="class">
-                <arg name="class.name">
-                    com.opensymphony.workflow.util.StatusCondition
-                </arg>
+                <arg name="class.name">OldTown\Workflow\Util\StatusCondition</arg>
                 <arg name="status">Underway</arg>
               </condition>
               <condition type="class">
-                <arg name="class.name">
-                  com.opensymphony.workflow.util.AllowOwnerOnlyCondition
-                </arg>
+                <arg name="class.name">OldTown\Workflow\Util\AllowOwnerOnlyCondition</arg>
               </condition>
             </conditions>
           </restrict-to>
@@ -257,6 +239,6 @@ Putting it all together, we have our complete workflow definition below:
 </workflow>
 ```
 
-Now that the workflow definition is complete, it's time to test it and verify its behaviour.
+Теперь, когда определение workflow завершено, время протестировать его поведение.
 
-Go to [Testing your workflow](testing_your_workflow.md).
+Перейти к [Тестирование вашего workflow](testing_your_workflow.md).
