@@ -16,6 +16,7 @@ use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
  * Interface WorkflowInterface
@@ -116,7 +117,7 @@ interface WorkflowInterface
      * @param array $inputs inputs The inputs to the workflow instance.
      * @return [] A List of permissions specified currently (a permission is a string name).
      */
-    public function getSecurityPermissions($id, array $inputs = []);
+    public function getSecurityPermissions($id, TransientVarsInterface $inputs = null);
 
     /**
      * Get the workflow descriptor for the specified workflow name.
@@ -139,11 +140,11 @@ interface WorkflowInterface
      *
      * @param string  $workflowName  имя workflow
      * @param integer $initialAction id начального состояния
-     * @param array|null   $inputs
+     * @param TransientVarsInterface|null   $inputs
      *
      * @return bool
      */
-    public function canInitialize($workflowName, $initialAction, array $inputs = null);
+    public function canInitialize($workflowName, $initialAction, TransientVarsInterface $inputs = null);
 
     /**
      * Check if the state of the specified workflow instance can be changed to the new specified one.
@@ -168,12 +169,12 @@ interface WorkflowInterface
      * Perform an action on the specified workflow instance.
      * @param integer $id The workflow instance id.
      * @param integer $actionId The action id to perform (action id's are listed in the workflow descriptor).
-     * @param array $inputs The inputs to the workflow instance.
+     * @param TransientVarsInterface $inputs The inputs to the workflow instance.
      * @throws InvalidInputException if a validator is specified and an input is invalid.
      * @throws WorkflowException if the action is invalid for the specified workflow
      * instance's current state.
      */
-    public function doAction($id, $actionId, array $inputs = []);
+    public function doAction($id, $actionId, TransientVarsInterface $inputs = null);
 
     /**
      * Executes a special trigger-function using the context of the given workflow instance id.
@@ -190,7 +191,7 @@ interface WorkflowInterface
      *
      * @param string $workflowName Имя workflow
      * @param integer $initialAction Имя первого шага, с которого начинается workflow
-     * @param array $inputs Данные введеные пользователем
+     * @param array TransientVarsInterface Данные введеные пользователем
      * @return integer
      * @throws InvalidRoleException
      * @throws InvalidInputException
@@ -198,7 +199,7 @@ interface WorkflowInterface
      * @throws InvalidEntryStateException
      * @throws InvalidActionException
      */
-    public function initialize($workflowName, $initialAction, array $inputs = null);
+    public function initialize($workflowName, $initialAction, TransientVarsInterface $inputs = null);
 
 
     /**

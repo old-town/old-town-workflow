@@ -9,6 +9,7 @@ use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\ConditionInterface;
 use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use OldTown\Workflow\Util\TextUtils;
 use OldTown\Workflow\WorkflowContextInterface;
 use OldTown\Workflow\WorkflowInterface;
@@ -21,22 +22,24 @@ class  PhpShellCondition implements ConditionInterface
 {
     /**
      *
-     * @param array $transientVars
+     * @param TransientVarsInterface $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
      * @return bool
      *
      * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\RuntimeException
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
-    public function passesCondition(array $transientVars = [], array $args = [], PropertySetInterface $ps)
+    public function passesCondition(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps)
     {
         $script = array_key_exists(WorkflowInterface::BSH_SCRIPT, $args) ? $args[WorkflowInterface::BSH_SCRIPT] : '';
 
         /**@var WorkflowContextInterface $context */
-        $context = array_key_exists('context', $transientVars) ? $transientVars['context'] : null;
+        $context = $transientVars->offsetExists('context')  ? $transientVars['context'] : null;
 
         /**@var WorkflowEntryInterface $entry */
-        $entry = array_key_exists('entry', $transientVars) ? $transientVars['entry'] : null;
+        $entry = $transientVars->offsetExists('entry')  ? $transientVars['entry'] : null;
 
 
         $i = new Interpreter($script);

@@ -6,6 +6,7 @@
 namespace OldTown\Workflow;
 
 use OldTown\PropertySet\PropertySetInterface;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
  * Interface FunctionProviderRemoteInterface
@@ -16,10 +17,10 @@ interface FunctionProviderInterface
 {
     /**
      *
-     * @param array $transientVars
+     * @param TransientVarsInterface $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
      * @return
      */
-    public function execute(array $transientVars = [], array $args = [], PropertySetInterface $ps);
+    public function execute(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps);
 }

@@ -6,6 +6,7 @@
 namespace OldTown\Workflow\Util;
 
 use OldTown\PropertySet\PropertySetInterface;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
  * Interface VariableResolverInterface
@@ -17,10 +18,10 @@ interface  VariableResolverInterface
     /**
      *
      * @param string $s
-     * @param array $transientVars
+     * @param TransientVarsInterface $transientVars
      * @param PropertySetInterface $ps
      *
-     * @return object
+     * @return mixed
      */
-    public function translateVariables($s, array $transientVars = [], PropertySetInterface $ps);
+    public function translateVariables($s, TransientVarsInterface $transientVars, PropertySetInterface $ps);
 }

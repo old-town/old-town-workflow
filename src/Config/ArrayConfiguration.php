@@ -106,7 +106,7 @@ class  ArrayConfiguration implements ConfigurationInterface
             $this->persistence = $options[static::PERSISTENCE];
         }
         if (array_key_exists(static::PERSISTENCE_ARGS, $options)) {
-            $this->persistence = $options[static::PERSISTENCE_ARGS];
+            $this->persistenceArgs = $options[static::PERSISTENCE_ARGS];
         }
 
         if (array_key_exists(static::VARIABLE_RESOLVER, $options)) {
@@ -186,7 +186,7 @@ class  ArrayConfiguration implements ConfigurationInterface
      */
     public function getVariableResolver()
     {
-        $this->variableResolver;
+        return $this->variableResolver;
     }
 
     /**
@@ -230,7 +230,7 @@ class  ArrayConfiguration implements ConfigurationInterface
             $class = $this->getPersistence();
             $r = new \ReflectionClass($class);
             /** @var WorkflowStoreInterface $store */
-            $store = $r->newInstance($r);
+            $store = $r->newInstance();
 
             $args = $this->getPersistenceArgs();
             $store->init($args);

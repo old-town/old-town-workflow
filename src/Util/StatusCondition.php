@@ -13,6 +13,7 @@ use OldTown\Workflow\ConditionInterface;
 use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
  * Simple utility condition that returns true if the current step's status is
@@ -24,23 +25,23 @@ use OldTown\Workflow\Spi\WorkflowStoreInterface;
 class StatusCondition implements ConditionInterface
 {
     /**
-     * @param array $transientVars
+     * @param TransientVarsInterface $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
      * @return bool
      *
      * @throws WorkflowException
      */
-    public function passesCondition(array $transientVars = [], array $args = [], PropertySetInterface $ps)
+    public function passesCondition(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps)
     {
         $status = $args['status'];
         $stepId = array_key_exists('stepId', $args) ? (int)$args['stepId'] : 0;
 
         /** @var WorkflowEntryInterface $entry */
-        $entry = $transientVars["entry"];
+        $entry = $transientVars['entry'];
 
         /** @var WorkflowStoreInterface $store */
-        $store = $transientVars["store"];
+        $store = $transientVars['store'];
         $currentSteps = $store->findCurrentSteps($entry->getId());
 
         if ($stepId === 0) {

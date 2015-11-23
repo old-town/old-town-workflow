@@ -7,6 +7,7 @@ namespace OldTown\Workflow\Util;
 
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Exception\InternalWorkflowException;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
  * Class DefaultVariableResolver
@@ -18,15 +19,15 @@ class  DefaultVariableResolver implements VariableResolverInterface
     /**
      *
      * @param string               $s
-     * @param array                $transientVars
+     * @param TransientVarsInterface                $transientVars
      * @param PropertySetInterface $ps
      *
-     * @return object
+     * @return mixed
      *
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\PropertySet\Exception\PropertyException
      */
-    public function translateVariables($s, array $transientVars = [], PropertySetInterface $ps)
+    public function translateVariables($s, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
         $temp = trim($s);
 
@@ -81,14 +82,14 @@ class  DefaultVariableResolver implements VariableResolverInterface
 
     /**
      * @param mixed                $var
-     * @param array                $transientVars
+     * @param TransientVarsInterface                $transientVars
      * @param PropertySetInterface $ps
      *
      * @return mixed
      * @throws \OldTown\PropertySet\Exception\PropertyException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
-    public function getVariableFromMaps($var, array $transientVars = [], PropertySetInterface $ps)
+    public function getVariableFromMaps($var, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
         $firstDot = strpos($var, '.');
         $actualVar = $var;
@@ -97,7 +98,11 @@ class  DefaultVariableResolver implements VariableResolverInterface
             $actualVar = substr($var, 0, $firstDot);
         }
 
-        $o = array_key_exists($actualVar, $transientVars) ? $transientVars[$actualVar] : null;
+
+        $o = null;
+        if ($transientVars instanceof \ArrayObject && array_key_exists($actualVar, $transientVars)) {
+            $o = $transientVars[$actualVar];
+        }
 
         if (null === $o) {
             $o = $ps->getAsActualType($actualVar);

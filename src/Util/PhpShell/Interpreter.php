@@ -294,7 +294,6 @@ class  Interpreter
      * @param $source
      *
      * @throws \OldTown\Workflow\Exception\RuntimeException
-     *
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
     public function __construct($source)

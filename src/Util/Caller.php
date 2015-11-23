@@ -9,6 +9,7 @@ namespace OldTown\Workflow\Util;
 
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\FunctionProviderInterface;
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use OldTown\Workflow\WorkflowContextInterface;
 
 /**
@@ -17,11 +18,11 @@ use OldTown\Workflow\WorkflowContextInterface;
 class Caller implements FunctionProviderInterface
 {
     /**
-     * @param array $transientVars
+     * @param TransientVarsInterface $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
      */
-    public function execute(array $transientVars = [], array $args = [], PropertySetInterface $ps)
+    public function execute(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps)
     {
         /** @var WorkflowContextInterface $context */
         $context = $transientVars['context'];
