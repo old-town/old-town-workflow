@@ -9,7 +9,7 @@ use Countable;
 use IteratorAggregate;
 use Serializable;
 use ArrayAccess;
-use Traversable;
+
 
 
 /**
@@ -17,6 +17,6 @@ use Traversable;
  *
  * @package OldTown\Workflow\TransientVars
  */
-interface TransientVarsInterface extends IteratorAggregate, Traversable, ArrayAccess, Serializable, Countable
+interface TransientVarsInterface extends IteratorAggregate, ArrayAccess, Serializable, Countable
 {
 }

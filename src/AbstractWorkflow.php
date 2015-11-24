@@ -323,7 +323,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $this->changeEntryState($entry->getId(), WorkflowEntryInterface::ACTIVATED);
         }
 
-        if (!$action->isFinish()) {
+        if ($action->isFinish()) {
             $this->completeEntry($action, $entry->getId(), $this->getCurrentSteps($entry->getId()), WorkflowEntryInterface::COMPLETED);
             return true;
         }
@@ -643,10 +643,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function doAction($id, $actionId, TransientVarsInterface $inputs = null)
     {
-        $transientVars = $inputs;
-        if (null === $transientVars) {
-            $transientVars = $this->transientVarsFactory();
+        if (null === $inputs) {
+            $inputs = $this->transientVarsFactory();
         }
+        $transientVars = $inputs;
+        $inputs = clone $transientVars;
 
         $store = $this->getPersistence();
         $entry = $store->findEntry($id);
@@ -1153,10 +1154,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $ps = $store->getPropertySet($entry->getId());
 
 
-        $transientVars = $inputs;
-        if (null === $transientVars) {
-            $transientVars = $this->transientVarsFactory();
+        if (null === $inputs) {
+            $inputs = $this->transientVarsFactory();
         }
+        $transientVars = $inputs;
+        $inputs = clone $transientVars;
 
         $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
 
@@ -1208,10 +1210,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             throw new InternalWorkflowException($errMsg);
         }
 
-        $transientVars = $inputs;
-        if (null === $transientVars) {
-            $transientVars = $this->transientVarsFactory();
+        if (null === $inputs) {
+            $inputs = $this->transientVarsFactory();
         }
+        $transientVars = $inputs;
 
         try {
             $this->populateTransientMap($mockEntry, $transientVars, [], $initialAction, [], $ps);
@@ -1475,7 +1477,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param TransientVarsInterface $transientVars
      * @param array|Traversable|RegisterDescriptor[]|SplObjectStorage $registersStorage
      * @param integer $actionId
-     * @param array $currentSteps
+     * @param array|Traversable $currentSteps
      * @param PropertySetInterface $ps
      *
      *
@@ -1487,8 +1489,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\StoreException
      */
-    protected function populateTransientMap(WorkflowEntryInterface $entry, TransientVarsInterface $transientVars, $registersStorage, $actionId = null, array $currentSteps, PropertySetInterface $ps)
+    protected function populateTransientMap(WorkflowEntryInterface $entry, TransientVarsInterface $transientVars, $registersStorage, $actionId = null, $currentSteps, PropertySetInterface $ps)
     {
+        if (!is_array($currentSteps) && !$currentSteps  instanceof Traversable) {
+            $errMsg = 'CurrentSteps должен быть массивом, либо реализовывать интерфейс Traversable';
+            throw new InvalidArgumentException($errMsg);
+        }
+
         if ($registersStorage instanceof Traversable) {
             $registers = [];
             foreach ($registersStorage as $k => $v) {
@@ -1984,10 +1991,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             $ps = $store->getPropertySet($id);
 
-            $transientVars = $inputs;
-            if (null === $transientVars) {
-                $transientVars = $this->transientVarsFactory();
+            if (null === $inputs) {
+                $inputs = $this->transientVarsFactory();
             }
+            $transientVars = $inputs;
+
             $currentSteps = $store->findCurrentSteps($id);
 
             try {

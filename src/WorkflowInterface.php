@@ -17,6 +17,7 @@ use OldTown\Workflow\Spi\StepInterface;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
+use SplObjectStorage;
 
 /**
  * Interface WorkflowInterface
@@ -84,7 +85,7 @@ interface WorkflowInterface
      * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
      *
      * @param integer $id id экземпляра workflow
-     * @return []
+     * @return SplObjectStorage
      */
     public function getCurrentSteps($id);
 
