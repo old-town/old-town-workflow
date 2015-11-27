@@ -93,7 +93,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * Переход между двумя статусами
      *
      * @param WorkflowEntryInterface $entry
-     * @param StepInterface[] $currentSteps
+     * @param SplObjectStorage|StepInterface[] $currentSteps
      * @param WorkflowStoreInterface $store
      * @param WorkflowDescriptor $wf
      * @param ActionDescriptor $action
@@ -112,7 +112,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\FactoryException
      * @throws \OldTown\Workflow\Exception\InvalidActionException
      */
-    protected function transitionWorkflow(WorkflowEntryInterface $entry, $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, TransientVarsInterface $transientVars, TransientVarsInterface $inputs, PropertySetInterface $ps)
+    protected function transitionWorkflow(WorkflowEntryInterface $entry, SplObjectStorage $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, TransientVarsInterface $transientVars, TransientVarsInterface $inputs, PropertySetInterface $ps)
     {
         $this->stateCache = null;
 
@@ -1023,11 +1023,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      * @throws \OldTown\Workflow\Exception\InvalidActionException
      */
-    protected function getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, array $currentSteps = [], TransientVarsInterface $transientVars, PropertySetInterface $ps)
+    protected function getCurrentStep(WorkflowDescriptor $wfDesc, $actionId, SplObjectStorage $currentSteps, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
-        if (1 === count($currentSteps)) {
-            reset($currentSteps);
-            return current($currentSteps);
+        if (1 === $currentSteps->count()) {
+            $currentSteps->rewind();
+            return $currentSteps->current();
         }
 
 
@@ -1170,8 +1170,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         $action = $wf->getInitialAction($initialAction);
 
+
         try {
-            $this->transitionWorkflow($entry, [], $store, $wf, $action, $transientVars, $inputs, $ps);
+            $currentSteps = new SplObjectStorage();
+            $this->transitionWorkflow($entry, $currentSteps, $store, $wf, $action, $transientVars, $inputs, $ps);
         } catch (WorkflowException $e) {
             $this->context->setRollbackOnly();
             throw $e;
