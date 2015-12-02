@@ -9,7 +9,7 @@ default:
     workflowEngine:
       paths: [%paths.base%/test/Behat/features/workflow-engine]
       contexts:
-        - WorkflowDescriptorContext
+        - WorkflowEngineContext
   extensions:
     VIPSoft\CodeCoverageExtension\Extension:
       drivers: [local]

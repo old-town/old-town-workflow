@@ -114,13 +114,14 @@ class  ArrayConfiguration implements ConfigurationInterface
             if (null === $variableResolver) {
                 $variableResolver = new DefaultVariableResolver();
             }
-
-            if (!$variableResolver instanceof VariableResolverInterface) {
-                $errMsg = sprintf('Variable resolver not implements %s', VariableResolverInterface::class);
-                throw new Exception\InvalidVariableResolverException($errMsg);
-            }
-            $this->variableResolver = $variableResolver;
+        } else {
+            $variableResolver = new DefaultVariableResolver();
         }
+        if (!$variableResolver instanceof VariableResolverInterface) {
+            $errMsg = sprintf('Variable resolver not implements %s', VariableResolverInterface::class);
+            throw new Exception\InvalidVariableResolverException($errMsg);
+        }
+        $this->variableResolver = $variableResolver;
 
 
         if (array_key_exists(static::WORKFLOW_FACTORY, $options)) {
