@@ -80,7 +80,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * @Given : Register a workflow with the name :workflowName. With xml:
+     * @Given : Registrate the workflow with the name :workflowName. With xml:
      *
      * @param string             $workflowName
      * @param PyStringNode $xml
@@ -180,7 +180,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * @When Initialize process workflow with the name :entryAlias. Workflow name: :workflowName. Initial action id: :initialAction
+     * @When Progress workflow with alias :entryAlias. Workflow name: :workflowName. Initial action id: :initialAction
      *
      * @param string $entryAlias
      * @param string $workflowName
@@ -238,7 +238,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     }
 
     /**
-     * @Then For the process of workflow with the alias :entryAlias, have the following steps:
+     * @Then Process of workflow with the alias :entryAlias has the below steps:
      *
      * @param string          $entryAlias
      * @param TableNode $steps

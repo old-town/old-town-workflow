@@ -2,7 +2,7 @@ Feature:Workflow Core
 
 
   Scenario: initialize workflow
-    Given : Register a workflow with the name "example". With xml:
+    Given : Registrate the workflow with the name "example". With xml:
   """
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE workflow PUBLIC "-//OpenSymphony Group//DTD OSWorkflow 2.6//EN"
@@ -29,7 +29,7 @@ Feature:Workflow Core
 </workflow>
   """
     And Create workflow manager
-    When Initialize process workflow with the name "test". Workflow name: "example". Initial action id: "100"
-    Then For the process of workflow with the alias "test", have the following steps:
+    When Progress workflow with alias "test". Workflow name: "example". Initial action id: "100"
+    Then Process of workflow with the alias "test" has the below steps:
       |stepId|
       |2     |
