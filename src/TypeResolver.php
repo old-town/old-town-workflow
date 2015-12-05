@@ -6,17 +6,30 @@
 namespace OldTown\Workflow;
 
 use OldTown\Workflow\Exception\WorkflowException;
-use \OldTown\Workflow\Util\PhpShell\PhpShellCondition;
-use \OldTown\Workflow\Util\PhpShell\PhpShellFunctionProvider;
-
+use OldTown\Workflow\Util\PhpShell\PhpShellConditionProvider;
+use OldTown\Workflow\Util\PhpShell\PhpShellFunctionProvider;
+use OldTown\Workflow\Util\PhpShell\PhpShellValidatorProvider;
+use OldTown\Workflow\Util\PhpShell\PhpShellRegisterProvider;
 
 /**
- * Interface TypeResolver
+ * Class TypeResolver
  *
  * @package OldTown\Workflow
  */
-class TypeResolver
+class TypeResolver implements TypeResolverInterface
 {
+    /**
+     *
+     * @var string
+     */
+    const PHP_SHELL = 'phpshell';
+
+    /**
+     *
+     * @var string
+     */
+    const CLASS_NAME = 'class.name';
+
     /**
      * Хранилище условий
      *
@@ -45,43 +58,11 @@ class TypeResolver
     protected $validators;
 
     /**
-     * Хранит инстанс объекта данного класса
-     *
-     * @var TypeResolver
-     */
-    protected static $instance;
-
-    /**
-     * Реализация паттерна "Одиночка"
      *
      */
-    protected function __construct()
+    public function __construct()
     {
         $this->init();
-    }
-
-    /**
-     * Реализация паттерна "Одиночка"
-     *
-     */
-    protected function __clone()
-    {
-    }
-
-    /**
-     * Инстанцирует объект данного класса
-     *
-     * @return TypeResolver
-     */
-    public static function getInstance()
-    {
-        if (null !== self::$instance) {
-            return self::$instance;
-        }
-
-        self::$instance = new self();
-
-        return self::$instance;
     }
 
     /**
@@ -92,34 +73,17 @@ class TypeResolver
     protected function init()
     {
         $this->registers = [
-
+            static::PHP_SHELL => PhpShellRegisterProvider::class,
         ];
         $this->validators = [
-
+            static::PHP_SHELL => PhpShellValidatorProvider::class,
         ];
         $this->conditions = [
-            'phpshell' => PhpShellCondition::class
+            static::PHP_SHELL => PhpShellConditionProvider::class
         ];
         $this->functions = [
-            'phpshell' => PhpShellFunctionProvider::class
+            static::PHP_SHELL => PhpShellFunctionProvider::class
         ];
-    }
-
-    /**
-     * @param TypeResolver $resolver
-     */
-    public static function setResolver(TypeResolver $resolver)
-    {
-        self::$instance = $resolver;
-    }
-
-
-    /**
-     * @return TypeResolver
-     */
-    public static function getResolver()
-    {
-        return self::getInstance();
     }
 
     /**
@@ -136,8 +100,8 @@ class TypeResolver
         $className = null;
         if (array_key_exists($type, $this->validators)) {
             $className = $this->validators[$type];
-        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
-            $className = $args[WorkflowInterface::CLASS_NAME];
+        } elseif (array_key_exists(static::CLASS_NAME, $args)) {
+            $className = $args[static::CLASS_NAME];
         }
 
         if (null === $className) {
@@ -183,8 +147,8 @@ class TypeResolver
         $className = null;
         if (array_key_exists($type, $this->registers)) {
             $className = $this->registers[$type];
-        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
-            $className = $args[WorkflowInterface::CLASS_NAME];
+        } elseif (array_key_exists(static::CLASS_NAME, $args)) {
+            $className = $args[static::CLASS_NAME];
         }
 
         if (null === $className) {
@@ -231,8 +195,8 @@ class TypeResolver
         $className = null;
         if (array_key_exists($type, $this->functions)) {
             $className = $this->functions[$type];
-        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
-            $className = $args[WorkflowInterface::CLASS_NAME];
+        } elseif (array_key_exists(static::CLASS_NAME, $args)) {
+            $className = $args[static::CLASS_NAME];
         }
 
         if (null === $className) {
@@ -279,8 +243,8 @@ class TypeResolver
         $className = null;
         if (array_key_exists($type, $this->conditions)) {
             $className = $this->conditions[$type];
-        } elseif (array_key_exists(WorkflowInterface::CLASS_NAME, $args)) {
-            $className = $args[WorkflowInterface::CLASS_NAME];
+        } elseif (array_key_exists(static::CLASS_NAME, $args)) {
+            $className = $args[static::CLASS_NAME];
         }
 
         if (null === $className) {

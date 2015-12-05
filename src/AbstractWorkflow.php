@@ -38,6 +38,7 @@ use Traversable;
 use SplObjectStorage;
 use DateTime;
 use OldTown\Workflow\TransientVars\BaseTransientVars;
+use ReflectionClass;
 
 
 /**
@@ -64,7 +65,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     private $stateCache;
 
     /**
-     * @var TypeResolver
+     * @var TypeResolverInterface
      */
     private $typeResolver;
 
@@ -74,6 +75,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @var LoggerInterface
      */
     protected $log;
+
+    /**
+     * Резолвер для создания провайдеров отвечающих за исполнение функций, проверку условий, выполнение валидаторов и т.д.
+     *
+     * @var string
+     */
+    protected $defaultTypeResolverClass = TypeResolver::class;
 
     /**
      *
@@ -1012,7 +1020,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @param WorkflowDescriptor $wfDesc
      * @param integer $actionId
-     * @param StepInterface[] $currentSteps
+     * @param StepInterface[]|SplObjectStorage $currentSteps
      * @param TransientVarsInterface $transientVars
      * @param PropertySetInterface $ps
      *
@@ -1537,9 +1545,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $this->context->setRollbackOnly();
                 throw new WorkflowException($errMsg);
             }
-
+            $variableName = $register->getVariableName();
             try {
-                $variableName = $register->getVariableName();
                 $value = $r->registerVariable($this->context, $entry, $args, $ps);
 
                 $transientVars[$variableName] = $value;
@@ -1547,7 +1554,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $this->context->setRollbackOnly();
 
                 $errMsg = sprintf(
-                    'Ошибка при регистрации переменной в регистре %s',
+                    'При получение значения переменной %s из registry %s произошла ошибка',
+                    $variableName,
                     get_class($r)
                 );
 
@@ -1561,7 +1569,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      * Возвращает резолвер
      *
-     * @return TypeResolver
+     * @return TypeResolverInterface
      */
     public function getResolver()
     {
@@ -1569,7 +1577,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             return $this->typeResolver;
         }
 
-        $this->typeResolver = TypeResolver::getResolver();
+        $classResolver = $this->getDefaultTypeResolverClass();
+        $r = new ReflectionClass($classResolver);
+        $resolver = $r->newInstance();
+        $this->typeResolver = $resolver;
 
         return $this->typeResolver;
     }
@@ -1965,11 +1976,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
     /**
-     * @param TypeResolver $typeResolver
+     * @param TypeResolverInterface $typeResolver
      *
      * @return $this
      */
-    public function setTypeResolver(TypeResolver $typeResolver)
+    public function setTypeResolver(TypeResolverInterface $typeResolver)
     {
         $this->typeResolver = $typeResolver;
 
@@ -2119,5 +2130,25 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $result = $this->getPersistence()->query($query);
 
         return $result;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDefaultTypeResolverClass()
+    {
+        return $this->defaultTypeResolverClass;
+    }
+
+    /**
+     * @param string $defaultTypeResolverClass
+     *
+     * @return $this
+     */
+    public function setDefaultTypeResolverClass($defaultTypeResolverClass)
+    {
+        $this->defaultTypeResolverClass = (string)$defaultTypeResolverClass;
+
+        return $this;
     }
 }

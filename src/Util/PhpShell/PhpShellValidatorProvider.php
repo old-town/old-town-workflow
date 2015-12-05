@@ -7,18 +7,17 @@ namespace OldTown\Workflow\Util\PhpShell;
 
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Exception\WorkflowException;
-use OldTown\Workflow\FunctionProviderInterface;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use OldTown\Workflow\WorkflowContextInterface;
-
+use OldTown\Workflow\ValidatorInterface;
 
 /**
- * Class PhpShellFunctionProvider
+ * Class PhpShellValidatorProvider
  *
  * @package OldTown\Workflow\Util\PhpShell
  */
-class  PhpShellFunctionProvider implements FunctionProviderInterface, PhpShellProviderInterface
+class  PhpShellValidatorProvider implements ValidatorInterface, PhpShellProviderInterface
 {
     /**
      *
@@ -31,7 +30,7 @@ class  PhpShellFunctionProvider implements FunctionProviderInterface, PhpShellPr
      * @throws \OldTown\Workflow\Exception\RuntimeException
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
-    public function execute(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps)
+    public function validate(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps)
     {
         $script = array_key_exists(static::PHP_SCRIPT, $args) ? $args[static::PHP_SCRIPT] : '';
 
@@ -40,6 +39,7 @@ class  PhpShellFunctionProvider implements FunctionProviderInterface, PhpShellPr
 
         /**@var WorkflowEntryInterface $entry */
         $entry = $transientVars->offsetExists('entry') ? $transientVars['entry'] : null;
+
 
         $i = new Interpreter($script);
 
@@ -53,7 +53,7 @@ class  PhpShellFunctionProvider implements FunctionProviderInterface, PhpShellPr
 
             $i->evalScript();
         } catch (\Exception $e) {
-            $errMsg = 'Ошибка выполнения функции';
+            $errMsg = 'Error in validator';
             throw new WorkflowException($errMsg, $e->getCode(), $e);
         }
     }

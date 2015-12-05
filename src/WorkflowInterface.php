@@ -7,11 +7,6 @@ namespace OldTown\Workflow;
 
 use OldTown\Workflow\Config\ConfigurationInterface;
 use OldTown\Workflow\Config\DefaultConfiguration;
-use OldTown\Workflow\Exception\InvalidActionException;
-use OldTown\Workflow\Exception\InvalidEntryStateException;
-use OldTown\Workflow\Exception\InvalidInputException;
-use OldTown\Workflow\Exception\InvalidRoleException;
-use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
 use OldTown\PropertySet\PropertySetInterface;
@@ -26,61 +21,6 @@ use SplObjectStorage;
  */
 interface WorkflowInterface
 {
-    /**
-     *
-     * @var string
-     */
-    const BSF_COL = 'col';
-
-    /**
-     *
-     * @var string
-     */
-    const BSF_LANGUAGE = 'language';
-
-    /**
-     *
-     * @var string
-     */
-    const BSF_ROW = 'row';
-
-    /**
-     *
-     * @var string
-     */
-    const BSF_SCRIPT = 'script';
-
-    /**
-     *
-     * @var string
-     */
-    const BSF_SOURCE = 'source';
-
-    /**
-     *
-     * @var string
-     */
-    const BSH_SCRIPT = 'script';
-
-
-    /**
-     *
-     * @var string
-     */
-    const CLASS_NAME = 'class.name';
-
-    /**
-     *
-     * @var string
-     */
-    const EJB_LOCATION = 'ejb.location';
-
-    /**
-     *
-     * @var string
-     */
-    const JNDI_LOCATION = 'jndi.location';
-
     /**
      * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
      *
@@ -115,7 +55,7 @@ interface WorkflowInterface
     /**
      * Get a collection (Strings) of currently defined permissions for the specified workflow instance.
      * @param integer $id id the workflow instance id.
-     * @param array $inputs inputs The inputs to the workflow instance.
+     * @param TransientVarsInterface $inputs inputs The inputs to the workflow instance.
      * @return [] A List of permissions specified currently (a permission is a string name).
      */
     public function getSecurityPermissions($id, TransientVarsInterface $inputs = null);
@@ -159,7 +99,6 @@ interface WorkflowInterface
      * Modify the state of the specified workflow instance.
      * @param integer $id The workflow instance id.
      * @param integer $newState the new state to change the workflow instance to.
-     * @throws WorkflowException
      * If the new state is {@link com.opensymphony.workflow.spi.WorkflowEntry.KILLED}
      * or {@link com.opensymphony.workflow.spi.WorkflowEntry.COMPLETED}
      * then all current steps are moved to history steps. If the new state is
@@ -171,8 +110,6 @@ interface WorkflowInterface
      * @param integer $id The workflow instance id.
      * @param integer $actionId The action id to perform (action id's are listed in the workflow descriptor).
      * @param TransientVarsInterface $inputs The inputs to the workflow instance.
-     * @throws InvalidInputException if a validator is specified and an input is invalid.
-     * @throws WorkflowException if the action is invalid for the specified workflow
      * instance's current state.
      */
     public function doAction($id, $actionId, TransientVarsInterface $inputs = null);
@@ -192,13 +129,8 @@ interface WorkflowInterface
      *
      * @param string $workflowName Имя workflow
      * @param integer $initialAction Имя первого шага, с которого начинается workflow
-     * @param array TransientVarsInterface Данные введеные пользователем
+     * @param  TransientVarsInterface $inputs Данные введеные пользователем
      * @return integer
-     * @throws InvalidRoleException
-     * @throws InvalidInputException
-     * @throws WorkflowException
-     * @throws InvalidEntryStateException
-     * @throws InvalidActionException
      */
     public function initialize($workflowName, $initialAction, TransientVarsInterface $inputs = null);
 
@@ -207,7 +139,6 @@ interface WorkflowInterface
      * Query the workflow store for matching instances
      *
      * @param WorkflowExpressionQuery $query
-     * @throws WorkflowException
      * @return array
      */
     public function query(WorkflowExpressionQuery $query);
@@ -232,4 +163,20 @@ interface WorkflowInterface
      * @return $this
      */
     public function setConfiguration(ConfigurationInterface $configuration);
+
+    /**
+     * Устанавливает резолвер
+     *
+     * @param TypeResolverInterface $typeResolver
+     *
+     * @return $this
+     */
+    public function setTypeResolver(TypeResolverInterface $typeResolver);
+
+    /**
+     * Возвращает резолвер
+     *
+     * @return TypeResolverInterface
+     */
+    public function getResolver();
 }

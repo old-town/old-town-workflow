@@ -6,7 +6,6 @@
 namespace OldTown\Workflow;
 
 use OldTown\PropertySet\PropertySetInterface;
-use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 
 /**
@@ -22,11 +21,7 @@ interface RegisterInterface
      * @param array $args Аргументы workflow
      * @param PropertySetInterface $ps
      *
-     * @throws WorkflowException
-     * @return object
-     *
-     * @throws WorkflowException
-     * @return object  the object to bind to the variable map for this workflow instance
+     * @return mixed  the object to bind to the variable map for this workflow instance
      */
     public function registerVariable(WorkflowContextInterface $context, WorkflowEntryInterface $entry, array $args = [], PropertySetInterface $ps);
 }

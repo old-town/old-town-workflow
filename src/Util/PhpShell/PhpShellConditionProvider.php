@@ -12,13 +12,14 @@ use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use OldTown\Workflow\Util\TextUtils;
 use OldTown\Workflow\WorkflowContextInterface;
-use OldTown\Workflow\WorkflowInterface;
+
 
 /**
- * Class Interpreter
+ * Class PhpShellConditionProvider
+ *
  * @package OldTown\Workflow\Util\PhpShell
  */
-class  PhpShellCondition implements ConditionInterface
+class  PhpShellConditionProvider implements ConditionInterface, PhpShellProviderInterface
 {
     /**
      *
@@ -33,7 +34,7 @@ class  PhpShellCondition implements ConditionInterface
      */
     public function passesCondition(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps)
     {
-        $script = array_key_exists(WorkflowInterface::BSH_SCRIPT, $args) ? $args[WorkflowInterface::BSH_SCRIPT] : '';
+        $script = array_key_exists(static::PHP_SCRIPT, $args) ? $args[static::PHP_SCRIPT] : '';
 
         /**@var WorkflowContextInterface $context */
         $context = $transientVars->offsetExists('context')  ? $transientVars['context'] : null;
