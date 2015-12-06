@@ -6,7 +6,6 @@
 namespace OldTown\Workflow;
 
 use OldTown\Workflow\Config\ConfigurationInterface;
-use OldTown\Workflow\Config\DefaultConfiguration;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
 use OldTown\PropertySet\PropertySetInterface;
@@ -150,7 +149,7 @@ interface WorkflowInterface
      *
      * Если конфигурация не была установленна, то возвращает конфигурацию по умолчанию
      *
-     * @return ConfigurationInterface|DefaultConfiguration Конфигурация которая была установленна
+     * @return ConfigurationInterface Конфигурация которая была установленна
      *
      */
     public function getConfiguration();

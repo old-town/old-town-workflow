@@ -171,7 +171,6 @@ class  CallbackWorkflowFactory extends AbstractWorkflowFactory
     }
 
 
-
     /**
      *
      * @return void
@@ -181,7 +180,11 @@ class  CallbackWorkflowFactory extends AbstractWorkflowFactory
      */
     public function initDone()
     {
-        $workflows = $this->getProperties()->getProperty(static::WORKFLOWS_PROPERTY, false);
+        $workflows = $this->getProperties()->getProperty(static::WORKFLOWS_PROPERTY, null);
+
+        if (null === $workflows) {
+            return;
+        }
 
         foreach ($workflows as $name => $workflowItem) {
             $callback = array_key_exists('callback', $workflowItem) ?  $workflowItem['callback'] : null;

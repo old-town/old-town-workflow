@@ -140,6 +140,14 @@ class  ArrayConfiguration implements ConfigurationInterface
     }
 
     /**
+     * @return WorkflowFactoryInterface
+     */
+    public function getFactory()
+    {
+        return $this->factory;
+    }
+
+    /**
      * Определяет была ли иницилазированна дананя конфигурация
      *
      * @return bool

@@ -139,6 +139,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         }
 
+        $preFunctions = $action->getPreFunctions();
+        foreach ($preFunctions as $preFunction) {
+            $this->executeFunction($preFunction, $transientVars, $ps);
+        }
+
         $conditionalResults = $action->getConditionalResults();
         $extraPreFunctions = null;
         $extraPostFunctions = null;

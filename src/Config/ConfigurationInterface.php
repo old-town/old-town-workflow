@@ -8,6 +8,7 @@ namespace OldTown\Workflow\Config;
 use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
+use OldTown\Workflow\Loader\WorkflowFactoryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use OldTown\Workflow\Util\VariableResolverInterface;
 use Psr\Http\Message\UriInterface;
@@ -106,4 +107,9 @@ interface ConfigurationInterface
      * @return boolean
      */
     public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false);
+
+    /**
+     * @return WorkflowFactoryInterface
+     */
+    public function getFactory();
 }
