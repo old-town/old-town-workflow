@@ -9,7 +9,7 @@ use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 
 /**
- * Interface ValidatorRemoteInterface
+ * Interface RegisterInterface
  *
  * @package OldTown\Workflow
  */
