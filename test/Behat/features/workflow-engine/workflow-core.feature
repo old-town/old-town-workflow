@@ -71,5 +71,6 @@ Feature:Workflow Core
 </workflow>
   """
     And Create workflow manager
+
     When Progress workflow with alias "test". Workflow name: "example". Initial action id: "100"
 
