@@ -71,7 +71,8 @@ class  Interpreter
         'print_r',
         'true',
         'false',
-        'null'
+        'null',
+        'InvalidArgumentException'
     ];
 
     /**
@@ -180,7 +181,7 @@ class  Interpreter
         //'T_TRY',
         //'T_CATCH',
         //'T_FINALLY',
-        //'T_THROW',
+        'T_THROW',
         //'T_USE',
         //'T_INSTEADOF',
         //'T_GLOBAL',
@@ -225,7 +226,7 @@ class  Interpreter
         //'T_NAMESPACE',
         //'T_NS_C',
         'T_DIR',
-        //'T_NS_SEPARATOR',
+        'T_NS_SEPARATOR',
         'T_DOUBLE_COLON',
     ];
 

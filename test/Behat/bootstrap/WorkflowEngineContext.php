@@ -214,6 +214,54 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     }
 
     /**
+     * @When Call action with id=:actionId for workflow process with alias :entryAlias
+     *
+     * @param $entryAlias
+     * @param $actionId
+     *
+     * @throws \RuntimeException
+     */
+    public function callActionWithIdForWorkflowProcessWithAlias($entryAlias, $actionId)
+    {
+        $entryAlias = (string)$entryAlias;
+        if (!array_key_exists($entryAlias, $this->entryAliasToEntryId)) {
+            $errMsg = sprintf('Alias %s not exists', $entryAlias);
+            throw new \RuntimeException($errMsg);
+        }
+        $entryId = $this->entryAliasToEntryId[$entryAlias];
+
+        $workflowManager = $this->getWorkflowManager();
+
+        try {
+            $workflowManager->doAction($entryId, $actionId);
+        } catch (\Exception $e) {
+            $this->lastException = $e;
+            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * @Then Last action was the result of class exception :exceptionClassName. The massage of exception: :exceptionText
+     *
+     * @param $exceptionClassName
+     * @param $exceptionText
+     *
+     * @throws \RuntimeException
+     */
+    public function lastActionWasTheResultOfClassExceptionTheMassageOfException($exceptionClassName, $exceptionText)
+    {
+        if (!$this->lastException instanceof $exceptionClassName) {
+            $errMsg = sprintf('Last action was the result of class exception "%s"', $exceptionClassName);
+            throw new \RuntimeException($errMsg);
+        }
+
+        if ($exceptionText !== $this->lastException->getMessage()) {
+            $errMsg = sprintf('Invalid text exception. Expected %s', $exceptionText);
+            throw new \RuntimeException($errMsg);
+        }
+    }
+
+    /**
      * @return BasicWorkflow
      *
      * @throws \RuntimeException
@@ -278,6 +326,18 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
 
         if (count($actualCurrentSteps) !== count($stepsColumn)) {
             throw new \RuntimeException('there are extra currentSteps ');
+        }
+    }
+
+    /**
+     * @Then Exceptions are missing
+     *
+     * @throws RuntimeException
+     */
+    public function exceptionsAreMissing()
+    {
+        if (null !== $this->lastException) {
+            throw new \RuntimeException($this->lastException->getMessage(), $this->lastException->getCode(), $this->lastException);
         }
     }
 }

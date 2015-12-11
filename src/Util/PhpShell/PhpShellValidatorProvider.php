@@ -6,7 +6,6 @@
 namespace OldTown\Workflow\Util\PhpShell;
 
 use OldTown\PropertySet\PropertySetInterface;
-use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use OldTown\Workflow\WorkflowContextInterface;
@@ -26,7 +25,6 @@ class  PhpShellValidatorProvider implements ValidatorInterface, PhpShellProvider
      * @param PropertySetInterface $ps
      * @return bool
      *
-     * @throws \OldTown\Workflow\Exception\WorkflowException
      * @throws \OldTown\Workflow\Exception\RuntimeException
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      */
@@ -43,18 +41,13 @@ class  PhpShellValidatorProvider implements ValidatorInterface, PhpShellProvider
 
         $i = new Interpreter($script);
 
-        try {
-            $i->setContextParam('entry', $entry);
-            $i->setContextParam('context', $context);
-            $i->setContextParam('transientVars', $transientVars);
-            $i->setContextParam('propertySet', $ps);
-            $i->setContextParam('args', $args);
+        $i->setContextParam('entry', $entry);
+        $i->setContextParam('context', $context);
+        $i->setContextParam('transientVars', $transientVars);
+        $i->setContextParam('propertySet', $ps);
+        $i->setContextParam('args', $args);
 
 
-            $i->evalScript();
-        } catch (\Exception $e) {
-            $errMsg = 'Error in validator';
-            throw new WorkflowException($errMsg, $e->getCode(), $e);
-        }
+        $i->evalScript();
     }
 }

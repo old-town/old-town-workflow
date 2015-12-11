@@ -139,7 +139,7 @@ class XMLWorkflowFactoryTest extends TestCase
      */
     public function testGetWorkflowNames()
     {
-       static::assertEmpty($this->xmlWorkflowFactory->getWorkflowNames());
+        static::assertEmpty($this->xmlWorkflowFactory->getWorkflowNames());
     }
 
 

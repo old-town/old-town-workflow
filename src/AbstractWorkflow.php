@@ -119,43 +119,43 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function initialize($workflowName, $initialAction, TransientVarsInterface $inputs = null)
     {
-        $initialAction = (integer)$initialAction;
-
-        $wf = $this->getConfiguration()->getWorkflow($workflowName);
-
-        $store = $this->getPersistence();
-
-        $entry = $store->createEntry($workflowName);
-
-        $ps = $store->getPropertySet($entry->getId());
-
-
-        if (null === $inputs) {
-            $inputs = $this->transientVarsFactory();
-        }
-        $transientVars = $inputs;
-        $inputs = clone $transientVars;
-
-        $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
-
-        if (!$this->canInitializeInternal($workflowName, $initialAction, $transientVars, $ps)) {
-            $this->context->setRollbackOnly();
-            $errMsg = 'You are restricted from initializing this workflow';
-            throw new InvalidRoleException($errMsg);
-        }
-
-        $action = $wf->getInitialAction($initialAction);
-
-
         try {
+            $initialAction = (integer)$initialAction;
+
+            $wf = $this->getConfiguration()->getWorkflow($workflowName);
+
+            $store = $this->getPersistence();
+
+            $entry = $store->createEntry($workflowName);
+
+            $ps = $store->getPropertySet($entry->getId());
+
+
+            if (null === $inputs) {
+                $inputs = $this->transientVarsFactory();
+            }
+            $transientVars = $inputs;
+            $inputs = clone $transientVars;
+
+            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
+
+            if (!$this->canInitializeInternal($workflowName, $initialAction, $transientVars, $ps)) {
+                $this->context->setRollbackOnly();
+                $errMsg = 'You are restricted from initializing this workflow';
+                throw new InvalidRoleException($errMsg);
+            }
+
+            $action = $wf->getInitialAction($initialAction);
+
             $currentSteps = new SplObjectStorage();
             $this->transitionWorkflow($entry, $currentSteps, $store, $wf, $action, $transientVars, $inputs, $ps);
+
+            $entryId = $entry->getId();
         } catch (WorkflowException $e) {
             $this->context->setRollbackOnly();
-            throw $e;
+            throw new InternalWorkflowException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $entryId = $entry->getId();
 
         // now clone the memory PS to the real PS
         //PropertySetManager.clone(ps, store.getPropertySet(entryId));
@@ -1161,8 +1161,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                         throw $e;
                     }
 
-                    $errMsg = 'Неизвестная ошибка при работе валидатора';
-                    throw new WorkflowException($errMsg, $e->getCode(), $e);
+                    throw new WorkflowException($e->getMessage(), $e->getCode(), $e);
                 }
             }
         }
