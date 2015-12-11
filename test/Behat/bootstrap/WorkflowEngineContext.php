@@ -49,6 +49,11 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     protected $entryAliasToEntryId = [];
 
     /**
+     * @var Exception|null
+     */
+    protected $lastException;
+
+    /**
      *
      */
     public function __construct()
@@ -77,6 +82,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
         $this->workflowManager = null;
         $this->flagInitWorkflowManager = false;
         $this->entryAliasToEntryId = [];
+        $this->lastException = null;
     }
 
     /**
@@ -202,7 +208,8 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
             $entryId = $workflowManager->initialize($workflowName, $initialAction);
             $this->entryAliasToEntryId[$entryAlias] = $entryId;
         } catch (\Exception $e) {
-            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+            $this->lastException = $e;
+            //throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
