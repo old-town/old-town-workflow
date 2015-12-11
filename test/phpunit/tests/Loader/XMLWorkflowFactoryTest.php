@@ -135,14 +135,11 @@ class XMLWorkflowFactoryTest extends TestCase
     /**
      * Получение имен workflow
      *
-     * @expectedException \OldTown\Workflow\Exception\FactoryException
-     * @expectedExceptionMessage XmlWorkflowFactory не содержит имена workflow
-     *
      * @return void
      */
     public function testGetWorkflowNames()
     {
-        $this->xmlWorkflowFactory->getWorkflowNames();
+       static::assertEmpty($this->xmlWorkflowFactory->getWorkflowNames());
     }
 
 
