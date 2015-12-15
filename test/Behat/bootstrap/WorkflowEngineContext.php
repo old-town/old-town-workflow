@@ -14,7 +14,8 @@ use OldTown\Workflow\Spi\Memory\MemoryWorkflowStore;
 use OldTown\Workflow\Loader\CallbackWorkflowFactory;
 use OldTown\Workflow\Util\Properties\Properties;
 use Behat\Gherkin\Node\TableNode;
-
+use OldTown\Workflow\TransientVars\TransientVarsInterface;
+use OldTown\Workflow\TransientVars\BaseTransientVars;
 
 /**
  * Class WorkflowEngineContext
@@ -54,6 +55,11 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     protected $lastException;
 
     /**
+     * @var TransientVarsInterface
+     */
+    protected $transientVars;
+
+    /**
      *
      */
     public function __construct()
@@ -71,6 +77,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
                 return $descriptor;
             };
         };
+        $this->transientVars = new BaseTransientVars();
     }
 
     /**
@@ -83,6 +90,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
         $this->flagInitWorkflowManager = false;
         $this->entryAliasToEntryId = [];
         $this->lastException = null;
+        $this->transientVars = new BaseTransientVars();
     }
 
     /**
@@ -205,7 +213,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
         $workflowManager = $this->getWorkflowManager();
 
         try {
-            $entryId = $workflowManager->initialize($workflowName, $initialAction);
+            $entryId = $workflowManager->initialize($workflowName, $initialAction, $this->transientVars);
             $this->entryAliasToEntryId[$entryAlias] = $entryId;
         } catch (\Exception $e) {
             $this->lastException = $e;
@@ -233,7 +241,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
         $workflowManager = $this->getWorkflowManager();
 
         try {
-            $workflowManager->doAction($entryId, $actionId);
+            $workflowManager->doAction($entryId, $actionId, $this->transientVars);
         } catch (\Exception $e) {
             $this->lastException = $e;
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
@@ -338,6 +346,28 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     {
         if (null !== $this->lastException) {
             throw new \RuntimeException($this->lastException->getMessage(), $this->lastException->getCode(), $this->lastException);
+        }
+    }
+
+    /**
+     * @Then There is the valuable :name with value :value in Transient Vars
+     *
+     * @param string $name
+     * @param string $value
+     *
+     * @throws \RuntimeException
+     */
+    public function thereIsTheValuableWithValueInTransientVars($name, $value)
+    {
+        if (!$this->transientVars->offsetExists($name)) {
+            $errMsg = sprintf('Property %s not found in transient vars', $name);
+            throw new \RuntimeException($errMsg);
+        }
+        $actual = $this->transientVars[$name];
+
+        if ($value !== $actual) {
+            $errMsg = sprintf('Property %s. Expected value %s. Actual %s', $name, $value, $actual);
+            throw new \RuntimeException($errMsg);
         }
     }
 }

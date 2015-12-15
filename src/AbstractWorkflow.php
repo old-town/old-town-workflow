@@ -206,7 +206,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $transientVars['descriptor'] = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
 
         if (null !== $actionId) {
-            $actionId = (integer)$actionId;
             $transientVars['actionId'] = $actionId;
         }
 
@@ -297,14 +296,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $extraPreFunctions = null;
         $extraPostFunctions = null;
 
-        $theResults = [];
-        $theResults[0] = null;
+        $theResult = null;
 
 
         $currentStepId = null !== $step ? $step->getStepId()  : -1;
         foreach ($conditionalResults as $conditionalResult) {
             if ($this->passesConditions(null, $conditionalResult->getConditions(), $transientVars, $ps, $currentStepId)) {
-                $theResults[0] = $conditionalResult;
+                $theResult = $conditionalResult;
 
                 $validatorsStorage = $conditionalResult->getValidators();
                 if ($validatorsStorage->count() > 0) {
@@ -319,14 +317,14 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         }
 
 
-        if (null ===  $theResults[0]) {
-            $theResults[0] = $action->getUnconditionalResult();
-            $this->verifyInputs($entry, $theResults[0]->getValidators(), $transientVars, $ps);
-            $extraPreFunctions = $theResults[0]->getPreFunctions();
-            $extraPostFunctions = $theResults[0]->getPostFunctions();
+        if (null ===  $theResult) {
+            $theResult = $action->getUnconditionalResult();
+            $this->verifyInputs($entry, $theResult->getValidators(), $transientVars, $ps);
+            $extraPreFunctions = $theResult->getPreFunctions();
+            $extraPostFunctions = $theResult->getPostFunctions();
         }
 
-        $logMsg = sprintf('theResult=%s %s', $theResults[0]->getStep(), $theResults[0]->getStatus());
+        $logMsg = sprintf('theResult=%s %s', $theResult->getStep(), $theResult->getStatus());
         $this->getLog()->debug($logMsg);
 
 
@@ -336,8 +334,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         }
 
-        $split = $theResults[0]->getSplit();
-        $join = $theResults[0]->getJoin();
+        $split = $theResult->getSplit();
+        $join = $theResult->getJoin();
         if (null !== $split && 0 !== $split) {
             $splitDesc = $wf->getSplit($split);
             $results = $splitDesc->getResults();
@@ -364,10 +362,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             if (!$action->isFinish()) {
                 $moveFirst = true;
 
-                $theResults = [];
-                foreach ($results as $result) {
-                    $theResults[] = $result;
-                }
+                //???????????????????
+//                $theResults = [];
+//                foreach ($results as $result) {
+//                    $theResults[] = $result;
+//                }
 
                 foreach ($results as $resultDescriptor) {
                     $moveToHistoryStep = null;
@@ -393,7 +392,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         } elseif (null !== $join && 0 !== $join) {
             $joinDesc = $wf->getJoin($join);
-            $oldStatus = $theResults[0]->getOldStatus();
+            $oldStatus = $theResult->getOldStatus();
             $caller = $this->context->getCaller();
             $step = $store->markFinished($step, $action->getId(), new DateTime(), $oldStatus, $caller);
 
@@ -454,9 +453,9 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
                 if (!$action->isFinish()) {
                     $previousIds[0] = $step->getId();
-                    $theResults[0] = $joinDesc->getResult();
+                    $theResult = $joinDesc->getResult();
 
-                    $this->createNewCurrentStep($joinDesc->getResult(), $entry, $store, $action->getId(), null, $previousIds, $transientVars, $ps);
+                    $this->createNewCurrentStep($theResult, $entry, $store, $action->getId(), null, $previousIds, $transientVars, $ps);
                 }
 
                 foreach ($joinResult->getPostFunctions() as $function) {
@@ -471,7 +470,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
 
             if (!$action->isFinish()) {
-                $this->createNewCurrentStep($theResults[0], $entry, $store, $action->getId(), $step, $previousIds, $transientVars, $ps);
+                $this->createNewCurrentStep($theResult, $entry, $store, $action->getId(), $step, $previousIds, $transientVars, $ps);
             }
         }
 
@@ -805,6 +804,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function doAction($id, $actionId, TransientVarsInterface $inputs = null)
     {
+        $actionId = (integer)$actionId;
         if (null === $inputs) {
             $inputs = $this->transientVarsFactory();
         }
@@ -842,7 +842,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
 
         foreach ($currentSteps as $step) {
-            $s = $wf->getStep($step->getId());
+            $s = $wf->getStep($step->getStepId());
 
             foreach ($s->getActions() as $actionDesc) {
                 if ($actionId === $actionDesc->getId()) {
@@ -858,7 +858,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         if (!$validAction) {
             $errMsg = sprintf(
-                'Действие %s не прошло проверку',
+                'Action %s is invalid',
                 $actionId
             );
             throw new InvalidActionException($errMsg);
