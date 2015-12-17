@@ -50,6 +50,7 @@ class  PhpShellConditionProvider implements ConditionInterface, PhpShellProvider
             $i->setContextParam('context', $context);
             $i->setContextParam('transientVars', $transientVars);
             $i->setContextParam('propertySet', $ps);
+            $i->setContextParam('args', $args);
 
 
             $o = $i->evalScript();

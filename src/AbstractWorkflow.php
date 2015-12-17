@@ -56,18 +56,18 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      * @var ConfigurationInterface
      */
-    private $configuration;
+    protected $configuration;
 
     /**
      *
      * @var array
      */
-    private $stateCache;
+    protected $stateCache = [];
 
     /**
      * @var TypeResolverInterface
      */
-    private $typeResolver;
+    protected $typeResolver;
 
     /**
      * Логер
@@ -270,8 +270,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     protected function transitionWorkflow(WorkflowEntryInterface $entry, SplObjectStorage $currentSteps, WorkflowStoreInterface $store, WorkflowDescriptor $wf, ActionDescriptor $action, TransientVarsInterface $transientVars, TransientVarsInterface $inputs, PropertySetInterface $ps)
     {
-        $this->stateCache = null;
-
         $step = $this->getCurrentStep($wf, $action->getId(), $currentSteps, $transientVars, $ps);
 
         $validators = $action->getValidators();
@@ -301,7 +299,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         $currentStepId = null !== $step ? $step->getStepId()  : -1;
         foreach ($conditionalResults as $conditionalResult) {
-            if ($this->passesConditions(null, $conditionalResult->getConditions(), $transientVars, $ps, $currentStepId)) {
+            if ($this->passesConditionsWithType(null, $conditionalResult->getConditions(), $transientVars, $ps, $currentStepId)) {
                 $theResult = $conditionalResult;
 
                 $validatorsStorage = $conditionalResult->getValidators();
@@ -428,7 +426,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $transientVars['jn'] = $jn;
 
 
-            if ($this->passesConditions(null, $joinDesc->getConditions(), $transientVars, $ps, 0)) {
+            if ($this->passesConditionsWithType(null, $joinDesc->getConditions(), $transientVars, $ps, 0)) {
                 $joinResult = $joinDesc->getResult();
 
                 $joinResultValidators = $joinResult->getValidators();
@@ -848,7 +846,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 if ($actionId === $actionDesc->getId()) {
                     $action = $actionDesc;
 
-                    if ($this->isActionAvailable($action, $transientVars, $ps, 0)) {
+                    if ($this->isActionAvailable($action, $transientVars, $ps, $s->getId())) {
                         $validAction = true;
                     }
                 }
@@ -1225,11 +1223,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         $result = null;
         $actionHash = spl_object_hash($action);
-        if (null !== $this->stateCache) {
-            $result = array_key_exists($actionHash, $this->stateCache) ? $this->stateCache[$actionHash] : $result;
-        } else {
-            $this->stateCache = [];
-        }
+
+        $result = array_key_exists($actionHash, $this->stateCache) ? $this->stateCache[$actionHash] : $result;
 
         $wf = $this->getWorkflowDescriptorForAction($action);
 
@@ -1378,197 +1373,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $passesConditions = $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, 0);
 
         return $passesConditions;
-    }
-
-    /**
-     * @param ConditionsDescriptor $descriptor
-     * @param TransientVarsInterface $transientVars
-     * @param PropertySetInterface $ps
-     * @param                      $currentStepId
-     *
-     * @return bool
-     *
-     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
-     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
-     * @throws \OldTown\Workflow\Exception\WorkflowException
-     * @throws \OldTown\Workflow\Exception\InvalidActionException
-     */
-    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, TransientVarsInterface $transientVars, PropertySetInterface $ps, $currentStepId)
-    {
-        if (null === $descriptor) {
-            return true;
-        }
-
-        $type = $descriptor->getType();
-        $conditions = $descriptor->getConditions();
-        $passesConditions = $this->passesConditions($type, $conditions, $transientVars, $ps, $currentStepId);
-
-        return $passesConditions;
-    }
-
-    /**
-     * Этим полукостылём я портировал перегрузку методов в java
-     *
-     * @return bool
-     *
-     * @throws Exception\InvalidActionException
-     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
-     * @throws \OldTown\Workflow\Exception\WorkflowException
-     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
-     */
-    protected function passesConditions()
-    {
-        $arguments = func_get_args();
-
-        if (count($arguments) === 4) {
-            /** @var ConditionsDescriptor $descriptor */
-            $descriptor = $arguments[0];
-            if (null === $descriptor) {
-                return true;
-            }
-
-            return $this->passesConditionsWithType(
-                $descriptor->getType(),
-                $descriptor->getConditions(),
-                $arguments[1],
-                $arguments[2],
-                $arguments[3]
-            );
-        } elseif (count($arguments) === 5) {
-            return $this->passesConditionsWithType(
-                $arguments[0],
-                $arguments[1],
-                $arguments[2],
-                $arguments[3],
-                $arguments[4]
-            );
-        }
-
-        throw new Exception\InvalidActionException('Incorrect params!!');
-    }
-
-    /**
-     * @param string $conditionType
-     * @param array $conditionsStorage
-     * @param TransientVarsInterface $transientVars
-     * @param PropertySetInterface $ps
-     * @param integer $currentStepId
-     *
-     * @return bool
-     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
-     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
-     * @throws \OldTown\Workflow\Exception\WorkflowException
-     * @throws \OldTown\Workflow\Exception\InvalidActionException
-     */
-    protected function passesConditionsWithType($conditionType, $conditionsStorage = null, TransientVarsInterface $transientVars, PropertySetInterface $ps, $currentStepId)
-    {
-        if (null === $conditionsStorage) {
-            return true;
-        }
-
-
-        if ($conditionsStorage instanceof Traversable) {
-            $conditions = [];
-            foreach ($conditionsStorage as $k => $v) {
-                $conditions[$k] = $v;
-            }
-        } elseif (is_array($conditionsStorage)) {
-            $conditions = $conditionsStorage;
-        } else {
-            $errMsg = 'Conditions должен быть массивом, либо реализовывать интерфейс Traversable';
-            throw new InvalidArgumentException($errMsg);
-        }
-
-
-        if (0 === count($conditions)) {
-            return true;
-        }
-
-
-        $and = strtoupper($conditionType) === 'AND';
-        $or = !$and;
-
-        foreach ($conditions as $descriptor) {
-            if ($descriptor instanceof ConditionsDescriptor) {
-                $result = $this->passesConditions($descriptor->getType(), $descriptor->getConditions(), $transientVars, $ps, $currentStepId);
-            } else {
-                $result = $this->passesCondition($descriptor, $transientVars, $ps, $currentStepId);
-            }
-
-            if ($and && !$result) {
-                return false;
-            } elseif ($or && $result) {
-                return true;
-            }
-        }
-
-        if ($and) {
-            return true;
-        } elseif ($or) {
-            return false;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @param ConditionDescriptor $conditionDesc
-     * @param TransientVarsInterface $transientVars
-     * @param PropertySetInterface $ps
-     * @param integer $currentStepId
-     *
-     * @return boolean
-     *
-     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
-     * @throws \OldTown\Workflow\Exception\WorkflowException
-     */
-    protected function passesCondition(ConditionDescriptor $conditionDesc, TransientVarsInterface $transientVars, PropertySetInterface $ps, $currentStepId)
-    {
-        $type = $conditionDesc->getType();
-
-        $argsOriginal = $conditionDesc->getArgs();
-
-
-        $args = [];
-        foreach ($argsOriginal as $key => $value) {
-            $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($value, $transientVars, $ps);
-            $args[$key] = $translateValue;
-        }
-
-        if (-1 !== $currentStepId) {
-            $stepId = array_key_exists('stepId', $args) ? (integer)$args['stepId'] : null;
-
-            if (null !== $stepId && -1 === $stepId) {
-                $args['stepId'] = $currentStepId;
-            }
-        }
-
-        $condition = $this->getResolver()->getCondition($type, $args);
-
-        if (null === $condition) {
-            $this->context->setRollbackOnly();
-            $errMsg = 'Огибка при загрузки условия';
-            throw new WorkflowException($errMsg);
-        }
-
-        try {
-            $passed = $condition->passesCondition($transientVars, $args, $ps);
-
-            if ($conditionDesc->isNegate()) {
-                $passed = !$passed;
-            }
-        } catch (\Exception $e) {
-            $this->context->setRollbackOnly();
-
-            $errMsg = sprintf(
-                'Ошбика при выполнение условия %s',
-                get_class($condition)
-            );
-
-            throw new WorkflowException($errMsg, $e->getCode(), $e);
-        }
-
-        return $passed;
     }
 
     /**
@@ -1779,7 +1583,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                     $conditions = $restriction->getConditionsDescriptor();
                 }
 
-                $flag = $this->passesConditions($wf->getGlobalActions(), $transientVars, $ps, 0) && $this->passesConditions($conditions, $transientVars, $ps, 0);
+                $flag = $this->passesConditionsByDescriptor($wf->getGlobalConditions(), $transientVars, $ps, 0) && $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, 0);
                 if ($flag) {
                     $l[] = $action->getId();
                 }
@@ -1849,8 +1653,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $conditions = $restriction->getConditionsDescriptor();
             }
 
-            $f = $this->passesConditions($wf->getGlobalConditions(), $transientVars, $ps, $s->getId())
-                 && $this->passesConditions($conditions, $transientVars, $ps, $s->getId());
+            $f = $this->passesConditionsByDescriptor($wf->getGlobalConditions(), $transientVars, $ps, $s->getId())
+                 && $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, $s->getId());
             if ($f) {
                 $l[] = $action->getId();
             }
@@ -2037,8 +1841,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $securities = $xmlStep->getPermissions();
 
                 foreach ($securities as $security) {
-                    $ConditionsDescriptor = $security->getRestriction()->getConditionsDescriptor();
-                    if (null !== $security->getRestriction() && $this->passesConditions($ConditionsDescriptor, $transientVars, $ps, $xmlStep->getId())) {
+                    $conditionsDescriptor = $security->getRestriction()->getConditionsDescriptor();
+                    if (null !== $security->getRestriction() && $this->passesConditionsByDescriptor($conditionsDescriptor, $transientVars, $ps, $xmlStep->getId())) {
                         $s[$security->getName()] = $security->getName();
                     }
                 }
@@ -2155,5 +1959,139 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $this->defaultTypeResolverClass = (string)$defaultTypeResolverClass;
 
         return $this;
+    }
+
+
+    /**
+     * @param ConditionsDescriptor $descriptor
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface $ps
+     * @param                      $currentStepId
+     *
+     * @return bool
+     *
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidActionException
+     */
+    protected function passesConditionsByDescriptor(ConditionsDescriptor $descriptor = null, TransientVarsInterface $transientVars, PropertySetInterface $ps, $currentStepId)
+    {
+        if (null === $descriptor) {
+            return true;
+        }
+
+        $type = $descriptor->getType();
+        $conditions = $descriptor->getConditions();
+        $passesConditions = $this->passesConditionsWithType($type, $conditions, $transientVars, $ps, $currentStepId);
+
+        return $passesConditions;
+    }
+
+    /**
+     * @param string $conditionType
+     * @param SplObjectStorage $conditions
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface $ps
+     * @param integer $currentStepId
+     *
+     * @return bool
+     * @throws \OldTown\Workflow\Exception\InvalidArgumentException
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidActionException
+     */
+    protected function passesConditionsWithType($conditionType, SplObjectStorage $conditions = null, TransientVarsInterface $transientVars, PropertySetInterface $ps, $currentStepId)
+    {
+        if (null === $conditions) {
+            return true;
+        }
+
+        if (0 === $conditions->count()) {
+            return true;
+        }
+
+        $and = strtoupper($conditionType) === 'AND';
+        $or = !$and;
+
+        foreach ($conditions as $descriptor) {
+            if ($descriptor instanceof ConditionsDescriptor) {
+                $result = $this->passesConditionsWithType($descriptor->getType(), $descriptor->getConditions(), $transientVars, $ps, $currentStepId);
+            } else {
+                $result = $this->passesCondition($descriptor, $transientVars, $ps, $currentStepId);
+            }
+
+            if ($and && !$result) {
+                return false;
+            } elseif ($or && $result) {
+                return true;
+            }
+        }
+
+        if ($and) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param ConditionDescriptor $conditionDesc
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface $ps
+     * @param integer $currentStepId
+     *
+     * @return boolean
+     *
+     * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
+     */
+    protected function passesCondition(ConditionDescriptor $conditionDesc, TransientVarsInterface $transientVars, PropertySetInterface $ps, $currentStepId)
+    {
+        $type = $conditionDesc->getType();
+
+        $argsOriginal = $conditionDesc->getArgs();
+
+
+        $args = [];
+        foreach ($argsOriginal as $key => $value) {
+            $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($value, $transientVars, $ps);
+            $args[$key] = $translateValue;
+        }
+
+        if (-1 !== $currentStepId) {
+            $stepId = array_key_exists('stepId', $args) ? (integer)$args['stepId'] : null;
+
+            if (null !== $stepId && -1 === $stepId) {
+                $args['stepId'] = $currentStepId;
+            }
+        }
+
+        $condition = $this->getResolver()->getCondition($type, $args);
+
+        if (null === $condition) {
+            $this->context->setRollbackOnly();
+            $errMsg = 'Огибка при загрузки условия';
+            throw new WorkflowException($errMsg);
+        }
+
+        try {
+            $passed = $condition->passesCondition($transientVars, $args, $ps);
+
+            if ($conditionDesc->isNegate()) {
+                $passed = !$passed;
+            }
+        } catch (\Exception $e) {
+            $this->context->setRollbackOnly();
+
+            $errMsg = sprintf(
+                'Ошбика при выполнение условия %s',
+                get_class($condition)
+            );
+
+            throw new WorkflowException($errMsg, $e->getCode(), $e);
+        }
+
+        return $passed;
     }
 }

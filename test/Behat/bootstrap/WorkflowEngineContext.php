@@ -244,7 +244,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
             $workflowManager->doAction($entryId, $actionId, $this->transientVars);
         } catch (\Exception $e) {
             $this->lastException = $e;
-            throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
+            //throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
     }
 

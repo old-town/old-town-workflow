@@ -72,7 +72,8 @@ class  Interpreter
         'true',
         'false',
         'null',
-        'InvalidArgumentException'
+        'InvalidArgumentException',
+        'array_key_exists'
     ];
 
     /**
