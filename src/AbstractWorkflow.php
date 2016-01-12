@@ -39,6 +39,7 @@ use SplObjectStorage;
 use DateTime;
 use OldTown\Workflow\TransientVars\BaseTransientVars;
 use ReflectionClass;
+use ArrayObject;
 
 
 /**
@@ -86,15 +87,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      *
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Log\Exception\InvalidArgumentException
+     * @throws \OldTown\Log\Exception\DomainException
+     *
      */
     public function __construct()
     {
-        try {
-            $this->log = LogFactory::getLog();
-        } catch (\Exception $e) {
-            $errMsg = 'Ошибка при инициализации подсистемы логирования';
-            throw new InternalWorkflowException($errMsg);
-        }
+        $this->log = LogFactory::getLog();
     }
 
     /**
@@ -137,7 +136,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $transientVars = $inputs;
             $inputs = clone $transientVars;
 
-            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, [], $ps);
+            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $initialAction, new ArrayObject(), $ps);
 
             if (!$this->canInitializeInternal($workflowName, $initialAction, $transientVars, $ps)) {
                 $this->context->setRollbackOnly();
@@ -216,14 +215,14 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $args = $register->getArgs();
             $type = $register->getType();
 
-
-            $r = $this->getResolver()->getRegister($type, $args);
-
-            if (null === $r) {
+            try {
+                $r = $this->getResolver()->getRegister($type, $args);
+            } catch (\Exception $e) {
                 $errMsg = 'Ошибка при инициализации register';
                 $this->context->setRollbackOnly();
-                throw new WorkflowException($errMsg);
+                throw new WorkflowException($errMsg, $e->getCode(), $e);
             }
+
             $variableName = $register->getVariableName();
             try {
                 $value = $r->registerVariable($this->context, $entry, $args, $ps);
