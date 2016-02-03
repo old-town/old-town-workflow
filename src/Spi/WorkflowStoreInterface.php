@@ -72,7 +72,6 @@ interface WorkflowStoreInterface
          * Загрузить экземпляр workflow
          *
          * @param integer $entryId
-         * @throws \OldTown\Workflow\Exception\StoreException
          * @return WorkflowEntryInterface
          */
         public function findEntry($entryId);
