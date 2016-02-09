@@ -49,7 +49,7 @@ interface WorkflowStoreInterface
          * @throws StoreException
          * @return StepInterface объект описывающий сохраненный шаг workflow
          */
-        public function createCurrentStep($entryId, $stepId, $owner, DateTime $startDate, DateTime $dueDate, $status, array $previousIds = []);
+        public function createCurrentStep($entryId, $stepId, $owner = null, DateTime $startDate, DateTime $dueDate = null, $status, array $previousIds = []);
 
         /**
          * Создает новую сущность workflow (не инициазированную)
