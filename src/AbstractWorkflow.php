@@ -200,6 +200,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         $transientVars['context'] = $this->context;
         $transientVars['entry'] = $entry;
+        $transientVars['entryId'] = $entry->getId();
         $transientVars['store'] = $this->getPersistence();
         $transientVars['configuration'] = $this->getConfiguration();
         $transientVars['descriptor'] = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
@@ -775,9 +776,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     protected function transientVarsFactory($class = BaseTransientVars::class)
     {
         $r = new \ReflectionClass($class);
-        $instance = $r->newInstance();
-
-        return $instance;
+        return $r->newInstance();
     }
 
     /**
@@ -798,6 +797,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      * @throws \OldTown\Workflow\Exception\InvalidActionException
      * @throws \OldTown\Workflow\Exception\InvalidEntryStateException
+     * @throws \OldTown\Workflow\Exception\WorkflowException
      */
     public function doAction($id, $actionId, TransientVarsInterface $inputs = null)
     {
@@ -995,9 +995,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         try {
             $store = $this->getPersistence();
 
-            $result = $store->findCurrentSteps($id);
-
-            return $result;
+            return $store->findCurrentSteps($id);
         } catch (StoreException $e) {
             $errMsg = sprintf(
                 'Ошибка при проверке текущего шага для инстанса # %s',
@@ -1107,6 +1105,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws \OldTown\Workflow\Exception\WorkflowException
      * @throws \OldTown\Workflow\Exception\InvalidArgumentException
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
+     * @throws \OldTown\Workflow\Exception\InvalidInputException
      */
     protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
@@ -1271,9 +1270,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         }
 
-        $wf = $objWfd;
-
-        return $wf;
+        return $objWfd;
     }
 
 
@@ -1472,8 +1469,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function getWorkflowDescriptor($workflowName)
     {
         try {
-            $w = $this->getConfiguration()->getWorkflow($workflowName);
-            return $w;
+            return $this->getConfiguration()->getWorkflow($workflowName);
         } catch (FactoryException $e) {
             $errMsg = 'Ошибка при загрузке workflow';
             $this->getLog()->error($errMsg, ['exception' => $e]);
@@ -1595,9 +1591,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                     $l[] = $v;
                 }
             }
-            $actions = array_unique($l);
-
-            return $actions;
+            return array_unique($l);
         } catch (\Exception $e) {
             $errMsg = 'Ошибка проверки доступных действий';
             $this->getLog()->error($errMsg, [$e]);
@@ -1686,9 +1680,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         try {
             $store = $this->getPersistence();
 
-            $result = $store->findEntry($id)->getState();
-
-            return $result;
+            return $store->findEntry($id)->getState();
         } catch (StoreException $e) {
             $errMsg = sprintf(
                 'Ошибка при получение состояния экземпляра workflow c id# %s',
@@ -1712,9 +1704,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         try {
             $store = $this->getPersistence();
 
-            $result = $store->findHistorySteps($id);
-
-            return $result;
+            return $store->findHistorySteps($id);
         } catch (StoreException $e) {
             $errMsg = sprintf(
                 'Ошибка при получение истории шагов для экземпляра workflow c id# %s',
@@ -1735,9 +1725,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function getPersistenceProperties()
     {
-        $p = $this->getConfiguration()->getPersistenceArgs();
-
-        return $p;
+        return $this->getConfiguration()->getPersistenceArgs();
     }
 
 
@@ -1773,8 +1761,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function getWorkflowNames()
     {
         try {
-            $result =  $this->getConfiguration()->getWorkflowNames();
-            return $result;
+            return $this->getConfiguration()->getWorkflowNames();
         } catch (FactoryException $e) {
             $errMsg = 'Ошибка при получение имен workflow';
             $this->getLog()->error($errMsg, [$e]);
@@ -1899,9 +1886,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function removeWorkflowDescriptor($workflowName)
     {
-        $result = $this->getConfiguration()->removeWorkflow($workflowName);
-
-        return $result;
+        return $this->getConfiguration()->removeWorkflow($workflowName);
     }
 
     /**
@@ -1935,9 +1920,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     public function query(WorkflowExpressionQuery $query)
     {
-        $result = $this->getPersistence()->query($query);
-
-        return $result;
+        return $this->getPersistence()->query($query);
     }
 
     /**

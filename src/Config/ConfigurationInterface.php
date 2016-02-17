@@ -6,7 +6,6 @@
 namespace OldTown\Workflow\Config;
 
 use OldTown\Workflow\Exception\FactoryException;
-use OldTown\Workflow\Exception\StoreException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Loader\WorkflowFactoryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
@@ -76,7 +75,6 @@ interface ConfigurationInterface
      * Получает хранилище Workflow
      *
      * @return WorkflowStoreInterface
-     * @throws StoreException
      */
     public function getWorkflowStore();
 
