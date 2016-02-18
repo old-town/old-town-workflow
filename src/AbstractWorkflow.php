@@ -464,7 +464,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $previousIds = [];
 
             if (null !== $step) {
-                $previousIds[] = $step->getStepId();
+                $previousIds[] = $step->getId();
             }
 
             if (!$action->isFinish()) {
