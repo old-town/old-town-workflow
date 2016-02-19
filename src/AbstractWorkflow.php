@@ -668,6 +668,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         TransientVarsInterface $transientVars,
         PropertySetInterface $ps
     ) {
+
+        //@FIXME Решить проблему с сохранением previus step
+        $previousIds = [];
+
         try {
             $nextStep = $theResult->getStep();
 
