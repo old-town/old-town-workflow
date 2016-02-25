@@ -23,12 +23,12 @@ default:
       report:
         format:   php
         options:
-          target: %paths.base%/.reports/coverage/coverage-behat.cov
+          target: %paths.base%/build/logs/coverage/coverage-behat.cov
 log-coverage-html:
   extensions:
     VIPSoft\CodeCoverageExtension\Extension:
       report:
         format:   html
         options:
-          target: %paths.base%/.reports/coverage-report-html
+          target: %paths.base%/build/logs/coverage-report-html
 

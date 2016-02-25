@@ -33,9 +33,7 @@ class  DefaultVariableResolver implements VariableResolverInterface
 
         if (0 === strpos($temp, '${') && '}' === substr($s, -1) && 1 === substr_count($temp, '$')) {
             $var = substr($temp, 2, -1);
-            $result = $this->getVariableFromMaps($var, $transientVars, $ps);
-
-            return $result;
+            return $this->getVariableFromMaps($var, $transientVars, $ps);
         }
 
         $count = 0;
@@ -210,8 +208,6 @@ class  DefaultVariableResolver implements VariableResolverInterface
      */
     protected function createMethodName($prefix, $propertyName)
     {
-        $method = $prefix . ucfirst($propertyName);
-
-        return $method;
+        return $prefix . ucfirst($propertyName);
     }
 }
