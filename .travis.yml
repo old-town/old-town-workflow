@@ -36,7 +36,7 @@ install:
 script:
   - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/phpunit --configuration $TRAVIS_BUILD_DIR/phpunit.xml.travis --coverage-php $TRAVIS_BUILD_DIR/build/logs/coverage/coverage-phpunit.cov; fi
   - if [[ $EXECUTE_TEST_COVERALLS != 'true' ]]; then ./vendor/bin/phpunit --configuration $TRAVIS_BUILD_DIR/phpunit.xml.travis ; fi
-    - ./vendor/bin/behat --config=behat.yml  --format=progress
+  - $TRAVIS_BUILD_DIR/vendor/bin/behat --config=behat.yml  --format=progress
   - if [[ $EXECUTE_CS_CHECK == 'true' ]]; then  ./vendor/bin/php-cs-fixer fix -v --diff --dry-run --config-file $TRAVIS_BUILD_DIR/.php_cs ; fi
 
 after_script:
