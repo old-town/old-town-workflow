@@ -24,10 +24,6 @@
     {
       "type": "vcs",
       "url": "git@github.com:onema/php-coveralls.git"
-    },
-    {
-      "type": "vcs",
-      "url": "git@github.com:old-town/http-mock.git"
     }
   ],
   "require": {
@@ -42,11 +38,11 @@
   },
   "require-dev": {
     "ext-mbstring": "*",
-    "fabpot/php-cs-fixer": "1.9.1",
-    "phpunit/phpunit": "4.7.7",
-    "phpunit/phpcov": "2.0.1",
-    "zendframework/zend-loader": "~2.4.0",
-    "satooshi/php-coveralls": "dev-master",
+    "fabpot/php-cs-fixer": "~1.11",
+    "phpunit/phpunit": "~4.8",
+    "phpunit/phpcov": "~2",
+    "zendframework/zend-loader": "~2.4",
+    "satooshi/php-coveralls": "~1",
     "behat/behat": "~3.0",
     "vipsoft/code-coverage-extension": "~3@dev",
     "internations/http-mock": "dev-master",
