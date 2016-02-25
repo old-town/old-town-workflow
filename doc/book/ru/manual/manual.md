@@ -1,3 +1,3 @@
 # OTWorkflow - Manual
 
-## [Общие понятия OTWorkflow](understanding_otworkflow/understanding_otworkflow.md)
+## [Концепция OTWorkflow](understanding_otworkflow/workflow_concepts.md)
