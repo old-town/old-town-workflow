@@ -17,7 +17,7 @@ Develop:
 Исходный код на java https://bitbucket.org/opensymphony/osworkflow/src/2d12ee26481f4ba6c9ff35fb3f118191f6d62035?at=default
 
 
-= Документация =
+# Документация
 - [Online documentation](http://old-town-workflow.readthedocs.org/ru/dev/)
 - [Documentation source files](doc/book/ru/)
 
