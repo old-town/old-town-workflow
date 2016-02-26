@@ -991,7 +991,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
      *
      * @param integer $id id экземпляра workflow
-     * @return array
+     * @return SplObjectStorage
      * @throws \OldTown\Workflow\Exception\InternalWorkflowException
      */
     public function getCurrentSteps($id)
