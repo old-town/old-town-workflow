@@ -1,7 +1,14 @@
 # Workflow
 
+Master:
+[![Build Status](https://secure.travis-ci.org/old-town/old-town-workflow.svg?branch=master)](https://secure.travis-ci.org/old-town/old-town-workflow)
+[![Coverage Status](https://coveralls.io/repos/old-town/old-town-workflow/badge.svg?branch=master&service=github)](https://coveralls.io/github/old-town/old-town-workflow?branch=master)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/old-town/old-town-workflow/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/old-town/old-town-workflow/?branch=master)
+
+Develop:
 [![Build Status](https://secure.travis-ci.org/old-town/old-town-workflow.svg?branch=dev)](https://secure.travis-ci.org/old-town/old-town-workflow)
 [![Coverage Status](https://coveralls.io/repos/old-town/old-town-workflow/badge.svg?branch=dev&service=github)](https://coveralls.io/github/old-town/old-town-workflow?branch=dev)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/old-town/old-town-workflow/badges/quality-score.png?b=dev)](https://scrutinizer-ci.com/g/old-town/old-town-workflow/?branch=dev)
 
 Движок workflow
 
