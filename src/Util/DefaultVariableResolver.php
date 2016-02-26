@@ -17,10 +17,17 @@ use OldTown\Workflow\TransientVars\TransientVarsInterface;
 class  DefaultVariableResolver implements VariableResolverInterface
 {
     /**
+     * Регулярка для поиска перменных в аргументе
      *
-     * @param string               $s
-     * @param TransientVarsInterface                $transientVars
-     * @param PropertySetInterface $ps
+     * @var string
+     */
+    protected $variablePatterns = '/.*?(\\${[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*})/i';
+
+    /**
+     *
+     * @param string                 $s
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface   $ps
      *
      * @return mixed
      *
@@ -29,59 +36,42 @@ class  DefaultVariableResolver implements VariableResolverInterface
      */
     public function translateVariables($s, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
-        $temp = trim($s);
+        if (0 === strpos($s, '${') && '}' === substr($s, -1) && 1 === substr_count($s, '$')) {
+            $var = substr($s, 2, -1);
 
-        if (0 === strpos($temp, '${') && '}' === substr($s, -1) && 1 === substr_count($temp, '$')) {
-            $var = substr($temp, 2, -1);
             return $this->getVariableFromMaps($var, $transientVars, $ps);
         }
 
-        $count = 0;
-        while (true) {
-            $x = strrpos($s, '${');
+        $resultVariable = $s;
 
-            if (false === $x) {
-                break;
+        $matches = [];
+        preg_match_all($this->variablePatterns, $s, $matches);
+
+
+        if (array_key_exists(1, $matches) && is_array($matches[1])) {
+            $prepareVariables = $matches[1];
+            $variables = array_unique($prepareVariables);
+
+            $pattern = [];
+            $replacement = [];
+            foreach ($variables as $variable) {
+                $variableName = substr($variable, 2, -1);
+                $pattern[] = $variable;
+
+                $variableValue = $this->getVariableFromMaps($variableName, $transientVars, $ps);
+                $replacement[] = (string)$variableValue;
             }
 
-
-            $y = strpos($s, '}', $x);
-
-
-            if (false !== $y) {
-                $var = substr($s, $x + 2, $y - $x - 2);
-
-
-                $t = null;
-                $o = $this->getVariableFromMaps($var, $transientVars, $ps);
-
-                if (null !== $o && settype($o, 'string')) {
-                    $t = $o;
-                }
-
-                if (null !== $t) {
-                    $s = substr($s, 0, $x) . $t . substr($s, $y + 1);
-                } else {
-                    $s = substr($s, 0, $x) . substr($s, $y + 1);
-                }
-            } else {
-                break;
-            }
-
-            $count++;
-            if ($count > 2000) {
-                $errMsg = 'Ошибка при разрешение переменных';
-                throw new InternalWorkflowException($errMsg);
-            }
+            $resultVariable = str_replace($pattern, $replacement, $s);
         }
 
-        return $s;
+        return $resultVariable;
     }
 
     /**
-     * @param mixed                $var
-     * @param TransientVarsInterface                $transientVars
-     * @param PropertySetInterface $ps
+     * @param mixed                  $var
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface   $ps
      *
      * @return mixed
      * @throws \OldTown\PropertySet\Exception\PropertyException
@@ -98,8 +88,8 @@ class  DefaultVariableResolver implements VariableResolverInterface
 
 
         $o = null;
-        if ($transientVars instanceof \ArrayObject && array_key_exists($actualVar, $transientVars)) {
-            $o = $transientVars[$actualVar];
+        if ($transientVars->offsetExists($actualVar)) {
+            $o = $transientVars->offsetGet($actualVar);
         }
 
         if (null === $o) {
@@ -145,11 +135,12 @@ class  DefaultVariableResolver implements VariableResolverInterface
                 throw new InternalWorkflowException($errMsg, $e->getCode(), $e);
             }
         }
+
         return $result;
     }
 
     /**
-     * @param mixed $obj
+     * @param mixed       $obj
      * @param string|null $property
      *
      * @return mixed
@@ -183,6 +174,7 @@ class  DefaultVariableResolver implements VariableResolverInterface
         foreach ($methods as $method) {
             if ($r->hasMethod($method)) {
                 $result = $r->getMethod($method)->invoke($obj);
+
                 return $result;
             }
         }
@@ -191,6 +183,7 @@ class  DefaultVariableResolver implements VariableResolverInterface
             $rProperty = $r->getProperty($property);
             if ($rProperty->isPublic()) {
                 $result = $rProperty->getValue($obj);
+
                 return $result;
             }
         }
