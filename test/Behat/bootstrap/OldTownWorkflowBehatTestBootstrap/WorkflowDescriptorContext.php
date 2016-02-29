@@ -586,7 +586,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
                 throw new \RuntimeException($errMsg);
             }
 
-            call_user_func_array([$descriptor, 'validate']);
+            call_user_func_array([$descriptor, 'validate'], []);
         } catch (\Exception $e) {
             $actualExceptionMessage = $e->getMessage();
         }
