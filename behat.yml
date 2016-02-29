@@ -1,15 +1,16 @@
 default:
   autoload:
-    '': %paths.base%/test/Behat/bootstrap/
+    OldTownWorkflowBehatTestData: '%paths.base%/test/Behat/files'
+    OldTownWorkflowBehatTestBootstrap: '%paths.base%/test/Behat/bootstrap'
   suites:
     workflowDescriptors:
       paths: [%paths.base%/test/Behat/features/workflow-descriptor]
       contexts:
-        - WorkflowDescriptorContext
+        - \OldTownWorkflowBehatTestBootstrap\WorkflowDescriptorContext
     workflowEngine:
       paths: [%paths.base%/test/Behat/features/workflow-engine]
       contexts:
-        - WorkflowEngineContext
+        - \OldTownWorkflowBehatTestBootstrap\WorkflowEngineContext
   extensions:
     VIPSoft\CodeCoverageExtension\Extension:
       drivers: [local]

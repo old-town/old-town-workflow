@@ -69,6 +69,7 @@ class Bootstrap
                         'OldTown\\Workflow' => __DIR__ . '/../../src/',
                         __NAMESPACE__ => __DIR__. '/tests/',
                         'OldTown\\Workflow\\PhpUnit\\Utils' => __DIR__ . '/utils',
+                        'OldTown\\Workflow\\PhpUnit\\Data' => __DIR__ . '/_files',
                     ]
                 ],
                 ClassMapAutoloader::class => [

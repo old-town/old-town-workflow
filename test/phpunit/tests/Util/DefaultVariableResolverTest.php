@@ -9,6 +9,7 @@ use PHPUnit_Framework_TestCase as TestCase;
 use OldTown\Workflow\TransientVars\BaseTransientVars;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Util\DefaultVariableResolver;
+use OldTown\Workflow\PhpUnit\Data\VariableResolver\TestObject;
 
 /**
  * Class DefaultVariableResolverTest
@@ -69,5 +70,23 @@ class  DefaultVariableResolverTest extends TestCase
         $actual = $this->variableResolver->translateVariables($str, $tv, $ps);
 
         static::assertEquals('text1 var1_value text2 var2_value var3_value', $actual);
+    }
+
+
+    /**
+     * Проверка работы с методами
+     */
+    public function testTranslateVariablesObjectMethod()
+    {
+        $tv = new BaseTransientVars();
+        $tv['obj'] = new TestObject();
+
+
+        /** @var PropertySetInterface $ps */
+        $ps = $this->getMock(PropertySetInterface::class);
+
+        $actual = $this->variableResolver->translateVariables('${obj.value1.value2}', $tv, $ps);
+
+        static::assertEquals($tv['obj']->getValue1()->getValue2(), $actual);
     }
 }

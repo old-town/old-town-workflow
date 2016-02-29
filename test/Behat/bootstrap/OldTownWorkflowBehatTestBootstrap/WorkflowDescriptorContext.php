@@ -3,6 +3,7 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
+namespace OldTownWorkflowBehatTestBootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
@@ -14,6 +15,9 @@ use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Behat\Tester\Result\ExecutedStepResult;
 use Behat\Gherkin\Node\TableNode;
 use OldTown\Workflow\Loader\WriteXmlInterface;
+use PHPUnit_Framework_Assert;
+use RuntimeException;
+use DOMElement;
 
 
 /**
@@ -51,9 +55,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
     public function createDescriptor($nameDescriptor)
     {
         try {
-            $descriptor = $this->factoryDescriptor($nameDescriptor);
-
-            return $descriptor;
+            return $this->factoryDescriptor($nameDescriptor);
         } catch (\Exception $e) {
             throw new \RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -584,7 +586,7 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
                 throw new \RuntimeException($errMsg);
             }
 
-            call_user_func([$descriptor, 'validate']);
+            call_user_func_array([$descriptor, 'validate']);
         } catch (\Exception $e) {
             $actualExceptionMessage = $e->getMessage();
         }

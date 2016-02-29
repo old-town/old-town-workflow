@@ -3,6 +3,7 @@
  * @link    https://github.com/old-town/old-town-workflow
  * @author  Malofeykin Andrey  <and-rey2@yandex.ru>
  */
+namespace OldTownWorkflowBehatTestBootstrap;
 
 use Behat\Behat\Context\Context;
 use Behat\Behat\Context\SnippetAcceptingContext;
@@ -16,6 +17,9 @@ use OldTown\Workflow\Util\Properties\Properties;
 use Behat\Gherkin\Node\TableNode;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use OldTown\Workflow\TransientVars\BaseTransientVars;
+use Exception;
+use RuntimeException;
+use DOMElement;
 
 /**
  * Class WorkflowEngineContext
@@ -293,7 +297,7 @@ class WorkflowEngineContext implements Context, SnippetAcceptingContext
     protected function getEntryIdByAlias($entryAlias)
     {
         if (!array_key_exists($entryAlias, $this->entryAliasToEntryId)) {
-            $errMsg = 'The  WorkflowManager has not been established';
+            $errMsg = sprintf('The  WorkflowManager has not been established: Alias %s not exists', $entryAlias);
             throw new \RuntimeException($errMsg);
         }
 
