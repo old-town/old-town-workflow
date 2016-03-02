@@ -283,7 +283,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
 
             libxml_use_internal_errors($libxmlUseInternalErrors);
             throw new InvalidDtdSchemaException($errMsg);
-        };
+        }
         libxml_use_internal_errors($libxmlUseInternalErrors);
     }
 
@@ -819,9 +819,7 @@ class WorkflowDescriptor extends AbstractDescriptor implements WriteXmlInterface
     {
         $descriptor = $this->getAction($id);
 
-        $result = $this->removeAction($descriptor);
-
-        return $result;
+        return $this->removeAction($descriptor);
     }
 
     /**
