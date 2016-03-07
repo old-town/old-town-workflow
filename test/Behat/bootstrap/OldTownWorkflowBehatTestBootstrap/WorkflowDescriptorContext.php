@@ -163,13 +163,8 @@ class WorkflowDescriptorContext implements Context, SnippetAcceptingContext
      * @return mixed
      * @throws \RuntimeException
      */
-    public function intelligentTransformArgument($expectedResult = null)
+    public function intelligentTransformArgument($expectedResult)
     {
-        if (null === $expectedResult) {
-            echo '<pre>';
-            debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 50);
-            die();
-        }
         $outputArray = [];
         preg_match_all('/^\((.+?)\)(.+?)$/', $expectedResult, $outputArray);
 
