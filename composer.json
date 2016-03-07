@@ -20,10 +20,6 @@
     {
       "type": "vcs",
       "url": "git@github.com:old-town/old-town-log.git"
-    },
-    {
-      "type": "vcs",
-      "url": "git@github.com:onema/php-coveralls.git"
     }
   ],
   "require": {
