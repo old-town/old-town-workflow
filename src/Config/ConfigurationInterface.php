@@ -59,7 +59,7 @@ interface ConfigurationInterface
      * Возвращает имя дескриптора workflow
      *
      * @param string $name имя workflow
-     * @throws FactoryException
+     *
      * @return WorkflowDescriptor
      */
     public function getWorkflow($name);
