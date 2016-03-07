@@ -38,14 +38,14 @@
   },
   "require-dev": {
     "ext-mbstring": "*",
-    "fabpot/php-cs-fixer": "~1.11",
-    "phpunit/phpunit": "~4.8",
-    "phpunit/phpcov": "~2",
-    "zendframework/zend-loader": "~2.4",
-    "satooshi/php-coveralls": "~1",
-    "behat/behat": "~3.0",
-    "vipsoft/code-coverage-extension": "~3@dev",
-    "internations/http-mock": "dev-master",
+    "fabpot/php-cs-fixer": "~1.11.0",
+    "phpunit/phpunit": "~4.8.0",
+    "phpunit/phpcov": "~2.0.0",
+    "zendframework/zend-loader": "~2.4.0",
+    "satooshi/php-coveralls": "~1.0.0",
+    "behat/behat": "~3.0.0",
+    "vipsoft/code-coverage-extension": "dev-master",
+    "internations/http-mock": "~0.7.0",
     "ramsey/uuid" : "~3.0.0"
   },
   "autoload": {
