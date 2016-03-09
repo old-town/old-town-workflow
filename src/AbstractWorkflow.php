@@ -397,7 +397,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $joinDesc = $wf->getJoin($join);
             $oldStatus = $theResult->getOldStatus();
             $caller = $this->context->getCaller();
-            $step = $store->markFinished($step, $action->getId(), new DateTime(), $oldStatus, $caller);
+            if (null !== $step) {
+                $step = $store->markFinished($step, $action->getId(), new DateTime(), $oldStatus, $caller);
+            } else {
+                $errMsg = 'Invalid step';
+                throw new InternalWorkflowException($errMsg);
+            }
+
 
             $store->moveToHistory($step);
 
@@ -767,6 +773,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         } catch (WorkflowException $e) {
             $this->context->setRollbackOnly();
+            /** @var WorkflowException $e */
             throw $e;
         }
     }
@@ -873,6 +880,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         } catch (WorkflowException $e) {
             $this->context->setRollbackOnly();
+            /** @var  WorkflowException $e*/
             throw $e;
         }
     }
@@ -1096,6 +1104,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $provider->execute($transientVars, $args, $ps);
             } catch (WorkflowException $e) {
                 $this->context->setRollbackOnly();
+                /** @var  WorkflowException $e*/
                 throw $e;
             }
         }
@@ -1154,11 +1163,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 try {
                     $validator->validate($transientVars, $args, $ps);
                 } catch (InvalidInputException $e) {
+                    /** @var  InvalidInputException $e*/
                     throw $e;
                 } catch (\Exception $e) {
                     $this->context->setRollbackOnly();
 
                     if ($e instanceof WorkflowException) {
+                        /** @var  WorkflowException $e*/
                         throw $e;
                     }
 
