@@ -1017,7 +1017,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $this->getLog()->error($errMsg, [$e]);
 
 
-            return [];
+            return new SplObjectStorage();
         }
     }
 
@@ -2015,8 +2015,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         foreach ($conditions as $descriptor) {
             if ($descriptor instanceof ConditionsDescriptor) {
                 $result = $this->passesConditionsWithType($descriptor->getType(), $descriptor->getConditions(), $transientVars, $ps, $currentStepId);
-            } else {
+            } elseif ($descriptor instanceof ConditionDescriptor )  {
                 $result = $this->passesCondition($descriptor, $transientVars, $ps, $currentStepId);
+            } else {
+                $errMsg = 'Invalid condition descriptor';
+                throw new Exception\InternalWorkflowException($errMsg);
             }
 
             if ($and && !$result) {
