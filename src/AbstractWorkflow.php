@@ -146,6 +146,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             $action = $wf->getInitialAction($initialAction);
 
+            if (null === $action) {
+                $errMsg = sprintf('Invalid initial action id: %s', $initialAction);
+                throw new InvalidActionException($errMsg);
+            }
+
             $currentSteps = new SplObjectStorage();
             $this->transitionWorkflow($entry, $currentSteps, $store, $wf, $action, $transientVars, $inputs, $ps);
 
