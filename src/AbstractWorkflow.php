@@ -541,7 +541,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      * Подготавливает данные о шагах используемых в объеденение
      *
-     * @param StepInterface[]    $steps
+     * @param StepInterface[]|SplObjectStorage    $steps
      * @param StepInterface      $step
      * @param WorkflowDescriptor $wf
      * @param integer            $join
@@ -619,6 +619,79 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             return $l;
         } catch (\Exception $e) {
             $errMsg = 'Ошибка при проверке доступных действий';
+            $this->getLog()->error($errMsg, [$e]);
+        }
+
+        return [];
+    }
+
+    /**
+     * @param $id
+     * @param $inputs
+     *
+     * @return array
+     *
+     */
+    public function getAvailableActions($id, TransientVarsInterface $inputs = null)
+    {
+        try {
+            $store = $this->getPersistence();
+            $entry = $store->findEntry($id);
+
+            if (null === $entry) {
+                $errMsg = sprintf(
+                    'Не существует экземпляра workflow c id %s',
+                    $id
+                );
+                throw new InvalidArgumentException($errMsg);
+            }
+
+            if (WorkflowEntryInterface::ACTIVATED === $entry->getState()) {
+                return [];
+            }
+
+            $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
+
+            $l = [];
+            $ps = $store->getPropertySet($id);
+
+            $transientVars = $inputs;
+            if (null === $transientVars) {
+                $transientVars = $this->transientVarsFactory();
+            }
+
+            $currentSteps = $store->findCurrentSteps($id);
+
+            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), 0, $currentSteps, $ps);
+
+            $globalActions = $wf->getGlobalActions();
+
+            foreach ($globalActions as $action) {
+                $restriction = $action->getRestriction();
+                $conditions = null;
+
+                $transientVars['actionId'] = $action->getId();
+
+                if (null !== $restriction) {
+                    $conditions = $restriction->getConditionsDescriptor();
+                }
+
+                $flag = $this->passesConditionsByDescriptor($wf->getGlobalConditions(), $transientVars, $ps, 0) && $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, 0);
+                if ($flag) {
+                    $l[] = $action->getId();
+                }
+            }
+
+
+            foreach ($currentSteps as $step) {
+                $data = $this->getAvailableActionsForStep($wf, $step, $transientVars, $ps);
+                foreach ($data as $v) {
+                    $l[] = $v;
+                }
+            }
+            return array_unique($l);
+        } catch (\Exception $e) {
+            $errMsg = 'Ошибка проверки доступных действий';
             $this->getLog()->error($errMsg, [$e]);
         }
 
@@ -1030,7 +1103,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                     break;
                 }
                 case WorkflowEntryInterface::KILLED: {
-                    if (WorkflowEntryInterface::CREATED === $currentState || WorkflowEntryInterface::ACTIVATED === $currentState || WorkflowEntryInterface::SUSPENDED === $currentState) {
+                    if (WorkflowEntryInterface::SUSPENDED === $currentState || WorkflowEntryInterface::ACTIVATED === $currentState || WorkflowEntryInterface::CREATED === $currentState) {
                         $result = true;
                     }
                     break;
@@ -1609,78 +1682,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $this->executeFunction($wf->getTriggerFunction($triggerId), $transientVars, $ps);
     }
 
-    /**
-     * @param $id
-     * @param $inputs
-     *
-     * @return array
-     *
-     */
-    public function getAvailableActions($id, TransientVarsInterface $inputs = null)
-    {
-        try {
-            $store = $this->getPersistence();
-            $entry = $store->findEntry($id);
-
-            if (null === $entry) {
-                $errMsg = sprintf(
-                    'Не существует экземпляра workflow c id %s',
-                    $id
-                );
-                throw new InvalidArgumentException($errMsg);
-            }
-
-            if (WorkflowEntryInterface::ACTIVATED === $entry->getState()) {
-                return [];
-            }
-
-            $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
-
-            $l = [];
-            $ps = $store->getPropertySet($id);
-
-            $transientVars = $inputs;
-            if (null === $transientVars) {
-                $transientVars = $this->transientVarsFactory();
-            }
-
-            $currentSteps = $store->findCurrentSteps($id);
-
-            $this->populateTransientMap($entry, $transientVars, $wf->getRegisters(), 0, $currentSteps, $ps);
-
-            $globalActions = $wf->getGlobalActions();
-
-            foreach ($globalActions as $action) {
-                $restriction = $action->getRestriction();
-                $conditions = null;
-
-                $transientVars['actionId'] = $action->getId();
-
-                if (null !== $restriction) {
-                    $conditions = $restriction->getConditionsDescriptor();
-                }
-
-                $flag = $this->passesConditionsByDescriptor($wf->getGlobalConditions(), $transientVars, $ps, 0) && $this->passesConditionsByDescriptor($conditions, $transientVars, $ps, 0);
-                if ($flag) {
-                    $l[] = $action->getId();
-                }
-            }
-
-
-            foreach ($currentSteps as $step) {
-                $data = $this->getAvailableActionsForStep($wf, $step, $transientVars, $ps);
-                foreach ($data as $v) {
-                    $l[] = $v;
-                }
-            }
-            return array_unique($l);
-        } catch (\Exception $e) {
-            $errMsg = 'Ошибка проверки доступных действий';
-            $this->getLog()->error($errMsg, [$e]);
-        }
-
-        return [];
-    }
 
     /**
      * @param WorkflowDescriptor   $wf
