@@ -355,5 +355,5 @@ Feature:Workflow conditions
     And Create workflow manager
     When Progress workflow with alias "test". Workflow name: "example". Initial action id: "100"
     And Call action with id="300" for workflow process with alias "test"
-    Then Last action was the result of class exception "\OldTown\Workflow\Exception\WorkflowException". The massage of exception: "Нет типа(phpshell_invalid) или аргумента class.name"
+    Then Last action was the result of class exception "\OldTown\Workflow\Exception\InternalWorkflowException". The massage of exception: "Нет типа(phpshell_invalid) или аргумента class.name"
 
