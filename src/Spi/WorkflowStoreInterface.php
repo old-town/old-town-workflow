@@ -60,7 +60,7 @@ interface WorkflowStoreInterface
          * Возвращает список шагов
          *
          * @param integer $entryId id экземпляра workflow
-         * @return StepInterface[]
+         * @return StepInterface[]|SplObjectStorage
          */
         public function findCurrentSteps($entryId);
 

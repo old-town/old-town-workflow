@@ -1437,7 +1437,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $mockEntry = new SimpleWorkflowEntry(0, $mockWorkflowName, WorkflowEntryInterface::CREATED);
 
         try {
-            $ps = PropertySetManager::getInstance('memory', null);
+            $ps = PropertySetManager::getInstance('memory', []);
             if (!$ps instanceof PropertySetInterface) {
                 $errMsg = 'Invalid create PropertySet';
                 throw new InternalWorkflowException($errMsg);
