@@ -5,8 +5,6 @@
  */
 namespace OldTown\Workflow\Exception;
 
-use OldTown\Log\Exception\InvalidArgumentException;
-
 /**
  * Class InvalidActionException
  *

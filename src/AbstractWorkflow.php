@@ -214,9 +214,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             throw new InternalWorkflowException($e->getMessage(), $e->getCode(), $e);
         }
 
-
-        // now clone the memory PS to the real PS
-        //PropertySetManager.clone(ps, store.getPropertySet(entryId));
         return $entryId;
     }
 
@@ -441,12 +438,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
                 if (!$action->isFinish()) {
                     $moveFirst = true;
-
-                    //???????????????????
-//                $theResults = [];
-//                foreach ($results as $result) {
-//                    $theResults[] = $result;
-//                }
 
                     foreach ($results as $resultDescriptor) {
                         $moveToHistoryStep = null;
