@@ -605,20 +605,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             $globalActions = $wf->getGlobalActions();
 
-            foreach ($globalActions as $action) {
-                $transientVars['actionId'] = $action->getId();
-
-                if ($action->getAutoExecute() && $this->isActionAvailable($action, $transientVars, $ps, 0)) {
-                    $l[] = $action->getId();
-                }
-            }
+            $l = $this->buildListIdsAvailableActions($globalActions, $transientVars, $ps, $l);
 
             foreach ($currentSteps as $step) {
                 $availableAutoActionsForStep = $this->getAvailableAutoActionsForStep($wf, $step, $transientVars, $ps);
                 foreach ($availableAutoActionsForStep as $v) {
                     $l[] = $v;
                 }
-                //$l = array_merge($l, $availableAutoActionsForStep);
             }
 
             $l = array_unique($l);
@@ -632,6 +625,31 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         return [];
     }
 
+    /**
+     * Подготавливает список id действий в workflow
+     *
+     * @param ActionDescriptor[]     $actions
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface   $ps
+     * @param array                  $storage
+     *
+     * @return array
+     *
+     * @throws InternalWorkflowException
+     * @throws WorkflowException
+     */
+    protected function buildListIdsAvailableActions($actions, TransientVarsInterface $transientVars, PropertySetInterface $ps, array $storage = [])
+    {
+        foreach ($actions as $action) {
+            $transientVars['actionId'] = $action->getId();
+
+            if ($action->getAutoExecute() && $this->isActionAvailable($action, $transientVars, $ps, 0)) {
+                $storage[] = $action->getId();
+            }
+        }
+
+        return $storage;
+    }
 
     /**
      * @param WorkflowDescriptor   $wf
@@ -662,13 +680,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             return $l;
         }
 
-        foreach ($actions as $action) {
-            $transientVars['actionId'] = $action->getId();
-
-            if ($action->getAutoExecute() && $this->isActionAvailable($action, $transientVars, $ps, 0)) {
-                $l[] = $action->getId();
-            }
-        }
+        $l = $this->buildListIdsAvailableActions($actions, $transientVars, $ps, $l);
 
         return $l;
     }
@@ -1284,7 +1296,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * @return boolean
      *
-     * @throws InternalWorkflowException
      * @throws InternalWorkflowException
      * @throws WorkflowException
      */
