@@ -383,11 +383,16 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $engineManager = $this->getEngineManager();
         $engineManager->getDataEngine()->populateTransientMap($entry, $transientVars, $wf->getRegisters(), $actionId, $currentSteps, $ps);
 
-        $validAction = $this->isValidGlobalActions($wf, $actionId, $transientVars, $ps)
-            || $this->isValidActionsFromCurrentSteps($currentSteps, $wf, $actionId, $transientVars, $ps);
+        $validGlobalActions = $this->getValidGlobalActions($wf, $actionId, $transientVars, $ps);
+        if ($validGlobalActions) {
+            $action = $validGlobalActions;
+        }
+        $validActionsFromCurrentSteps = $this->getValidActionsFromCurrentSteps($currentSteps, $wf, $actionId, $transientVars, $ps);
+        if ($validActionsFromCurrentSteps) {
+            $action = $validActionsFromCurrentSteps;
+        }
 
-
-        if (!$validAction) {
+        if (null === $action) {
             $errMsg = sprintf(
                 'Action %s is invalid',
                 $actionId
@@ -414,23 +419,19 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param TransientVarsInterface $transientVars
      * @param PropertySetInterface   $ps
      *
-     * @return bool
+     * @return ActionDescriptor|null
      */
-    protected function isValidGlobalActions(WorkflowDescriptor $wf, $actionId, TransientVarsInterface $transientVars, PropertySetInterface $ps)
+    protected function getValidGlobalActions(WorkflowDescriptor $wf, $actionId, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
-        $validAction = false;
+        $resultAction = null;
         $transitionEngine = $this->getEngineManager()->getTransitionEngine();
         foreach ($wf->getGlobalActions() as $actionDesc) {
-            if ($actionId === $actionDesc->getId()) {
-                $action = $actionDesc;
-
-                if ($transitionEngine->isActionAvailable($action, $transientVars, $ps, 0)) {
-                    $validAction = true;
-                }
+            if ($actionId === $actionDesc->getId() && $transitionEngine->isActionAvailable($actionDesc, $transientVars, $ps, 0)) {
+                $resultAction = $actionDesc;
             }
         }
 
-        return $validAction;
+        return $resultAction;
     }
 
 
@@ -442,17 +443,17 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @param TransientVarsInterface $transientVars
      * @param PropertySetInterface   $ps
      *
-     * @return bool
+     * @return ActionDescriptor|null
      *
      * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
      * @throws InternalWorkflowException
      */
-    protected function isValidActionsFromCurrentSteps(SplObjectStorage $currentSteps, WorkflowDescriptor $wf, $actionId, TransientVarsInterface $transientVars, PropertySetInterface $ps)
+    protected function getValidActionsFromCurrentSteps(SplObjectStorage $currentSteps, WorkflowDescriptor $wf, $actionId, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
         $transitionEngine = $this->getEngineManager()->getTransitionEngine();
-        $validAction = false;
+        $resultAction = null;
         foreach ($currentSteps as $step) {
-            if ($step instanceof StepInterface) {
+            if (!$step instanceof StepInterface) {
                 $errMsg = 'Invalid step';
                 throw new InternalWorkflowException($errMsg);
             }
@@ -464,17 +465,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                     throw new InternalWorkflowException($errMsg);
                 }
 
-                if ($actionId === $actionDesc->getId()) {
-                    $action = $actionDesc;
-
-                    if ($transitionEngine->isActionAvailable($action, $transientVars, $ps, $s->getId())) {
-                        $validAction = true;
-                    }
+                if ($actionId === $actionDesc->getId() && $transitionEngine->isActionAvailable($actionDesc, $transientVars, $ps, $s->getId())) {
+                    $resultAction = $actionDesc;
                 }
             }
         }
 
-        return $validAction;
+        return $resultAction;
     }
 
     /**
