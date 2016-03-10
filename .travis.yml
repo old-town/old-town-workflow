@@ -42,6 +42,7 @@ script:
 after_script:
   - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/phpcov merge --clover $TRAVIS_BUILD_DIR/build/logs/clover.xml $TRAVIS_BUILD_DIR/build/logs/coverage ; fi
   - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/coveralls -v --config .coveralls.yml --coverage_clover=$TRAVIS_BUILD_DIR/build/logs/clover.xml; fi
+  - if [[ $EXECUTE_TEST_COVERALLS == 'true' ]]; then ./vendor/bin/ocular code-coverage:upload --format=php-clover --coverage-file=$TRAVIS_BUILD_DIR/build/logs/clover.xml; fi
 
 
 notifications:

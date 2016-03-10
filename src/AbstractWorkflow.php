@@ -454,27 +454,12 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $joinSteps = [];
                 $joinSteps[] = $step;
 
-                foreach ($currentSteps as $currentStep) {
-                    if ($currentStep->getId() !== $step->getId()) {
-                        $stepDesc = $wf->getStep($currentStep->getStepId());
-
-                        if ($stepDesc->resultsInJoin($join)) {
-                            $joinSteps[] = $currentStep;
-                        }
-                    }
-                }
+                $joinSteps = $this->buildJoinsSteps($currentSteps, $step, $wf, $join, $joinSteps);
 
                 $historySteps = $store->findHistorySteps($entry->getId());
 
-                foreach ($historySteps as $historyStep) {
-                    if ($historyStep->getId() !== $step->getId()) {
-                        $stepDesc = $wf->getStep($historyStep->getStepId());
+                $joinSteps = $this->buildJoinsSteps($historySteps, $step, $wf, $join, $joinSteps);
 
-                        if ($stepDesc->resultsInJoin($join)) {
-                            $joinSteps[] = $currentSteps;
-                        }
-                    }
-                }
 
                 $jn = new JoinNodes($joinSteps);
                 $transientVars['jn'] = $jn;
@@ -553,6 +538,34 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         }
     }
 
+    /**
+     * Подготавливает данные о шагах используемых в объеденение
+     *
+     * @param StepInterface[]    $steps
+     * @param StepInterface      $step
+     * @param WorkflowDescriptor $wf
+     * @param integer            $join
+     *
+     * @param array              $joinSteps
+     *
+     * @return array
+     *
+     * @throws \OldTown\Workflow\Exception\ArgumentNotNumericException
+     */
+    protected function buildJoinsSteps($steps, StepInterface $step, WorkflowDescriptor $wf, $join, array $joinSteps = [])
+    {
+        foreach ($steps as $currentStep) {
+            if ($currentStep->getId() !== $step->getId()) {
+                $stepDesc = $wf->getStep($currentStep->getStepId());
+
+                if ($stepDesc->resultsInJoin($join)) {
+                    $joinSteps[] = $currentStep;
+                }
+            }
+        }
+
+        return $joinSteps;
+    }
 
     /**
      * @param       $id
@@ -582,14 +595,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
 
             $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
-
-            if (null === $wf) {
-                $errMsg = sprintf(
-                    'Нет workflow c именем %s',
-                    $entry->getWorkflowName()
-                );
-                throw new InvalidArgumentException($errMsg);
-            }
 
             $l = [];
             $ps = $store->getPropertySet($id);
@@ -1619,14 +1624,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
 
             $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
-
-            if (null === $wf) {
-                $errMsg = sprintf(
-                    'Не существует workflow c именем %s',
-                    $entry->getWorkflowName()
-                );
-                throw new InvalidArgumentException($errMsg);
-            }
 
             $l = [];
             $ps = $store->getPropertySet($id);
