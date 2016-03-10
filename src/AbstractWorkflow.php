@@ -701,7 +701,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     /**
      * Подготавливает список id действий в workflow
      *
-     * @param ActionDescriptor[]     $actions
+     * @param ActionDescriptor[]|SplObjectStorage     $actions
      * @param TransientVarsInterface $transientVars
      * @param PropertySetInterface   $ps
      * @param array                  $storage
@@ -714,6 +714,10 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     protected function buildListIdsAvailableActions($actions, TransientVarsInterface $transientVars, PropertySetInterface $ps, array $storage = [])
     {
         foreach ($actions as $action) {
+            if ($action instanceof ActionDescriptor) {
+                $errMsg = sprintf('Invalid workflow action. Action not implement %s', ActionDescriptor::class);
+                throw new InternalWorkflowException($errMsg);
+            }
             $transientVars['actionId'] = $action->getId();
 
             if ($action->getAutoExecute() && $this->isActionAvailable($action, $transientVars, $ps, 0)) {
@@ -1076,6 +1080,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $currentState = $entry->getState();
 
         $result = false;
+
+
         try {
             switch ($newState) {
                 case WorkflowEntryInterface::COMPLETED: {
