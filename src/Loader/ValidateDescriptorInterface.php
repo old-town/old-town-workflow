@@ -5,8 +5,6 @@
  */
 namespace OldTown\Workflow\Loader;
 
-use OldTown\Workflow\Exception\InvalidWorkflowDescriptorException;
-
 /**
  * Interface ValidateDescriptorInterface
  * @package OldTown\Workflow\Loader
@@ -17,7 +15,6 @@ interface  ValidateDescriptorInterface
      * Валидация дескриптора
      *
      * @return void
-     * @throws InvalidWorkflowDescriptorException
      */
     public function validate();
 }

@@ -6,8 +6,6 @@
 namespace OldTown\Workflow;
 
 use OldTown\Workflow\Config\ConfigurationInterface;
-use OldTown\Workflow\Exception\FactoryException;
-use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 
 /**
@@ -21,9 +19,9 @@ interface WorkflowInternalInterface extends WorkflowInterface
      * Get the available actions for the specified workflow instance.
      * @param integer $id The workflow instance id.
      * @param array $inputs The inputs map to pass on to conditions
+     *
      * @return []
-     * @throws InvalidArgumentException if the specified id does not exist, or if its workflow
-     * descriptor is no longer available or has become invalid.
+     *
      */
     public function getAvailableActions($id, array $inputs = []);
 
@@ -54,9 +52,6 @@ interface WorkflowInternalInterface extends WorkflowInterface
     /**
      * Remove the specified workflow descriptor.
      * @param string $workflowName The workflow name of the workflow to remove.
-     * @return boolean true if the workflow was removed, false otherwise.
-     * @throws FactoryException If the underlying workflow factory has an error removing the workflow,
-     * or if it does not support the removal of workflows.
      */
     public function removeWorkflowDescriptor($workflowName);
 
@@ -66,8 +61,6 @@ interface WorkflowInternalInterface extends WorkflowInterface
      * @param WorkflowDescriptor $descriptor The workflow descriptor to add
      * @param boolean $replace true, if an existing descriptor should be overwritten
      * @return boolean true if the workflow was added, fales otherwise
-     * @throws FactoryException If the underlying workflow factory has an error adding the workflow,
-     * or if it does not support adding workflows.
      */
     public function saveWorkflowDescriptor($workflowName, WorkflowDescriptor $descriptor, $replace);
 }

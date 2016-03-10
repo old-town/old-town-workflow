@@ -7,7 +7,6 @@ namespace OldTown\Workflow;
 
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Exception\InvalidInputException;
-use OldTown\Workflow\Exception\RemoteException;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
@@ -23,7 +22,7 @@ interface ValidatorInterface
      * @param PropertySetInterface $ps
      *
      * @throws InvalidInputException
-     * @throws RemoteException
+     *
      * @return void
      */
     public function validate(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps);

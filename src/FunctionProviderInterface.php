@@ -20,7 +20,8 @@ interface FunctionProviderInterface
      * @param TransientVarsInterface $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
-     * @return
+     *
+     * @return void
      */
     public function execute(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps);
 }

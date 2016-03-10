@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Config;
 
-use OldTown\Workflow\Exception\FactoryException;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\Loader\WorkflowFactoryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
@@ -66,8 +65,8 @@ interface ConfigurationInterface
 
     /**
      * Получает список имен всех доступных workflow
-     * @throws FactoryException
-     * @return String[]
+     *
+     * @return string[]
      */
     public function getWorkflowNames();
 
@@ -83,7 +82,6 @@ interface ConfigurationInterface
      *
      * @param UriInterface|null $url
      * @return void
-     * @throws FactoryException
      */
     public function load(UriInterface $url = null);
 
@@ -92,7 +90,6 @@ interface ConfigurationInterface
      *
      * @param string $workflow имя удаляемого workflow
      * @return boolean в случае успешного удаления возвращает true, в противном случае false
-     * @throws FactoryException
      */
     public function removeWorkflow($workflow);
 
@@ -101,7 +98,6 @@ interface ConfigurationInterface
      * @param string $name имя сохраняемого workflow
      * @param WorkflowDescriptor $descriptor дескриптор workflow
      * @param boolean $replace - флаг определяющий, можно ли замениить workflow
-     * @throws FactoryException
      * @return boolean
      */
     public function saveWorkflow($name, WorkflowDescriptor $descriptor, $replace = false);

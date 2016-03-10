@@ -6,7 +6,6 @@
 namespace OldTown\Workflow;
 
 use OldTown\PropertySet\PropertySetInterface;
-use OldTown\Workflow\Exception\WorkflowException;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 
 /**
@@ -21,9 +20,8 @@ interface ConditionInterface
      * @param TransientVarsInterface $transientVars
      * @param array $args
      * @param PropertySetInterface $ps
-     * @return bool
      *
-     * @throws WorkflowException
+     * @return bool
      */
     public function passesCondition(TransientVarsInterface $transientVars, array $args = [], PropertySetInterface $ps);
 }

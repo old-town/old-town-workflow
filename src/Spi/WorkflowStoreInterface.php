@@ -5,7 +5,6 @@
  */
 namespace OldTown\Workflow\Spi;
 
-use OldTown\Workflow\Exception\StoreException;
 use OldTown\PropertySet\PropertySetInterface;
 use DateTime;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
@@ -24,7 +23,6 @@ interface WorkflowStoreInterface
          * @param integer $entryId id workflow
          * @param integer $state id состояния в которое переводится сущность workflow
          * @return void
-         * @throws StoreException
          */
         public function setEntryState($entryId, $state);
 
@@ -32,7 +30,6 @@ interface WorkflowStoreInterface
          * Возвращает PropertySet that связанный с данным экземпляром workflow
          * @param integer $entryId id workflow
          * @return PropertySetInterface
-         * @throws StoreException
          */
         public function getPropertySet($entryId);
 
@@ -46,7 +43,6 @@ interface WorkflowStoreInterface
          * @param DateTime $dueDate
          * @param string $status статус
          * @param integer[] $previousIds Id предыдущих шагов
-         * @throws StoreException
          * @return StepInterface объект описывающий сохраненный шаг workflow
          */
         public function createCurrentStep($entryId, $stepId, $owner = null, DateTime $startDate, DateTime $dueDate = null, $status, array $previousIds = []);
@@ -55,7 +51,7 @@ interface WorkflowStoreInterface
          * Создает новую сущность workflow (не инициазированную)
          *
          * @param string $workflowName имя workflow, используемого для данной сущности
-         * @throws StoreException
+         *
          * @return WorkflowEntryInterface
          */
         public function createEntry($workflowName);
@@ -80,7 +76,7 @@ interface WorkflowStoreInterface
          * Получения истории шагов
          *
          * @param entryId
-         * @throws StoreException
+         *
          * @return StepInterface[]|SplObjectStorage
          */
         public function findHistorySteps($entryId);
@@ -89,7 +85,7 @@ interface WorkflowStoreInterface
          * Вызывается один раз, при инициализации хранилища
          *
          * @param array $props
-         * @throws StoreException
+         *
          */
         public function init(array $props = []);
 
@@ -101,7 +97,7 @@ interface WorkflowStoreInterface
          * @param DateTime $finishDate дата когда шаг был финиширован
          * @param string $status
          * @param string $caller Информация о том, кто вызвал шаг что бы его закончить
-         * @throws StoreException
+         *
          * @return StepInterface finished step
          */
         public function markFinished(StepInterface $step, $actionId, DateTime $finishDate, $status, $caller);
@@ -116,7 +112,7 @@ interface WorkflowStoreInterface
 
         /**
          * @param WorkflowExpressionQuery $query
-         * @throws StoreException
+         *
          * @return array
          */
         public function query(WorkflowExpressionQuery $query);

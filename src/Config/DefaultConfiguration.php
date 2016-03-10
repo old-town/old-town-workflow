@@ -456,9 +456,7 @@ class  DefaultConfiguration implements ConfigurationInterface
      */
     public function getWorkflowNames()
     {
-        $names = $this->getFactory()->getWorkflowNames();
-
-        return $names;
+        return $this->getFactory()->getWorkflowNames();
     }
 
     /**

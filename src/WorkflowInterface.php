@@ -37,12 +37,12 @@ interface WorkflowInterface
     public function getEntryState($id);
 
     /**
-     * Returns a list of all steps that are completed for the given workflow instance id.
+     * Возвращает информацию о том в какие шаги, были осуществленны переходы, для процесса workflow с заданным id
      *
-     * @param integer $id The workflow instance id.
-     * @return StepInterface[] a List of Steps
+     * @param integer $entryId уникальный идентификатор процесса workflow
+     * @return StepInterface[]|SplObjectStorage a List of Steps
      */
-    public function getHistorySteps($id);
+    public function getHistorySteps($entryId);
 
     /**
      * Get the PropertySet for the specified workflow instance id.
@@ -105,20 +105,20 @@ interface WorkflowInterface
     public function changeEntryState($id, $newState);
 
     /**
-     * Perform an action on the specified workflow instance.
-     * @param integer $id The workflow instance id.
-     * @param integer $actionId The action id to perform (action id's are listed in the workflow descriptor).
-     * @param TransientVarsInterface $inputs The inputs to the workflow instance.
-     * instance's current state.
+     * Осуществляет переходл в новое состояние, для заданного процесса workflow
+     *
+     * @param integer $entryId id запущенного процесса workflow
+     * @param integer $actionId id действия, доступного та текущем шаеге процессса workflow
+     * @param TransientVarsInterface $inputs Входные данные для перехода
      */
-    public function doAction($id, $actionId, TransientVarsInterface $inputs = null);
+    public function doAction($entryId, $actionId, TransientVarsInterface $inputs = null);
 
     /**
      * Executes a special trigger-function using the context of the given workflow instance id.
      * Note that this method is exposed for Quartz trigger jobs, user code should never call it.
      * @param integer $id The workflow instance id
      * @param integer $triggerId The id of the special trigger-function
-     * @thrown WorkflowException
+     *
      */
     public function executeTriggerFunction($id, $triggerId);
 
