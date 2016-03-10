@@ -40,10 +40,7 @@ class Data extends AbstractEngine implements DataInterface
      */
     public function populateTransientMap(WorkflowEntryInterface $entry, TransientVarsInterface $transientVars, $registersStorage, $actionId = null, $currentSteps, PropertySetInterface $ps)
     {
-        if (!is_array($currentSteps) && !$currentSteps  instanceof Traversable) {
-            $errMsg = 'Current steps not valid';
-            throw new InvalidArgumentException($errMsg);
-        }
+        $this->validateIterateData($currentSteps);
 
         $workflowManager = $this->getWorkflowManager();
         $context = $workflowManager->getContext();
@@ -126,5 +123,20 @@ class Data extends AbstractEngine implements DataInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Проверка того что данные могут быть использованы в цикле
+     *
+     * @param $data
+     *
+     * @throws InvalidArgumentException
+     */
+    public function validateIterateData($data)
+    {
+        if (!is_array($data) && !$data  instanceof Traversable) {
+            $errMsg = 'Data not iterate';
+            throw new InvalidArgumentException($errMsg);
+        }
     }
 }

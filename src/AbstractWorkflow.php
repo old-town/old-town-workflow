@@ -28,7 +28,6 @@ use OldTown\Workflow\Spi\WorkflowEntryInterface;
 use OldTown\Workflow\Spi\WorkflowStoreInterface;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use Psr\Log\LoggerInterface;
-use Traversable;
 use SplObjectStorage;
 use OldTown\Workflow\TransientVars\BaseTransientVars;
 use ReflectionClass;
@@ -246,24 +245,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         return $entryId;
     }
-
-
-    /**
-     * Проверка того что данные могут быть использованы в цикле
-     *
-     * @param $data
-     *
-     * @throws InvalidArgumentException
-     */
-    protected function validateIterateData($data)
-    {
-        if (!is_array($data) && !$data  instanceof Traversable) {
-            $errMsg = 'Data not iterate';
-            throw new InvalidArgumentException($errMsg);
-        }
-    }
-
-
 
     /**
      * @param $id

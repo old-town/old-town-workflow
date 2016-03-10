@@ -40,4 +40,11 @@ interface DataInterface extends EngineInterface
      * @return TransientVarsInterface
      */
     public function populateTransientMap(WorkflowEntryInterface $entry, TransientVarsInterface $transientVars, $registersStorage, $actionId = null, $currentSteps, PropertySetInterface $ps);
+
+    /**
+     * Проверка того что данные могут быть использованы в цикле
+     *
+     * @param $data
+     */
+    public function validateIterateData($data);
 }

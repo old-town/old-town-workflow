@@ -5,8 +5,6 @@
  */
 namespace OldTown\Workflow\Engine;
 
-use OldTown\Workflow\Exception\InternalWorkflowException;
-use OldTown\Workflow\Exception\InvalidArgumentException;
 use OldTown\Workflow\Loader\ActionDescriptor;
 use Traversable;
 use DateTime;
@@ -26,17 +24,12 @@ class Entry extends AbstractEngine implements EntryInterface
      *
      * @return void
      *
-     * @throws InvalidArgumentException
-     * @throws InternalWorkflowException
      */
     public function completeEntry(ActionDescriptor $action = null, $id, $currentSteps, $state)
     {
-        if (!is_array($currentSteps) && !$currentSteps  instanceof Traversable) {
-            $errMsg = 'Invalid currentSteps';
-            throw new InvalidArgumentException($errMsg);
-        }
-
         $workflowManager = $this->getWorkflowManager();
+        $workflowManager->getEngineManager()->getDataEngine()->validateIterateData($currentSteps);
+
         $context = $workflowManager->getContext();
 
         $store = $workflowManager->getConfiguration()->getWorkflowStore();
