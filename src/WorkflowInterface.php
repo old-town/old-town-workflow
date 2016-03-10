@@ -23,10 +23,10 @@ interface WorkflowInterface
     /**
      * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
      *
-     * @param integer $id id экземпляра workflow
+     * @param integer $entryId id экземпляра workflow
      * @return SplObjectStorage|StepInterface[]
      */
-    public function getCurrentSteps($id);
+    public function getCurrentSteps($entryId);
 
     /**
      * Возвращает состояние для текущего экземпляра workflow

@@ -51,6 +51,16 @@ use ArrayObject;
 abstract class  AbstractWorkflow implements WorkflowInterface
 {
     /**
+     * @var string
+     */
+    const CURRENT_STEPS = 'currentSteps';
+
+    /**
+     * @var string
+     */
+    const HISTORY_STEPS = 'historySteps';
+
+    /**
      * @var WorkflowContextInterface
      */
     protected $context;
@@ -1004,29 +1014,63 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      *
      * Возвращает коллекцию объектов описывающие состояние для текущего экземпляра workflow
      *
-     * @param integer $id id экземпляра workflow
+     * @param integer $entryId id экземпляра workflow
      *
      * @return SplObjectStorage|StepInterface[]
      *
      * @throws InternalWorkflowException
      */
-    public function getCurrentSteps($id)
+    public function getCurrentSteps($entryId)
+    {
+        return $this->getStepFromStorage($entryId, static::CURRENT_STEPS);
+    }
+
+    /**
+     * Возвращает информацию о том в какие шаги, были осуществленны переходы, для процесса workflow с заданным id
+     *
+     * @param integer $entryId уникальный идентификатор процесса workflow
+     *
+     * @return StepInterface[]|SplObjectStorage список шагов
+     *
+     * @throws InternalWorkflowException
+     */
+    public function getHistorySteps($entryId)
+    {
+        return $this->getStepFromStorage($entryId, static::HISTORY_STEPS);
+    }
+
+    /**
+     * Получение шагов информации о шагах процесса workflow
+     *
+     * @param $entryId
+     * @param $type
+     *
+     * @return Spi\StepInterface[]|SplObjectStorage
+     *
+     * @throws InternalWorkflowException
+     */
+    protected function getStepFromStorage($entryId, $type)
     {
         try {
             $store = $this->getPersistence();
 
-            return $store->findCurrentSteps($id);
+            if (static::CURRENT_STEPS === $type) {
+                return $store->findCurrentSteps($entryId);
+            } elseif (static::HISTORY_STEPS === $type) {
+                return $store->findHistorySteps($entryId);
+            }
         } catch (StoreException $e) {
             $errMsg = sprintf(
-                'Ошибка при проверке текущего шага для инстанса # %s',
-                $id
+                'Ошибка при получение истории шагов для экземпляра workflow c id# %s',
+                $entryId
             );
             $this->getLog()->error($errMsg, [$e]);
-
-
-            return new SplObjectStorage();
         }
+
+        return new SplObjectStorage();
     }
+
+
 
     /**
      *
@@ -1092,12 +1136,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $type = $function->getType();
 
             $argsOriginal = $function->getArgs();
-            $args = [];
-
-            foreach ($argsOriginal as $k => $v) {
-                $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($v, $transientVars, $ps);
-                $args[$k] = $translateValue;
-            }
+            $args = $this->prepareArgs($argsOriginal, $transientVars, $ps);
 
             $provider = $this->getResolver()->getFunction($type, $args);
 
@@ -1152,12 +1191,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 $type = $input->getType();
                 $argsOriginal = $input->getArgs();
 
-                $args = [];
-
-                foreach ($argsOriginal as $k => $v) {
-                    $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($v, $transientVars, $ps);
-                    $args[$k] = $translateValue;
-                }
+                $args = $this->prepareArgs($argsOriginal, $transientVars, $ps);
 
 
                 $validator = $this->getResolver()->getValidator($type, $args);
@@ -1718,31 +1752,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         return WorkflowEntryInterface::UNKNOWN;
     }
 
-    /**
-     * Возвращает информацию о том в какие шаги, были осуществленны переходы, для процесса workflow с заданным id
-     *
-     * @param integer $entryId уникальный идентификатор процесса workflow
-     *
-     * @return StepInterface[]|SplObjectStorage список шагов
-     *
-     * @throws InternalWorkflowException
-     */
-    public function getHistorySteps($entryId)
-    {
-        try {
-            $store = $this->getPersistence();
-
-            return $store->findHistorySteps($entryId);
-        } catch (StoreException $e) {
-            $errMsg = sprintf(
-                'Ошибка при получение истории шагов для экземпляра workflow c id# %s',
-                $entryId
-            );
-            $this->getLog()->error($errMsg, [$e]);
-        }
-
-        return new SplObjectStorage();
-    }
 
     /**
      * Настройки хранилища
@@ -2078,11 +2087,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $argsOriginal = $conditionDesc->getArgs();
 
 
-        $args = [];
-        foreach ($argsOriginal as $key => $value) {
-            $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($value, $transientVars, $ps);
-            $args[$key] = $translateValue;
-        }
+        $args = $this->prepareArgs($argsOriginal, $transientVars, $ps);
 
         if (-1 !== $currentStepId) {
             $stepId = array_key_exists('stepId', $args) ? (integer)$args['stepId'] : null;
@@ -2118,5 +2123,28 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         }
 
         return $passed;
+    }
+
+    /**
+     * Подготавливает аргументы.
+     *
+     * @param array                  $argsOriginal
+     *
+     * @param TransientVarsInterface $transientVars
+     * @param PropertySetInterface   $ps
+     *
+     * @return array
+     *
+     * @throws InternalWorkflowException
+     */
+    protected function prepareArgs(array $argsOriginal = [], TransientVarsInterface $transientVars, PropertySetInterface $ps)
+    {
+        $args = [];
+        foreach ($argsOriginal as $key => $value) {
+            $translateValue = $this->getConfiguration()->getVariableResolver()->translateVariables($value, $transientVars, $ps);
+            $args[$key] = $translateValue;
+        }
+
+        return $args;
     }
 }
