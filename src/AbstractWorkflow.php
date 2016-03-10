@@ -203,22 +203,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     protected function populateTransientMap(WorkflowEntryInterface $entry, TransientVarsInterface $transientVars, $registersStorage, $actionId = null, $currentSteps, PropertySetInterface $ps)
     {
-        if (!is_array($currentSteps) && !$currentSteps  instanceof Traversable) {
-            $errMsg = 'CurrentSteps должен быть массивом, либо реализовывать интерфейс Traversable';
-            throw new InvalidArgumentException($errMsg);
-        }
+        $this->validateIterateData($currentSteps);
 
-        if ($registersStorage instanceof Traversable) {
-            $registers = [];
-            foreach ($registersStorage as $k => $v) {
-                $registers[$k] = $v;
-            }
-        } elseif (is_array($registersStorage)) {
-            $registers = $registersStorage;
-        } else {
-            $errMsg = 'Registers должен быть массивом, либо реализовывать интерфейс Traversable';
-            throw new InvalidArgumentException($errMsg);
-        }
+        $registers = $this->convertDataInArray($registersStorage);
+
+
         /** @var RegisterDescriptor[] $registers */
 
         $transientVars['context'] = $this->context;
@@ -269,6 +258,48 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     }
 
     /**
+     * Проверка того что данные могут быть использованы в цикле
+     *
+     * @param $data
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function validateIterateData($data)
+    {
+        if (!is_array($data) && !$data  instanceof Traversable) {
+            $errMsg = 'Data not iterate';
+            throw new InvalidArgumentException($errMsg);
+        }
+    }
+
+    /**
+     * Преобразование данных в массив
+     *
+     * @param $data
+     *
+     * @return array
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function convertDataInArray($data)
+    {
+        $result = [];
+        if ($data instanceof Traversable) {
+            foreach ($data as $k => $v) {
+                $result[$k] = $v;
+            }
+        } elseif (is_array($data)) {
+            $result = $data;
+        } else {
+            $errMsg = 'Data must be an array or an interface to implement Traversable';
+            throw new InvalidArgumentException($errMsg);
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Переход между двумя статусами
      *
      * @param WorkflowEntryInterface $entry
@@ -291,7 +322,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             $validators = $action->getValidators();
             if ($validators->count() > 0) {
-                $this->verifyInputs($entry, $validators, $transientVars, $ps);
+                $this->verifyInputs($validators, $transientVars, $ps);
             }
 
 
@@ -321,7 +352,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
                     $validatorsStorage = $conditionalResult->getValidators();
                     if ($validatorsStorage->count() > 0) {
-                        $this->verifyInputs($entry, $validatorsStorage, $transientVars, $ps);
+                        $this->verifyInputs($validatorsStorage, $transientVars, $ps);
                     }
 
                     $extraPreFunctions = $conditionalResult->getPreFunctions();
@@ -334,7 +365,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
             if (null ===  $theResult) {
                 $theResult = $action->getUnconditionalResult();
-                $this->verifyInputs($entry, $theResult->getValidators(), $transientVars, $ps);
+                $this->verifyInputs($theResult->getValidators(), $transientVars, $ps);
                 $extraPreFunctions = $theResult->getPreFunctions();
                 $extraPostFunctions = $theResult->getPostFunctions();
             }
@@ -359,7 +390,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
                 foreach ($results as $resultDescriptor) {
                     if ($resultDescriptor->getValidators()->count() > 0) {
-                        $this->verifyInputs($entry, $resultDescriptor->getValidators(), $transientVars, $ps);
+                        $this->verifyInputs($resultDescriptor->getValidators(), $transientVars, $ps);
                     }
 
                     foreach ($resultDescriptor->getPreFunctions() as $function) {
@@ -454,7 +485,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
                     $joinResultValidators = $joinResult->getValidators();
                     if ($joinResultValidators->count() > 0) {
-                        $this->verifyInputs($entry, $joinResultValidators, $transientVars, $ps);
+                        $this->verifyInputs($joinResultValidators, $transientVars, $ps);
                     }
 
                     foreach ($joinResult->getPreFunctions() as $function) {
@@ -650,10 +681,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      */
     protected function completeEntry(ActionDescriptor $action = null, $id, $currentSteps, $state)
     {
-        if (!($currentSteps instanceof Traversable || is_array($currentSteps))) {
-            $errMsg = 'CurrentSteps должен быть массивом, либо реализовывать интерфейс Traversable';
-            throw new InvalidArgumentException($errMsg);
-        }
+        $this->validateIterateData($currentSteps);
 
 
         $this->getPersistence()->setEntryState($id, $state);
@@ -1158,7 +1186,6 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
 
     /**
-     * @param WorkflowEntryInterface $entry
      * @param $validatorsStorage
      * @param TransientVarsInterface $transientVars
      * @param PropertySetInterface $ps
@@ -1168,22 +1195,9 @@ abstract class  AbstractWorkflow implements WorkflowInterface
      * @throws InternalWorkflowException
      * @throws InvalidInputException
      */
-    protected function verifyInputs(WorkflowEntryInterface $entry, $validatorsStorage, TransientVarsInterface $transientVars, PropertySetInterface $ps)
+    protected function verifyInputs($validatorsStorage, TransientVarsInterface $transientVars, PropertySetInterface $ps)
     {
-        if ($validatorsStorage instanceof Traversable) {
-            $validators = [];
-            foreach ($validatorsStorage as $k => $v) {
-                $validators[$k] = $v;
-            }
-        } elseif (is_array($validatorsStorage)) {
-            $validators = $validatorsStorage;
-        } else {
-            $errMsg = sprintf(
-                'Validators должен быть массивом, либо реализовывать интерфейс Traversable. EntryId: %s',
-                $entry->getId()
-            );
-            throw new InvalidArgumentException($errMsg);
-        }
+        $validators = $this->convertDataInArray($validatorsStorage);
 
         /** @var ValidatorDescriptor[] $validators */
         foreach ($validators as $input) {
