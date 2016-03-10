@@ -6,12 +6,14 @@
 namespace OldTown\Workflow;
 
 use OldTown\Workflow\Config\ConfigurationInterface;
+use OldTown\Workflow\Engine\EngineManagerInterface;
 use OldTown\Workflow\Query\WorkflowExpressionQuery;
 use OldTown\Workflow\Spi\StepInterface;
 use OldTown\PropertySet\PropertySetInterface;
 use OldTown\Workflow\Loader\WorkflowDescriptor;
 use OldTown\Workflow\TransientVars\TransientVarsInterface;
 use SplObjectStorage;
+use Psr\Log\LoggerInterface;
 
 /**
  * Interface WorkflowInterface
@@ -178,4 +180,43 @@ interface WorkflowInterface
      * @return TypeResolverInterface
      */
     public function getResolver();
+
+    /**
+     * @return WorkflowContextInterface
+     */
+    public function getContext();
+
+
+    /**
+     * Устанавливает менеджер движков
+     *
+     * @return EngineManagerInterface
+     */
+    public function getEngineManager();
+
+    /**
+     * Возвращает менеджер движков
+     *
+     * @param EngineManagerInterface $engineManager
+     *
+     * @return $this
+     */
+    public function setEngineManager(EngineManagerInterface $engineManager);
+
+    /**
+     * Возвращает логер
+     *
+     * @return LoggerInterface
+     */
+    public function getLog();
+
+    /**
+     * Устанавливает логер
+     *
+     * @param LoggerInterface $log
+     *
+     * @return $this
+     *
+     */
+    public function setLog($log);
 }
