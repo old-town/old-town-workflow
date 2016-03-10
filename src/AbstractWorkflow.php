@@ -989,6 +989,11 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $wf = $this->getConfiguration()->getWorkflow($entry->getWorkflowName());
 
         $currentSteps = $store->findCurrentSteps($entryId);
+        if (!$currentSteps instanceof SplObjectStorage) {
+            $errMsg = 'Invalid currentSteps';
+            throw new InternalWorkflowException($errMsg);
+        }
+
         $action = null;
 
         $ps = $store->getPropertySet($entryId);
