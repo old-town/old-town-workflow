@@ -96,6 +96,13 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     protected $defaultTypeResolverClass = TypeResolver::class;
 
     /**
+     * Карта переходов состояния процесса workflow
+     *
+     * @var null|array
+     */
+    protected $mapEntryState;
+
+    /**
      * AbstractWorkflow constructor.
      *
      * @throws InternalWorkflowException
@@ -103,6 +110,33 @@ abstract class  AbstractWorkflow implements WorkflowInterface
     public function __construct()
     {
         $this->initLoger();
+        $this->initMapEntryState();
+    }
+
+    /**
+     * Инициация карты переходов состояния процесса workflow
+     */
+    protected function initMapEntryState()
+    {
+        $this->mapEntryState = [
+            WorkflowEntryInterface::COMPLETED => [
+                WorkflowEntryInterface::ACTIVATED => WorkflowEntryInterface::ACTIVATED
+            ],
+            WorkflowEntryInterface::CREATED => [],
+            WorkflowEntryInterface::ACTIVATED => [
+                WorkflowEntryInterface::CREATED => WorkflowEntryInterface::CREATED,
+                WorkflowEntryInterface::SUSPENDED => WorkflowEntryInterface::SUSPENDED,
+
+            ],
+            WorkflowEntryInterface::SUSPENDED => [
+                WorkflowEntryInterface::ACTIVATED => WorkflowEntryInterface::ACTIVATED
+            ],
+            WorkflowEntryInterface::KILLED => [
+                WorkflowEntryInterface::SUSPENDED => WorkflowEntryInterface::SUSPENDED,
+                WorkflowEntryInterface::ACTIVATED => WorkflowEntryInterface::ACTIVATED,
+                WorkflowEntryInterface::CREATED => WorkflowEntryInterface::CREATED
+            ]
+        ];
     }
 
     /**
@@ -682,13 +716,14 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 }
             }
 
-
-            foreach ($currentSteps as $step) {
-                $data = $this->getAvailableActionsForStep($wf, $step, $transientVars, $ps);
-                foreach ($data as $v) {
-                    $l[] = $v;
+            foreach ($currentSteps as $currentStep) {
+                $availableActionsForStep = $this->getAvailableActionsForStep($wf, $currentStep, $transientVars, $ps);
+                foreach ($availableActionsForStep as $actionId) {
+                    $l[] = $actionId;
                 }
             }
+
+
             return array_unique($l);
         } catch (\Exception $e) {
             $errMsg = 'Ошибка проверки доступных действий';
@@ -1061,6 +1096,8 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         }
     }
 
+
+
     /**
      *
      * Check if the state of the specified workflow instance can be changed to the new specified one.
@@ -1079,58 +1116,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
 
         $currentState = $entry->getState();
 
-        $result = false;
-
-
-        try {
-            switch ($newState) {
-                case WorkflowEntryInterface::COMPLETED: {
-                    if (WorkflowEntryInterface::ACTIVATED === $currentState) {
-                        $result = true;
-                    }
-                    break;
-                }
-
-                //@TODO Разобраться с бизнес логикой. Может быть нужно добавить break
-                /** @noinspection PhpMissingBreakStatementInspection */
-                case WorkflowEntryInterface::CREATED: {
-                    $result = false;
-                }
-                case WorkflowEntryInterface::ACTIVATED: {
-                    if (WorkflowEntryInterface::CREATED === $currentState || WorkflowEntryInterface::SUSPENDED === $currentState) {
-                        $result = true;
-                    }
-                    break;
-                }
-                case WorkflowEntryInterface::SUSPENDED: {
-                    if (WorkflowEntryInterface::ACTIVATED === $currentState) {
-                        $result = true;
-                    }
-                    break;
-                }
-                case WorkflowEntryInterface::KILLED: {
-                    if (WorkflowEntryInterface::SUSPENDED === $currentState || WorkflowEntryInterface::ACTIVATED === $currentState || WorkflowEntryInterface::CREATED === $currentState) {
-                        $result = true;
-                    }
-                    break;
-                }
-                default: {
-                    $result = false;
-                    break;
-                }
-
-            }
-
-            return $result;
-        } catch (StoreException $e) {
-            $errMsg = sprintf(
-                'Ошибка проверки изменения состояния для инстанса #%s',
-                $id
-            );
-            $this->getLog()->error($errMsg, [$e]);
-        }
-
-        return false;
+        return array_key_exists($newState, $this->mapEntryState) && array_key_exists($currentState, $this->mapEntryState[$newState]);
     }
 
 
