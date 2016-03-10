@@ -418,7 +418,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                         $stepDesc = $wf->getStep($currentStep->getStepId());
 
                         if ($stepDesc->resultsInJoin($join)) {
-                            $joinSteps[] = $currentSteps;
+                            $joinSteps[] = $currentStep;
                         }
                     }
                 }
@@ -1741,7 +1741,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             $this->getLog()->error($errMsg, [$e]);
         }
 
-        return [];
+        return new SplObjectStorage();
     }
 
     /**
