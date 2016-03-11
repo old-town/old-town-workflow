@@ -1024,6 +1024,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
         $store = $this->getPersistence();
         $entry = $store->findEntry($id);
 
+
         if ($newState === $entry->getState()) {
             return;
         }
