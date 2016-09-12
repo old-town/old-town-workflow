@@ -478,7 +478,12 @@ abstract class  AbstractWorkflow implements WorkflowInterface
             }
         }
 
-        if (WorkflowEntryInterface::COMPLETED !== $entry->getState() && null !== $wf->getInitialAction($action->getId())) {
+        $postFunctions = $action->getPostFunctions();
+        foreach ($postFunctions as $postFunction) {
+            $this->executeFunction($postFunction, $transientVars, $ps);
+        }
+
+        if (WorkflowEntryInterface::ACTIVATED !== $entry->getState() && null !== $wf->getInitialAction($action->getId())) {
             $this->changeEntryState($entry->getId(), WorkflowEntryInterface::ACTIVATED);
         }
 
