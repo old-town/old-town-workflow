@@ -4,6 +4,7 @@ pages:
     - 'Руководство OTWorkflow':
       - 'Оглавление': 'manual/manual.md'
       - 'Концепция OTWorkflow': 'manual/understanding_otworkflow/workflow_concepts.md'
+      - 'Жизненный цикл действий OTWorkflow': 'manual/life-cycle.md'
 site_name: workflow
 site_description: 'Движок workflow'
 repo_url: 'https://github.com/old-town/old-town-workflow'
