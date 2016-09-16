@@ -1545,7 +1545,7 @@ abstract class  AbstractWorkflow implements WorkflowInterface
                 throw new InvalidArgumentException($errMsg);
             }
 
-            if (WorkflowEntryInterface::ACTIVATED === $entry->getState()) {
+            if (WorkflowEntryInterface::ACTIVATED !== $entry->getState()) {
                 return [];
             }
 
